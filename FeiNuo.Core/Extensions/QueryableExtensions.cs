@@ -2,7 +2,6 @@
 
 namespace FeiNuo.Core
 {
-
     /// <summary>
     /// 查询扩展：添加通过字符串排序的方法
     /// </summary>
