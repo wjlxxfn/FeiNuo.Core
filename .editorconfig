@@ -1,0 +1,7 @@
+﻿[*.cs]
+
+# IDE0290: 使用主构造函数
+dotnet_diagnostic.IDE0290.severity = none
+
+# IDE0060: 删除未使用的参数
+dotnet_code_quality_unused_parameters = non_public
