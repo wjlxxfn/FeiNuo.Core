@@ -45,14 +45,26 @@ namespace FeiNuo.Core
             {
                 var attr = type.GetCustomAttribute<ServiceAttribute>()!;
                 var lifetime = attr.Lifetime;
-                // 没指定接口类型，直接注入原类型
-                if (null == attr.ServiceTypes || attr.ServiceTypes.Length == 0)
+                // 有指定接口类型的，根据接口类型注入
+                if (null != attr.ServiceTypes && attr.ServiceTypes.Length > 0)
                 {
-                    AddService(services, lifetime, type, type);
+                    attr.ServiceTypes.ToList().ForEach(t => AddService(services, lifetime, t, type));
                 }
                 else
                 {
-                    attr.ServiceTypes.ToList().ForEach(t => AddService(services, lifetime, t, type));
+                    // 有指定接口的注入接口
+                    var interfaces = type.GetInterfaces().ToList();
+                    if (interfaces.Count > 0)
+                    {
+                        foreach (var r in interfaces)
+                        {
+                            AddService(services, ServiceLifetime.Scoped, r, type);
+                        }
+                    }
+                    else // 没有在注解中指定接口类型,也没有实现接口，则直接注入原类型
+                    {
+                        AddService(services, lifetime, type, type);
+                    }
                 }
             }
             #endregion
