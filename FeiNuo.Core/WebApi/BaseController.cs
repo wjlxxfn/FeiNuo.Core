@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authentication;
+﻿using FeiNuo.Core.Utilities;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FeiNuo.Core
@@ -35,6 +36,20 @@ namespace FeiNuo.Core
         protected LoginUser CurrentUser
         {
             get { return new LoginUser(User.Claims); }
+        }
+
+        /// <summary>
+        /// 当前登录用户对象
+        /// </summary>
+        protected LoginUser CurrentUserContext
+        {
+            get
+            {
+                return new LoginUser(User.Claims)
+                {
+                    RequestClient = ClientUtils.GetClientInfo(HttpContext)
+                };
+            }
         }
 
         /// <summary>

@@ -36,6 +36,12 @@ namespace FeiNuo.Core
         public string UserData { get; set; } = string.Empty;
 
         /// <summary>
+        /// 请求的客户端信息，有需要时需手动在Controller中赋值 
+        /// user.RequestClient = ClientUtils.GetClientInfo(HttpContext);
+        /// </summary>
+        public RequestClient? RequestClient { get; set; }
+
+        /// <summary>
         /// 默认构造函数
         /// </summary>
         public LoginUser() { }
