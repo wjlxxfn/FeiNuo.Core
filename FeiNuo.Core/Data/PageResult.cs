@@ -17,6 +17,10 @@
         public IEnumerable<TEntity> DataList { get; set; } = [];
 
         /// <summary>
+        /// 无参构造函数
+        /// </summary>
+        public PageResult() { }
+        /// <summary>
         /// 构造函数
         /// </summary>
         /// <param name="dataList">当前页的数据</param>

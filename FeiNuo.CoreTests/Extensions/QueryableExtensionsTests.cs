@@ -16,15 +16,15 @@ namespace FeiNuo.Core.Tests
                 new ("4aaa","1bbb"),
             };
 
-            var result = list.OrderBy("Key").ThenBy("Value").First();
+            var result = list.AsQueryable().OrderBy("Key").ThenBy("Value").First();
             Assert.AreEqual("1aaa", result.Key);
             Assert.AreEqual("2bbb", result.Value);
 
-            result = list.OrderBy("Key").ThenByDescending("Value").First();
+            result = list.AsQueryable().OrderBy("Key").ThenBy("Value").First();
             Assert.AreEqual("1aaa", result.Key);
             Assert.AreEqual("4bbb", result.Value);
 
-            Assert.ThrowsException<ArgumentException>(() => list.OrderBy("KeyNotExists"));
+            Assert.ThrowsException<ArgumentException>(() => list.AsQueryable().OrderBy("KeyNotExists"));
 
         }
     }

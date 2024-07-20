@@ -41,6 +41,12 @@ namespace FeiNuo.Core
         public LoginUser() { }
 
         /// <summary>
+        /// 根据User.Claims构造用户对象
+        /// </summary>
+        /// <param name="claims"></param>
+        public LoginUser(IEnumerable<Claim> claims) { UserClaims = claims; }
+
+        /// <summary>
         /// 构造函数
         /// roles和permissions字符串中不能有英文逗号
         /// </summary>

@@ -52,6 +52,16 @@ namespace FeiNuo.Core
     public class SortItem
     {
         /// <summary>
+        /// 排序字段
+        /// </summary>
+        public string SortField { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 排序类型
+        /// </summary>
+        public SortTypeEnum SortType { get; set; } = SortTypeEnum.ASC;
+
+        /// <summary>
         /// 无参构造函数
         /// </summary>
         public SortItem()
@@ -66,16 +76,6 @@ namespace FeiNuo.Core
             SortField = sortField;
             SortType = sortType;
         }
-
-        /// <summary>
-        /// 排序字段
-        /// </summary>
-        public string SortField { get; set; } = string.Empty;
-
-        /// <summary>
-        /// 排序类型
-        /// </summary>
-        public SortTypeEnum SortType { get; set; } = SortTypeEnum.ASC;
     }
 
     /// <summary>

@@ -26,6 +26,11 @@
         public bool? Selectable { get; set; } = null;
 
         /// <summary>
+        /// 颜色
+        /// </summary>
+        public string? Color { get; set; } = null;
+
+        /// <summary>
         /// 下级节点：树形结构使用
         /// </summary>
         public List<SelectOption>? Children { get; set; }
