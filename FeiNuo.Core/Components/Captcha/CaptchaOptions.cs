@@ -11,12 +11,12 @@
         public int Length { get; set; } = 4;
 
         /// <summary>
-        /// 图片长度
+        /// 图片宽度，单位px
         /// </summary>
         public int Width { get; set; } = 100;
 
         /// <summary>
-        /// 图片宽度
+        /// 图片高度，单位px
         /// </summary>
         public int Height { get; set; } = 40;
 

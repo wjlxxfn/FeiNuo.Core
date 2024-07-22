@@ -7,7 +7,6 @@ using System.Diagnostics;
 
 namespace FeiNuo.Core
 {
-
     /// <summary>
     /// 操作日志记录属性
     /// </summary>

@@ -1,11 +1,11 @@
 ﻿namespace FeiNuo.Core
 {
-    public interface IBaseService
+    public interface IService
     {
 
     }
 
-    public class BaseService : IBaseService
+    public class BaseService : IService
     {
 
     }

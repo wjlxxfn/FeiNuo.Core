@@ -28,14 +28,18 @@ namespace FeiNuo.Core
             // 扫描所有类
             var types = AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypes());
 
-            #region 自动注入服务类：继承[IBaseServicer]
-            var businessServiceTypes = types.Where(t => typeof(IBaseService).IsAssignableFrom(t) && t.IsClass && !t.IsAbstract);
+            #region 自动注入服务类：实现[IBaseServicer]
+            var businessServiceTypes = types.Where(t => typeof(IService).IsAssignableFrom(t) && t.IsClass && !t.IsAbstract);
             foreach (var type in businessServiceTypes)
             {
-                // 默认服务类不设接口，直接注入，有接口的把接口也注入
-                AddService(services, ServiceLifetime.Scoped, type, type);
-                var interfaces = type.GetInterfaces();
-                interfaces.ToList().ForEach(r => AddService(services, ServiceLifetime.Scoped, r, type));
+                // 服务类有接口的根据接口注入
+                var interfaces = type.GetInterfaces().Where(a => a != typeof(IService));
+                if (interfaces.Any())
+                {
+                    interfaces.ToList().ForEach(r => AddService(services, ServiceLifetime.Scoped, r, type));
+                }
+                // 没有接口的直接根据当前类的类型注入
+                else AddService(services, ServiceLifetime.Scoped, type, type);
             }
             #endregion
 
@@ -175,7 +179,6 @@ namespace FeiNuo.Core
             #region 官方jwt认证扩展，原理类似，这里不再使用
             //services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
             //{
-
             //    options.TokenValidationParameters = new TokenValidationParameters()
             //    {
             //        // 验证发行人

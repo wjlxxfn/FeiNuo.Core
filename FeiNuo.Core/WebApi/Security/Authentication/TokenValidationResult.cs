@@ -25,12 +25,18 @@
         /// </summary>
         public bool RefreshToken { get; set; } = false;
 
+        /// <summary>
+        /// 验证失败的构造函数，传入失败原因
+        /// </summary>
         public TokenValidationResult(string message)
         {
             IsValid = false;
             Message = message;
         }
 
+        /// <summary>
+        /// 验证成功的构造函数，传入转换后的用户对象
+        /// </summary>
         public TokenValidationResult(LoginUser user)
         {
             IsValid = true;

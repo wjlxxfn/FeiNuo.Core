@@ -52,9 +52,7 @@ namespace FeiNuo.Core.Security
 
                 // 保存token
                 var properties = new AuthenticationProperties();
-                properties.StoreTokens([
-                    new AuthenticationToken { Name = "access_token", Value = token }
-                ]);
+                properties.StoreTokens([new AuthenticationToken { Name = "access_token", Value = token }]);
 
                 // 保存用户信息
                 var ticket = new AuthenticationTicket(principal, properties, Scheme.Name);

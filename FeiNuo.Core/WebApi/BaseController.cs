@@ -39,9 +39,9 @@ namespace FeiNuo.Core
         }
 
         /// <summary>
-        /// 当前登录用户对象
+        /// 当前登录用户对象:添加ReqiestClient赋值
         /// </summary>
-        protected LoginUser CurrentUserContext
+        protected LoginUser CurrentUserWithClient
         {
             get
             {
