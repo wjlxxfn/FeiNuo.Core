@@ -1,4 +1,4 @@
-# FeiNuo.Core
+# FeiNuo.AspNetCore
 ## 功能介绍
     本项目基于Net8开发，用于辅助开发WebApi项目。    
 1. 封装自动注入，异常处理，登录认证，系统授权等通用代码；
@@ -27,11 +27,11 @@
 2. 支持DateOnly类型接收带时间的日期
 3. 正常响应，返回状态码2XX,直接返回系统数据
 4. 异常响应：
-    1. 没有登录信息返回：401,UnauthorizedResult
-    2. 没有权限返回：403,ForbidResult
+    1. 没有登录信息：返回 401,UnauthorizedResult
+    2. 没有权限：返回 403,ForbidResult
     3. 模型数据验证不通过：返回 400,BadRequestResult
-    4. 系统自定义异常消息：返回422,UnprocessableEntityResult
-    5. 系统异常：返回500
+    4. 系统自定义异常消息：返回 422,UnprocessableEntityResult
+    5. 系统异常：返回 500
 1. 统一序列化配置
     1. null值默认不输出
     1. 阻断循环引用
