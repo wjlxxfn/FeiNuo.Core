@@ -157,6 +157,8 @@ namespace FeiNuo.Core
             }
             #endregion
 
+            // 添加初始的登录用户服务，保证新初始化项目时不报错。且在使用登录接口报错时给出提示需实现ILoginUserService
+            services.TryAddScoped<ILoginUserService, SimpleLoginUserService>();
             // 注入登录服务
             services.TryAddScoped<ILoginService, LoginService>();
 
