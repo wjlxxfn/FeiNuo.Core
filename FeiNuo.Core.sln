@@ -14,8 +14,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FeiNuo.AspNetCore", "FeiNuo.AspNetCore\FeiNuo.AspNetCore.csproj", "{F3427285-9CC1-42A9-B4CC-70BAF5158C3F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FeiNuo.Core.Excel", "FeiNuo.Core.Excel\FeiNuo.Core.Excel.csproj", "{57B3976C-2EE5-42F2-A73E-706109EFB49C}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -34,10 +32,6 @@ Global
 		{F3427285-9CC1-42A9-B4CC-70BAF5158C3F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F3427285-9CC1-42A9-B4CC-70BAF5158C3F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F3427285-9CC1-42A9-B4CC-70BAF5158C3F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{57B3976C-2EE5-42F2-A73E-706109EFB49C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{57B3976C-2EE5-42F2-A73E-706109EFB49C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{57B3976C-2EE5-42F2-A73E-706109EFB49C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{57B3976C-2EE5-42F2-A73E-706109EFB49C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

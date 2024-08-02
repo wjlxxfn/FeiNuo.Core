@@ -4,7 +4,6 @@ using System.Data;
 
 namespace FeiNuo.Core
 {
-
     /// <summary>
     /// 使用dapper扩展原生查询功能
     /// </summary>

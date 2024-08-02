@@ -161,9 +161,15 @@ public interface ILoginService
 
 ## 四、日志模块
 
-## 五分页组件
+## 五、分页组件
 
-## PoiExcel封装
+## 六、PoiExcel封装
+    将常用属性方法封装到ExcelConfig相关类中，然后使用ExcelHelper封装POI实现
+    大部分的常用操作都可以通过配置ExcelConfig来实现。 
+    少数自定义的操作，也可通过ExcelHelper.CreateWorkbook方法获取IWorkbook对象后通过POI实现
+1. POIUtils提供常用的Excel操作
+1. ExcelConfig，ExcelSheet,ExcelColumn,ExcelStyle 将常用Excel属性剥离出来,单独定义，和POI没关系 
+1. ExcelHelper类使用POI和将ExcelConfig构建成Excel对象
 
 ## 常用扩展和工具类
 
