@@ -39,5 +39,22 @@
         /// 列的样式
         /// </summary>
         public ExcelStyle ColumnStyle { get; } = new();
+
+    }
+
+    public class ExcelColumn<T> : ExcelColumn where T : class
+    {
+        public ExcelColumn(string title, Func<T, object>? valueGetter) : base(title)
+        {
+            ValueGetter = valueGetter;
+        }
+        public ExcelColumn(string title, Action<T, IConvertible?>? valueSetter) : base(title)
+        {
+            ValueSetter = valueSetter;
+        }
+
+        public Func<T, object>? ValueGetter { get; set; }
+
+        public Action<T, IConvertible?>? ValueSetter { get; set; }
     }
 }

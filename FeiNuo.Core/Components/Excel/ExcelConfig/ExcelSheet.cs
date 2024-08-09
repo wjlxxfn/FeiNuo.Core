@@ -81,5 +81,29 @@
         {
             get { return TitleRowIndex + ExcelColumns.Max(t => t.RowTitles.Length); }
         }
+
+    }
+
+    public class ExcelSheet<T> : ExcelSheet where T : class
+    {
+        /// <summary>
+        /// 列配置
+        /// </summary>
+        public new List<ExcelColumn<T>> ExcelColumns { get; set; } = [];
+
+        /// <summary>
+        /// 数据集合
+        /// </summary>
+        public List<T> DataList = [];
+
+        public ExcelSheet(string sheetName) : base(sheetName)
+        {
+        }
+
+        public ExcelSheet(string sheetName, IEnumerable<T> dataList, IEnumerable<ExcelColumn<T>> columns) : base(sheetName)
+        {
+            DataList = dataList.ToList();
+            ExcelColumns = columns.ToList();
+        }
     }
 }
