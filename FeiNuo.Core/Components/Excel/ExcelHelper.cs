@@ -7,6 +7,7 @@ namespace FeiNuo.Core
 {
     public class ExcelHelper
     {
+        #region 创建POI对象
         /// <summary>
         /// 创建工作表
         /// </summary>
@@ -27,7 +28,7 @@ namespace FeiNuo.Core
         /// <summary>
         /// 创建工作表:添加标题，内容
         /// </summary>
-        private static ISheet CreateWorkSheet(IWorkbook wb, ExcelSheet config, StyleFactory styles)
+        public static ISheet CreateWorkSheet(IWorkbook wb, ExcelSheet config, StyleFactory styles)
         {
             var sheet = wb.CreateSheet(config.SheetName);
 
@@ -202,8 +203,118 @@ namespace FeiNuo.Core
             return sheet;
         }
 
+        public static ISheet CreateWorkSheet<T>(IWorkbook wb, ExcelSheet<T> config, StyleFactory styles) where T : class
+        {
+            var sheet = CreateWorkSheet(wb, config, styles);
+            var dataGetter = config.ExcelColumns.Select(a =)
+            foreach (var data in config.DataList)
+            {
+
+            }
+            return sheet;
+        }
+        #endregion
+
+        #region 单元格赋值
+        public static void SetCellValues(ISheet sheet, int rowIndex, int startColIndex, params object[] values)
+        {
+            var row = CellUtil.GetRow(rowIndex, sheet);
+            SetCellValues(row, startColIndex, values);
+        }
+        public static void SetCellValues(IRow row, int startColIndex, params object[] values)
+        {
+            SetCellValues(row, startColIndex, null, values);
+        }
+        public static void SetCellValues(IRow row, int startColIndex, ICellStyle? style = null, params object[] values)
+        {
+            if (values == null || values.Length == 0) return;
+            foreach (var val in values)
+            {
+                SetCellValue(row, startColIndex++, val, false, style);
+            }
+        }
+
+
+        public static void SetCellValue(IRow row, int colIndex, object? value, bool isFormular = false, ICellStyle? style = null)
+        {
+            var cell = CellUtil.GetCell(row, colIndex);
+            SetCellValue(cell, value, isFormular, style);
+        }
+        public static void SetCellValue(ISheet sheet, int rowIndex, int colIndex, object? value, bool isFormular = false, ICellStyle? style = null)
+        {
+            var row = CellUtil.GetRow(rowIndex, sheet);
+            var cell = CellUtil.GetCell(row, colIndex);
+            SetCellValue(cell, value, isFormular, style);
+        }
+        public static void SetCellValue(ICell cell, object? value, bool isFormular = false, ICellStyle? style = null)
+        {
+            ArgumentNullException.ThrowIfNull(cell);
+
+            if (style != null) cell.CellStyle = style;
+
+            if (value == null || string.IsNullOrEmpty(value.ToString())) return;
+
+            if (isFormular)
+            {
+                cell.SetCellFormula(value.ToString());
+                return;
+            }
+
+            var type = value.GetType();
+            if (type.Equals(typeof(decimal)) || type.Equals(typeof(double)) || type.Equals(typeof(float)))
+            {
+                cell.SetCellValue(Convert.ToDouble(value));
+            }
+            else if (type.Equals(typeof(int)) || type.Equals(typeof(short)) || type.Equals(typeof(long)))
+            {
+                cell.SetCellValue(Convert.ToInt64(value));
+            }
+            else if (type.Equals(typeof(DateOnly)))
+            {
+                cell.CellStyle = style;
+                cell.SetCellValue((DateOnly)value);
+            }
+            else if (type.Equals(typeof(DateTime)))
+            {
+                var dt = Convert.ToDateTime(value);
+                if (dt != DateTime.MinValue && dt.Date != DateTime.Parse("1900-01-01"))
+                {
+                    cell.SetCellValue(dt);
+                }
+            }
+            else
+            {
+                cell.SetCellValue(Convert.ToString(value));
+            }
+        }
+        #endregion
+
+        #region 获取单元格值
+        #endregion
+
+        #region 其他POI方法
         /// <summary>
-        /// 通过条件格式给所有单元格添加边框
+        /// 按坐标合并单元格
+        /// </summary>
+        public static void AddMergedRegion(ISheet sheet, int startRow, int endRow, int startCol, int endCol, ICellStyle? style = null)
+        {
+            if (style != null)
+            {
+                for (int i = startRow; i <= endRow; i++)
+                {
+                    var row = CellUtil.GetRow(i, sheet);
+                    for (int j = startCol; j <= endCol; j++)
+                    {
+                        CellUtil.GetCell(row, j).CellStyle = style;
+                    }
+                }
+            }
+            var cellRange = new CellRangeAddress(startRow, endRow, startCol, endCol);
+            sheet.AddMergedRegion(cellRange);
+        }
+
+        /// <summary>
+        /// 通过条件格式给内容区域的所有单元格添加边框
         /// </summary>
         /// <param name="sheet">工作表</param>
         /// <param name="borderStyle">边框样式，默认Thin</param>
@@ -232,26 +343,9 @@ namespace FeiNuo.Core
         }
 
         /// <summary>
-        /// 合并单元格
+        /// 创建单元格样式
         /// </summary>
-        public static void AddMergedRegion(ISheet sheet, int startRow, int endRow, int startCol, int endCol, ICellStyle? style = null)
-        {
-            style ??= PoiUtils.GetCell(sheet, startRow, startCol).CellStyle;
-            for (int i = startRow; i <= endRow; i++)
-            {
-                for (int j = startCol; j <= endCol; j++)
-                {
-                    PoiUtils.GetCell(sheet, i, j).CellStyle = style;
-                }
-            }
-            var cellRange = new CellRangeAddress(startRow, endRow, startCol, endCol);
-            sheet.AddMergedRegion(cellRange);
-        }
-
-        /// <summary>
-        /// 创建样式
-        /// </summary>
-        public static ICellStyle CreateCellStyle(ExcelStyle config, IWorkbook workbook, ICellStyle? source = null)
+        internal static ICellStyle CreateCellStyle(ExcelStyle config, IWorkbook workbook, ICellStyle? source = null)
         {
             var style = workbook.CreateCellStyle();
             if (null != source) style.CloneStyleFrom(source);
@@ -324,13 +418,24 @@ namespace FeiNuo.Core
         }
 
         /// <summary>
-        /// 生成IWorkbook,转成字节数组
+        /// 生成IWorkbook,并转成字节数组
         /// </summary>
         public static byte[] GetExcelBytes(ExcelConfig config)
         {
             var wb = CreateWorkBook(config, out _);
-            return PoiUtils.GetExcelBytes(wb);
+            return GetExcelBytes(wb);
         }
+
+        /// <summary>
+        /// 转成字节数组
+        /// </summary>
+        public static byte[] GetExcelBytes(IWorkbook workboox, bool leaveOpen = false)
+        {
+            using var ms = new MemoryStream();
+            workboox.Write(ms, leaveOpen);
+            return ms.ToArray();
+        }
+        #endregion
     }
 
     #region 样式工厂类
