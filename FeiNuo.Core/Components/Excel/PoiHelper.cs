@@ -6,7 +6,7 @@ using System.Text;
 
 namespace FeiNuo.Core
 {
-    public class ExcelHelper
+    public class PoiHelper
     {
         #region 创建POI对象
         /// <summary>
@@ -542,7 +542,7 @@ namespace FeiNuo.Core
         {
             this.workbook = workbook;
             // 创建默认格式
-            DefaultStyle = ExcelHelper.CreateCellStyle(defaultStyle ?? new ExcelStyle(), workbook);
+            DefaultStyle = PoiHelper.CreateCellStyle(defaultStyle ?? new ExcelStyle(), workbook);
         }
 
         /// <summary>
@@ -559,7 +559,7 @@ namespace FeiNuo.Core
             var key = config.StyleKey;
             if (!CACHED_STYLES.TryGetValue(key, out var style))
             {
-                style = ExcelHelper.CreateCellStyle(config, workbook, DefaultStyle);
+                style = PoiHelper.CreateCellStyle(config, workbook, DefaultStyle);
                 CACHED_STYLES.Add(key, style);
             }
             return style;
@@ -570,7 +570,7 @@ namespace FeiNuo.Core
         /// </summary>
         public ICellStyle NewStyle(ExcelStyle config)
         {
-            return ExcelHelper.CreateCellStyle(config, workbook, DefaultStyle);
+            return PoiHelper.CreateCellStyle(config, workbook, DefaultStyle);
         }
 
         #region 预定义常用的样式

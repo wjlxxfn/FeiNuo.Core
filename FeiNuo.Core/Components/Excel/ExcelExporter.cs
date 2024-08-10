@@ -19,7 +19,7 @@ namespace FeiNuo.Core
             if (excelType != null) cfg.ExcelType = excelType.Value;
             if (defaultStyle != null) cfg.DefaultStyle = defaultStyle;
 
-            Workbook = ExcelHelper.CreateWorkbook(cfg, out var styles);
+            Workbook = PoiHelper.CreateWorkbook(cfg, out var styles);
             Styles = styles;
 
             FileName = cfg.FileName;
@@ -69,7 +69,7 @@ namespace FeiNuo.Core
             {
                 throw new MessageException($"【{excelSheet.SheetName}】已存在");
             }
-            Sheet = ExcelHelper.CreateDataSheet(Workbook, excelSheet, Styles);
+            Sheet = PoiHelper.CreateDataSheet(Workbook, excelSheet, Styles);
             return this;
         }
         #endregion
@@ -81,7 +81,7 @@ namespace FeiNuo.Core
         /// <returns></returns>
         public byte[] GetBytes()
         {
-            return ExcelHelper.GetExcelBytes(Workbook);
+            return PoiHelper.GetExcelBytes(Workbook);
         }
         #endregion
     }
