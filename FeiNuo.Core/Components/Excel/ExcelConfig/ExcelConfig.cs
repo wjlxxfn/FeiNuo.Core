@@ -24,7 +24,7 @@
         /// <summary>
         /// 默认样式：水平自动，垂直居中
         /// </summary>
-        public ExcelStyle DefaultStyle { get; set; } = new() { HorizontalAlignment = 0, VerticalAlignment = 1 };
+        public ExcelStyle DefaultStyle { get; set; } = new() { HorizontalAlignment = 1, VerticalAlignment = 1 };
         #endregion
 
         #region 构造函数

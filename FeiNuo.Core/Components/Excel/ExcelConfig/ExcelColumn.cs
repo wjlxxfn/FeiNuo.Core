@@ -40,11 +40,23 @@
         /// </summary>
         public ExcelStyle ColumnStyle { get; } = new();
 
+        /// <summary>
+        /// 配置样式：方便链式调用
+        /// </summary>
+        public ExcelColumn ConfigStyle(Action<ExcelStyle> styleConfig)
+        {
+            styleConfig.Invoke(ColumnStyle);
+            return this;
+        }
+
     }
 
+    /// <summary>
+    /// 指定数据类型的列配置
+    /// </summary>
     public class ExcelColumn<T> : ExcelColumn where T : class
     {
-        public ExcelColumn(string title, Func<T, object>? valueGetter, int? width = null, string format = "") : base(title, width, format)
+        public ExcelColumn(string title, Func<T, object?>? valueGetter, int? width = null, string format = "") : base(title, width, format)
         {
             ValueGetter = valueGetter;
         }
@@ -53,8 +65,24 @@
             ValueSetter = valueSetter;
         }
 
-        public Func<T, object>? ValueGetter { get; set; }
+        /// <summary>
+        /// 列的取值方法
+        /// </summary>
+        public Func<T, object?>? ValueGetter { get; set; }
 
+
+        /// <summary>
+        /// 列的赋值方法
+        /// </summary>
         public Action<T, IConvertible?>? ValueSetter { get; set; }
+
+        /// <summary>
+        /// 配置样式：方便链式调用
+        /// </summary>
+        public new ExcelColumn<T> ConfigStyle(Action<ExcelStyle> styleConfig)
+        {
+            styleConfig.Invoke(ColumnStyle);
+            return this;
+        }
     }
 }

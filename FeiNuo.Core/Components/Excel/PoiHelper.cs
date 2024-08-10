@@ -219,12 +219,20 @@ namespace FeiNuo.Core
             if (config.ExcelColumns.Any())
             {
                 IRow row;
-                int rowIndex = config.DataRowIndex;
+                int rowIndex = config.DataRowIndex, colIndex = 0;
                 foreach (var data in config.DataList)
                 {
                     row = GetRow(sheet, rowIndex++);
+                    colIndex = 0;
                     var values = config.ExcelColumns.Select(a => a.ValueGetter!(data)).ToArray();
-                    SetCellValues(row, 0, values);
+                    foreach (var col in config.ExcelColumns)
+                    {
+                        var val = col.ValueGetter?.Invoke(data);
+                        var style = col.ColumnStyle.IsEmptyStyle
+                            ? ((val != null && (val is DateOnly || val is DateTime)) ? styles.DateStyle : null)
+                            : styles.GetStyle(col.ColumnStyle);
+                        SetCellValue(row, colIndex++, val, false, style);
+                    }
                 }
             }
             // 添加边框
@@ -281,16 +289,16 @@ namespace FeiNuo.Core
         #endregion
 
         #region 单元格赋值
-        public static void SetCellValues(ISheet sheet, int rowIndex, int startColIndex, params object[] values)
+        public static void SetCellValues(ISheet sheet, int rowIndex, int startColIndex, params object?[] values)
         {
             var row = GetRow(sheet, rowIndex);
             SetCellValues(row, startColIndex, values);
         }
-        public static void SetCellValues(IRow row, int startColIndex, params object[] values)
+        public static void SetCellValues(IRow row, int startColIndex, params object?[] values)
         {
             SetCellValues(row, startColIndex, null, values);
         }
-        public static void SetCellValues(IRow row, int startColIndex, ICellStyle? style = null, params object[] values)
+        public static void SetCellValues(IRow row, int startColIndex, ICellStyle? style = null, params object?[] values)
         {
             if (values == null || values.Length == 0) return;
             foreach (var val in values)
@@ -577,27 +585,27 @@ namespace FeiNuo.Core
         /// <summary>
         /// 文本格式：，格式 @
         /// </summary>
-        public ICellStyle TextStyle { get { return GetStyle(new() { DataFormat = "@" }); } }
+        public ICellStyle TextStyle { get { return GetStyle(new() { DataFormat = "@", HorizontalAlignment = (int)HorizontalAlignment.Left }); } }
 
         /// <summary>
         /// 日期格式：居中，格式 yyyy-MM-dd
         /// </summary>
-        public ICellStyle DateStyle { get { return GetStyle(new() { DataFormat = "yyyy-MM-dd", HorizontalAlignment = (int)HorizontalAlignment.Center }); } }
+        public ICellStyle DateStyle { get { return GetStyle(new() { DataFormat = "yyyy-mm-dd", HorizontalAlignment = (int)HorizontalAlignment.Center }); } }
 
         /// <summary>
         /// 时间格式：居中，格式 yyyy-MM-dd HH:mm
         /// </summary>
-        public ICellStyle DateTimeStyle { get { return GetStyle(new() { DataFormat = "yyyy-MM-dd HH:mm", HorizontalAlignment = (int)HorizontalAlignment.Center }); } }
+        public ICellStyle DateTimeStyle { get { return GetStyle(new() { DataFormat = "yyyy-mm-dd hh:mm", HorizontalAlignment = (int)HorizontalAlignment.Center }); } }
 
         /// <summary>
         /// 数字格式：居中，格式 0.00
         /// </summary>
-        public ICellStyle NumbericStyle { get { return GetStyle(new() { DataFormat = "0.00", HorizontalAlignment = (int)HorizontalAlignment.Center }); } }
+        public ICellStyle NumbericStyle { get { return GetStyle(new() { DataFormat = "0.00", HorizontalAlignment = (int)HorizontalAlignment.Right }); } }
 
         /// <summary>
         /// 百分比：居中，格式 0.00%
         /// </summary>
-        public ICellStyle PersentStyle { get { return GetStyle(new() { DataFormat = "0.00%", HorizontalAlignment = (int)HorizontalAlignment.Center }); } }
+        public ICellStyle PersentStyle { get { return GetStyle(new() { DataFormat = "0.00%", HorizontalAlignment = (int)HorizontalAlignment.Right }); } }
         #endregion
     }
     #endregion
