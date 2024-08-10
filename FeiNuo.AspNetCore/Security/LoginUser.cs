@@ -15,6 +15,11 @@ namespace FeiNuo.Core
         public string Username { get; set; } = null!;
 
         /// <summary>
+        /// 姓名/昵称
+        /// </summary>
+        public string Nickname { get; set; } = string.Empty;
+
+        /// <summary>
         /// 用户密码
         /// </summary>
         [JsonIgnore]
@@ -84,7 +89,6 @@ namespace FeiNuo.Core
             return Roles.Any(a => a == role);
         }
 
-
         /// <summary>
         /// 用户信息和User.Identify.Claims的转换
         /// </summary>
@@ -95,9 +99,15 @@ namespace FeiNuo.Core
             {
                 var claims = new List<Claim>()
                 {
-                    new (FNClaimTypes.Name, Username),
+                    new (FNClaimTypes.UserName, Username),
                     // new (FNClaimTypes.NotBefore, LoginTime.ToUnixTimeSeconds().ToString(),ClaimValueTypes.Double),
                 };
+
+                if (!string.IsNullOrWhiteSpace(Nickname))
+                {
+                    claims.Add(new(FNClaimTypes.NickName, Nickname));
+                }
+
                 if (Roles.Count > 0)
                 {
                     claims.Add(new(FNClaimTypes.Role, string.Join(",", Roles)));
@@ -117,7 +127,8 @@ namespace FeiNuo.Core
             }
             private set
             {
-                Username = value.SingleOrDefault(a => a.Type == FNClaimTypes.Name)!.Value;
+                Username = value.SingleOrDefault(a => a.Type == FNClaimTypes.UserName)!.Value;
+                Nickname = value.SingleOrDefault(a => a.Type == FNClaimTypes.UserName)?.Value ?? "";
 
                 var roles = value.Where(a => a.Type == FNClaimTypes.Role).SingleOrDefault();
                 Roles = null == roles ? [] : [.. roles.Value.Split(',')];
@@ -136,7 +147,8 @@ namespace FeiNuo.Core
     internal class FNClaimTypes
     {
         public const string UserId = "uid";
-        public const string Name = "name";
+        public const string UserName = "user";
+        public const string NickName = "name";
         public const string Role = "role";
         public const string Permission = "perm";
         public const string Data = "data";

@@ -45,10 +45,9 @@ namespace FeiNuo.Core
         {
             get
             {
-                return new LoginUser(User.Claims)
-                {
-                    RequestClient = ClientUtils.GetClientInfo(HttpContext)
-                };
+                var user = CurrentUser;
+                user.RequestClient = ClientUtils.GetClientInfo(HttpContext);
+                return user;
             }
         }
 

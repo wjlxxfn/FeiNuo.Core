@@ -47,7 +47,7 @@ namespace FeiNuo.Core.Security
                 var user = result.LoginUser!;
                 Logger.LogDebug("token 认证成功，用户名{Username},token:{token}", user.Username, token);
 
-                var identity = new ClaimsIdentity(user.UserClaims, Scheme.Name, FNClaimTypes.Name, FNClaimTypes.Role);
+                var identity = new ClaimsIdentity(user.UserClaims, Scheme.Name, FNClaimTypes.UserName, FNClaimTypes.Role);
                 var principal = new ClaimsPrincipal(identity);
 
                 // 保存token
