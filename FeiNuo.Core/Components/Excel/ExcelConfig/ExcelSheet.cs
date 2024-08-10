@@ -37,7 +37,7 @@
         /// <summary>
         /// 使用条件格式对所有数据区别添加边框：边框为BorderStyle.Thin
         /// </summary>
-        public bool AddConditionalBorderStyle { get; set; } = false;
+        public bool AddConditionalBorderStyle { get; set; } = true;
         #endregion
 
         #region 整体说明行，在最前面，可配置样式，行高，合并列的个数

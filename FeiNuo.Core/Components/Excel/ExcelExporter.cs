@@ -69,9 +69,7 @@ namespace FeiNuo.Core
             {
                 throw new MessageException($"【{excelSheet.SheetName}】已存在");
             }
-
             Sheet = ExcelHelper.CreateDataSheet(Workbook, excelSheet, Styles);
-            ExcelHelper.AddConditionalBorderStyle(Sheet);
             return this;
         }
         #endregion

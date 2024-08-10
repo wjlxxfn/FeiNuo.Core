@@ -187,8 +187,11 @@ namespace FeiNuo.Core
 
         public static ISheet CreateDataSheet<T>(IWorkbook wb, ExcelSheet<T> config, StyleFactory styles) where T : class
         {
+            // 边框添加的先设置成false,如果需要添加，等加完数据后在添加
+            bool addBorder = config.AddConditionalBorderStyle;
+            config.AddConditionalBorderStyle = false;
             var sheet = CreateWorkSheet(wb, config, styles);
-            if (config.ExcelColumns.Count() > 0)
+            if (config.ExcelColumns.Any())
             {
                 IRow row;
                 int rowIndex = config.DataRowIndex;
@@ -199,9 +202,11 @@ namespace FeiNuo.Core
                     SetCellValues(row, 0, values);
                 }
             }
+            // 添加边框
+            if (addBorder) AddConditionalBorderStyle(sheet);
+
             return sheet;
         }
-
         #endregion
 
         #region 单元格赋值
@@ -222,8 +227,6 @@ namespace FeiNuo.Core
                 SetCellValue(row, startColIndex++, val, false, style);
             }
         }
-
-
         public static void SetCellValue(IRow row, int colIndex, object? value, bool isFormular = false, ICellStyle? style = null)
         {
             var cell = CellUtil.GetCell(row, colIndex);
@@ -303,7 +306,7 @@ namespace FeiNuo.Core
         }
 
         /// <summary>
-        /// 通过条件格式给内容区域的所有单元格添加边框
+        /// 通过条件格式给内容区域的所有单元格添加边框,需要在添加完数据后调用
         /// </summary>
         /// <param name="sheet">工作表</param>
         /// <param name="borderStyle">边框样式，默认Thin</param>
