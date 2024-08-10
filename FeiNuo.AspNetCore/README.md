@@ -89,7 +89,7 @@ public interface ILoginUserService
         }
     }
 ```
-#### 可实现ILoginService或继承LoginService重新相关方法来修改默认的登录接口实现逻辑
+#### 可实现ILoginService或继承LoginService重写相关方法来修改默认的登录接口实现逻辑
 ```
 public interface ILoginService
     {
@@ -164,12 +164,37 @@ public interface ILoginService
 ## 五、分页组件
 
 ## 六、PoiExcel封装
-    将常用属性方法封装到ExcelConfig相关类中，然后使用ExcelHelper封装POI实现
-    大部分的常用操作都可以通过配置ExcelConfig来实现。 
-    少数自定义的操作，也可通过ExcelHelper.CreateWorkbook方法获取IWorkbook对象后通过POI实现
+    将常用属性方法封装到ExcelConfig相关类中，然后使用PoiHelper封装POI实现
+    提供ExcelExporter和ExcelImporter方法Excel的导入导出
 1. POIUtils提供常用的Excel操作
 1. ExcelConfig，ExcelSheet,ExcelColumn,ExcelStyle 将常用Excel属性剥离出来,单独定义，和POI没关系 
-1. ExcelHelper类使用POI和将ExcelConfig构建成Excel对象
+1. POIHelper类使用POI和将ExcelConfig构建成Excel对象
+1. ExcelExporter类实现快速导出数据，内部也是封装ExcelConfig实现。使用简单且灵活。
+    1. 配置列和数据对应关系
+    1. 支持配置列宽，样式
+    1. 支持多行标题，标题样式配置等
+```
+[HttpGet("export")]
+public IActionResult Export()
+{
+    var lstData = new List<UserEntity>();
+    var excel = new ExcelExporter("用户数据导出.xlsx")     // 定义导出文件名
+        .AddDataSheet(lstData, [                            // 添加Sheet,可多次添加，同时导出多个Sheet
+            new("姓名", s => s.Username, 20, "@"),         // 样式配置：列宽20，文本格式
+            new("姓别", s => s.UserData?.Gender, 15),      // 灵活取数：返回最终显示的即可
+            new("籍贯#省",s => s.Addr.Province,15),        // 多行标题：以#分隔，自动合并
+            new("籍贯#市",s => s.Addr.City),
+            new("学历",s => s.Education)
+         ], s =>                                           // 额外在配置更多内容
+        {
+            s.Description = "说明文字";
+            s.DescriptionStyle.FontBold = true;
+            s.MainTitle = "主标题";
+            s.MainTitleColSpan = 15;
+        });
+    return File(excel.GetBytes(), excel.ContentType, excel.FileName);
+}
+```
 
 ## 常用扩展和工具类
 

@@ -36,9 +36,9 @@ namespace FeiNuo.Core
         /// <param name="lstData">数据集合</param>
         /// <param name="columns">列配置</param>
         /// <param name="sheetConfig">工作表整体配置</param>
-        public ExcelExporter CreateSheet<T>(IEnumerable<T> lstData, IEnumerable<ExcelColumn<T>> columns, Action<ExcelSheet<T>>? sheetConfig = null) where T : class
+        public ExcelExporter AddDataSheet<T>(IEnumerable<T> lstData, IEnumerable<ExcelColumn<T>> columns, Action<ExcelSheet<T>>? sheetConfig = null) where T : class
         {
-            return CreateSheet("Sheet1", lstData, columns, sheetConfig);
+            return AddDataSheet("Sheet1", lstData, columns, sheetConfig);
         }
 
         /// <summary>
@@ -49,17 +49,17 @@ namespace FeiNuo.Core
         /// <param name="lstData">数据集合</param>
         /// <param name="columns">列配置</param>
         /// <param name="sheetConfig">工作表整体配置</param>
-        public ExcelExporter CreateSheet<T>(string sheetName, IEnumerable<T> lstData, IEnumerable<ExcelColumn<T>> columns, Action<ExcelSheet<T>>? sheetConfig = null) where T : class
+        public ExcelExporter AddDataSheet<T>(string sheetName, IEnumerable<T> lstData, IEnumerable<ExcelColumn<T>> columns, Action<ExcelSheet<T>>? sheetConfig = null) where T : class
         {
             var excelSheet = new ExcelSheet<T>(sheetName, lstData, columns);
             sheetConfig?.Invoke(excelSheet);
-            return CreateSheet(excelSheet);
+            return AddDataSheet(excelSheet);
         }
 
         /// <summary>
         /// 根据配置对象生成Excel
         /// </summary>
-        internal ExcelExporter CreateSheet<T>(ExcelSheet<T> excelSheet) where T : class
+        internal ExcelExporter AddDataSheet<T>(ExcelSheet<T> excelSheet) where T : class
         {
             if (string.IsNullOrWhiteSpace(excelSheet.SheetName))
             {

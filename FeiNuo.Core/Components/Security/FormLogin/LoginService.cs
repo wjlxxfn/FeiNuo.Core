@@ -28,7 +28,7 @@ namespace FeiNuo.Core.Security
             var user = await userService.LoadUserByUsername(form.Username);
             if (null == user || user.Username != form.Username) // 数据库不区分大小写的，这里在判断一次
             {
-                throw new NotFoundException($"用户名【{form.Username}】不存在！");
+                throw new MessageException($"用户名【{form.Username}】不存在！");
             }
             if (!userService.ValidatePassword(form, user))
             {

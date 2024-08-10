@@ -26,7 +26,6 @@
         /// 验证码参数配置
         /// </summary>
         public CaptchaOptions Captcha { get; set; } = new CaptchaOptions();
-
     }
 
 

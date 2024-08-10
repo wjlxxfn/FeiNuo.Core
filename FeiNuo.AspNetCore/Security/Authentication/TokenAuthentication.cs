@@ -36,7 +36,7 @@ namespace FeiNuo.Core.Security
             try
             {
                 var result = isDevelopment && token == AppConstants.SUPER_ADMIN_TOKEN
-                    ? new TokenValidationResult(new LoginUser(AppConstants.SUPER_ADMIN, "", [AppConstants.SUPER_ADMIN], []))
+                    ? new TokenValidationResult(new LoginUser(AppConstants.SUPER_ADMIN, AppConstants.SUPER_ADMIN, "", [AppConstants.SUPER_ADMIN], []))
                     : await tokenService.ValidateTokenAsync(token);
 
                 if (!result.IsValid)

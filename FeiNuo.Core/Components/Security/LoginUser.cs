@@ -41,8 +41,7 @@ namespace FeiNuo.Core
         public string UserData { get; set; } = string.Empty;
 
         /// <summary>
-        /// 请求的客户端信息，有需要时需手动在Controller中赋值 
-        /// user.RequestClient = ClientUtils.GetClientInfo(HttpContext);
+        /// 请求的客户端信息，方便传参用，有需要时需手动在Controller中赋值 
         /// </summary>
         public RequestClient? RequestClient { get; set; }
 
@@ -61,9 +60,10 @@ namespace FeiNuo.Core
         /// 构造函数
         /// roles和permissions字符串中不能有英文逗号
         /// </summary>
-        public LoginUser(string username, string password, IEnumerable<string> roles, IEnumerable<string>? permissions = null, string? userData = null)
+        public LoginUser(string username, string nickname, string password, IEnumerable<string> roles, IEnumerable<string>? permissions = null, string? userData = null)
         {
             Username = username;
+            Nickname = nickname;
             Password = password;
             Roles = roles.ToList();
             if (permissions != null) Permissions = permissions.ToList();
@@ -144,7 +144,7 @@ namespace FeiNuo.Core
         }
     }
 
-    internal class FNClaimTypes
+    public class FNClaimTypes
     {
         public const string UserId = "uid";
         public const string UserName = "user";

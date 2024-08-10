@@ -21,6 +21,10 @@ namespace FeiNuo.Core.Security
                 { "permissions", user.Permissions },
                 { "data", user.UserData??"" },
             };
+            if (!string.IsNullOrWhiteSpace(user.Nickname))
+            {
+                map.Add("nickname", user.Nickname);
+            }
             return Task.FromResult(map);
         }
 
@@ -37,7 +41,7 @@ namespace FeiNuo.Core.Security
     }
 
 
-    internal class SimpleLoginUserService : ILoginUserService
+    public class SimpleLoginUserService : ILoginUserService
     {
         public SimpleLoginUserService(ILogger<SimpleLoginUserService> logger)
         {
