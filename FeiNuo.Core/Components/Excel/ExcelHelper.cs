@@ -1,6 +1,8 @@
-﻿using FeiNuo.Core.Utilities;
+﻿using NPOI.HSSF.UserModel;
 using NPOI.SS.UserModel;
 using NPOI.SS.Util;
+using NPOI.XSSF.UserModel;
+using System.Text;
 
 namespace FeiNuo.Core
 {
@@ -8,7 +10,23 @@ namespace FeiNuo.Core
     {
         #region 创建POI对象
         /// <summary>
-        /// 创建工作表
+        /// 创建工作簿
+        /// </summary>
+        public static IWorkbook CreateWorkbook(bool xlsx = true)
+        {
+            return xlsx ? new XSSFWorkbook() : new HSSFWorkbook();
+        }
+
+        /// <summary>
+        /// 创建工作簿
+        /// </summary>
+        public static IWorkbook CreateWorkbook(Stream stream)
+        {
+            return WorkbookFactory.Create(stream);
+        }
+
+        /// <summary>
+        /// 创建工作簿
         /// </summary>
         public static IWorkbook CreateWorkbook(ExcelConfig config, out StyleFactory styles)
         {
@@ -16,7 +34,7 @@ namespace FeiNuo.Core
             config.ValidateConfigData();
 
             // 创建工作簿，生成样式工厂
-            var wb = PoiUtils.CreateWorkbook(config.IsExcel2007);
+            var wb = CreateWorkbook(config.IsExcel2007);
             styles = new StyleFactory(wb, config.DefaultStyle);
 
             // 创建工作表
@@ -29,7 +47,7 @@ namespace FeiNuo.Core
         }
 
         /// <summary>
-        /// 创建工作表:添加标题，内容
+        /// 创建工作表:添加备注描述，主标题，列标题
         /// </summary>
         public static ISheet CreateWorkSheet(IWorkbook wb, ExcelSheet config, StyleFactory styles)
         {
@@ -41,9 +59,9 @@ namespace FeiNuo.Core
             #region 生成描述行
             if (!string.IsNullOrWhiteSpace(config.Description))
             {
-                row = PoiUtils.GetRow(sheet, rowIndex);
+                row = GetRow(sheet, rowIndex);
                 row.HeightInPoints = (short)(config.DescriptionRowHeight < 0 ? 20 : config.DescriptionRowHeight);
-                cell = PoiUtils.GetCell(row, 0);
+                cell = GetCell(row, 0);
                 cell.CellStyle = styles.GetStyle(config.DescriptionStyle);
                 cell.SetCellValue(config.Description);
 
@@ -59,7 +77,8 @@ namespace FeiNuo.Core
             #region 生成主标题行
             if (!string.IsNullOrWhiteSpace(config.MainTitle))
             {
-                cell = PoiUtils.GetCell(sheet, rowIndex, 0);
+                row = GetRow(sheet, rowIndex);
+                cell = GetCell(row, 0);
                 cell.CellStyle = styles.GetStyle(config.MainTitleStyle);
                 cell.SetCellValue(config.MainTitle);
                 var mergeCount = config.MainTitleColSpan ?? columnCount;
@@ -100,7 +119,7 @@ namespace FeiNuo.Core
                     // 写入标题
                     foreach (var curTitle in rowTitles)
                     {
-                        cell = PoiUtils.GetCell(sheet, rowIndex, colIndex);
+                        cell = GetCell(sheet, rowIndex, colIndex);
                         cell.CellStyle = titleStyle;
                         cell.SetCellValue(curTitle);
 
@@ -147,7 +166,7 @@ namespace FeiNuo.Core
                         for (var j = 0; j < columnCount; j++)
                         {
                             colIndex = j;
-                            cell = PoiUtils.GetCell(sheet, rowIndex, colIndex);
+                            cell = GetCell(sheet, rowIndex, colIndex);
                             var curTitle = cell.StringCellValue;
                             lastTitle ??= curTitle;
 
@@ -188,6 +207,9 @@ namespace FeiNuo.Core
             return sheet;
         }
 
+        /// <summary>
+        /// 创建带数据的工作表，添加标题，数据
+        /// </summary>
         public static ISheet CreateDataSheet<T>(IWorkbook wb, ExcelSheet<T> config, StyleFactory styles) where T : class
         {
             // 边框添加的先设置成false,如果需要添加，等加完数据后在添加
@@ -200,7 +222,7 @@ namespace FeiNuo.Core
                 int rowIndex = config.DataRowIndex;
                 foreach (var data in config.DataList)
                 {
-                    row = CellUtil.GetRow(rowIndex++, sheet);
+                    row = GetRow(sheet, rowIndex++);
                     var values = config.ExcelColumns.Select(a => a.ValueGetter!(data)).ToArray();
                     SetCellValues(row, 0, values);
                 }
@@ -210,12 +232,58 @@ namespace FeiNuo.Core
 
             return sheet;
         }
+
+        #region 其他POI对象
+        /// <summary>
+        /// 获取行，不存在的创建一行
+        /// </summary>
+        /// <param name="sheet"></param>
+        /// <param name="rowIndex"></param>
+        /// <returns></returns>
+        public static IRow GetRow(ISheet sheet, int rowIndex)
+        {
+            return CellUtil.GetRow(rowIndex, sheet);
+        }
+
+        /// <summary>
+        /// 获取单元格式，不存在的创建新单元格
+        /// </summary>
+        public static ICell GetCell(ISheet sheet, int rowIndex, int colIndex)
+        {
+            return GetCell(GetRow(sheet, rowIndex), colIndex);
+        }
+
+        /// <summary>
+        /// 获取单元格式，不存在的创建新单元格
+        /// </summary>
+        public static ICell GetCell(IRow row, int colIndex)
+        {
+            return CellUtil.GetCell(row, colIndex);
+        }
+
+        /// <summary>
+        /// 创建富文本字符串
+        /// </summary>
+        public static IRichTextString CreateRichTextString(string text, bool xlsx = true)
+        {
+            return xlsx ? new XSSFRichTextString(text) : new HSSFRichTextString(text);
+        }
+
+        /// <summary>
+        /// 创建锚点
+        /// </summary>
+        public static IClientAnchor CreateClientAnchor(int dx1, int dy1, int dx2, int dy2, int col1, int row1, int col2, int row2, bool xlsx = true)
+        {
+            return xlsx ? new XSSFClientAnchor(dx1, dy1, dx2, dy2, col1, row1, col2, row2) : new HSSFClientAnchor(dx1, dy1, dx2, dy2, col1, row1, col2, row2);
+        }
+
+        #endregion
         #endregion
 
         #region 单元格赋值
         public static void SetCellValues(ISheet sheet, int rowIndex, int startColIndex, params object[] values)
         {
-            var row = CellUtil.GetRow(rowIndex, sheet);
+            var row = GetRow(sheet, rowIndex);
             SetCellValues(row, startColIndex, values);
         }
         public static void SetCellValues(IRow row, int startColIndex, params object[] values)
@@ -232,13 +300,13 @@ namespace FeiNuo.Core
         }
         public static void SetCellValue(IRow row, int colIndex, object? value, bool isFormular = false, ICellStyle? style = null)
         {
-            var cell = CellUtil.GetCell(row, colIndex);
+            var cell = GetCell(row, colIndex);
             SetCellValue(cell, value, isFormular, style);
         }
         public static void SetCellValue(ISheet sheet, int rowIndex, int colIndex, object? value, bool isFormular = false, ICellStyle? style = null)
         {
-            var row = CellUtil.GetRow(rowIndex, sheet);
-            var cell = CellUtil.GetCell(row, colIndex);
+            var row = GetRow(sheet, rowIndex);
+            var cell = GetCell(row, colIndex);
             SetCellValue(cell, value, isFormular, style);
         }
         public static void SetCellValue(ICell cell, object? value, bool isFormular = false, ICellStyle? style = null)
@@ -287,7 +355,7 @@ namespace FeiNuo.Core
         #region 获取单元格值
         #endregion
 
-        #region 其他POI方法
+        #region 其他辅助方法
         /// <summary>
         /// 按坐标合并单元格
         /// </summary>
@@ -297,10 +365,10 @@ namespace FeiNuo.Core
             {
                 for (int i = startRow; i <= endRow; i++)
                 {
-                    var row = CellUtil.GetRow(i, sheet);
+                    var row = GetRow(sheet, i);
                     for (int j = startCol; j <= endCol; j++)
                     {
-                        CellUtil.GetCell(row, j).CellStyle = style;
+                        GetCell(row, j).CellStyle = style;
                     }
                 }
             }
@@ -327,12 +395,12 @@ namespace FeiNuo.Core
             if (range == null)
             {
                 //取前三行的最大列索引
-                var colIndex = PoiUtils.GetRow(sheet, 0).LastCellNum;
+                var colIndex = GetRow(sheet, 0).LastCellNum;
                 if (sheet.GetRow(1) != null && sheet.GetRow(1).LastCellNum > colIndex) colIndex = sheet.GetRow(1).LastCellNum;
                 if (sheet.GetRow(2) != null && sheet.GetRow(2).LastCellNum > colIndex) colIndex = sheet.GetRow(2).LastCellNum;
                 if (colIndex <= 0) colIndex = 1;
 
-                range = CellRangeAddress.ValueOf($"A1:{PoiUtils.GetColumnName(colIndex - 1)}{(sheet.LastRowNum + 1)}");
+                range = CellRangeAddress.ValueOf($"A1:{GetColumnName(colIndex - 1)}{(sheet.LastRowNum + 1)}");
             }
             scf.AddConditionalFormatting([range], rule);
         }
@@ -429,6 +497,34 @@ namespace FeiNuo.Core
             using var ms = new MemoryStream();
             workboox.Write(ms, leaveOpen);
             return ms.ToArray();
+        }
+        #endregion
+
+        #region POIUtils
+        /// <summary>
+        /// 将Excel的列索引转换为列名，列索引从0开始，列名从A开始。如第0列为A，第1列为B...
+        /// </summary>
+        /// <param name="columnIndex">列索引</param>
+        /// <returns>列名，如第0列为A，第1列为B...</returns>
+        public static string GetColumnName(int columnIndex)
+        {
+            columnIndex++;
+            int system = 26;
+            char[] digArray = new char[100];
+            int i = 0;
+            while (columnIndex > 0)
+            {
+                int mod = columnIndex % system;
+                if (mod == 0) mod = system;
+                digArray[i++] = (char)(mod - 1 + 'A');
+                columnIndex = (columnIndex - 1) / 26;
+            }
+            var sb = new StringBuilder(i);
+            for (int j = i - 1; j >= 0; j--)
+            {
+                sb.Append(digArray[j]);
+            }
+            return sb.ToString();
         }
         #endregion
     }
