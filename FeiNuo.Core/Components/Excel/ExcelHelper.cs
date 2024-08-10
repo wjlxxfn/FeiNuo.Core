@@ -1,5 +1,4 @@
 ﻿using FeiNuo.Core.Utilities;
-using NPOI.HSSF.Util;
 using NPOI.SS.UserModel;
 using NPOI.SS.Util;
 
@@ -11,17 +10,21 @@ namespace FeiNuo.Core
         /// <summary>
         /// 创建工作表
         /// </summary>
-        public static IWorkbook CreateWorkBook(ExcelConfig config, out StyleFactory styles)
+        public static IWorkbook CreateWorkbook(ExcelConfig config, out StyleFactory styles)
         {
+            // 检查配置内容
             config.ValidateConfigData();
 
+            // 创建工作簿，生成样式工厂
             var wb = PoiUtils.CreateWorkbook(config.IsExcel2007);
-            styles = new StyleFactory(wb);
+            styles = new StyleFactory(wb, config.DefaultStyle);
 
+            // 创建工作表
             foreach (var sheet in config.ExcelSheets)
             {
                 CreateWorkSheet(wb, sheet, styles);
             }
+
             return wb;
         }
 
@@ -31,9 +34,9 @@ namespace FeiNuo.Core
         public static ISheet CreateWorkSheet(IWorkbook wb, ExcelSheet config, StyleFactory styles)
         {
             var sheet = wb.CreateSheet(config.SheetName);
-
+            var columnCount = config.ExcelColumns.Count();
             int rowIndex = 0, colIndex = 0;
-            IRow row; ICell cell; ICellStyle style;
+            IRow row; ICell cell;
 
             #region 生成描述行
             if (!string.IsNullOrWhiteSpace(config.Description))
@@ -41,44 +44,41 @@ namespace FeiNuo.Core
                 row = PoiUtils.GetRow(sheet, rowIndex);
                 row.HeightInPoints = (short)(config.DescriptionRowHeight < 0 ? 20 : config.DescriptionRowHeight);
                 cell = PoiUtils.GetCell(row, 0);
-                cell.CellStyle = styles.DescriptionStyle;
+                cell.CellStyle = styles.GetStyle(config.DescriptionStyle);
                 cell.SetCellValue(config.Description);
 
-                var mergeCount = config.DescriptionMergedRegion ?? config.ExcelColumns.Count;
+                var mergeCount = config.DescriptionColSpan ?? columnCount;
                 if (mergeCount > 0)
                 {
-                    sheet.AddMergedRegion(new CellRangeAddress(rowIndex, rowIndex, config.StartColIndex, config.StartColIndex + mergeCount - 1));
+                    sheet.AddMergedRegion(new CellRangeAddress(rowIndex, rowIndex, 0, mergeCount - 1));
                 }
                 rowIndex++;
             }
             #endregion
 
             #region 生成主标题行
-            var titleStyle = styles.TitleStyle;
             if (!string.IsNullOrWhiteSpace(config.MainTitle))
             {
                 cell = PoiUtils.GetCell(sheet, rowIndex, 0);
-                cell.CellStyle = titleStyle;
+                cell.CellStyle = styles.GetStyle(config.MainTitleStyle);
                 cell.SetCellValue(config.MainTitle);
-                var mergeCount = config.MainTitleMergedRegion ?? config.ExcelColumns.Count;
+                var mergeCount = config.MainTitleColSpan ?? columnCount;
                 if (mergeCount > 0)
                 {
-                    sheet.AddMergedRegion(new CellRangeAddress(rowIndex, rowIndex, config.StartColIndex, config.StartColIndex + mergeCount - 1));
+                    sheet.AddMergedRegion(new CellRangeAddress(rowIndex, rowIndex, 0, mergeCount - 1));
                 }
                 rowIndex++;
             }
             #endregion
 
             #region 生成列标题行
-            var autoSizeCols = new List<int>(); // 自动列宽
             var hiddenCols = new List<int>();// 需要隐藏
-            if (config.ExcelColumns.Count > 0)
+            if (columnCount > 0)
             {
-                style = styles.TitleStyle;
-
+                var titleStyle = styles.GetStyle(config.ColumnTitleStyle);
                 var titleRowCount = config.ExcelColumns.Select(a => a.RowTitles.Length).Max();
                 int titleRowStartIndex = rowIndex, titleRowEndIndex = rowIndex + titleRowCount - 1;
-                colIndex = config.StartColIndex;
+                colIndex = 0;
                 foreach (var col in config.ExcelColumns)
                 {
                     var rowTitles = col.RowTitles.ToList();
@@ -101,7 +101,7 @@ namespace FeiNuo.Core
                     foreach (var curTitle in rowTitles)
                     {
                         cell = PoiUtils.GetCell(sheet, rowIndex, colIndex);
-                        cell.CellStyle = style;
+                        cell.CellStyle = titleStyle;
                         cell.SetCellValue(curTitle);
 
                         if (titleRowCount > 1)
@@ -126,12 +126,8 @@ namespace FeiNuo.Core
                     }
 
                     // 配置列宽，隐藏
-                    if (col.Width.HasValue)
-                    {
-                        sheet.SetColumnWidth(colIndex, col.Width.Value * 256);
-                    }
-                    if (col.AutoSizeColumn) autoSizeCols.Add(colIndex);
-                    if (col.Hidden) hiddenCols.Add(colIndex);
+                    if (col.Width.HasValue) sheet.SetColumnWidth(colIndex, col.Width.Value * 256);
+                    if (col.Hidden) sheet.SetColumnHidden(colIndex, true);
                     // 设置默认格式
                     sheet.SetDefaultColumnStyle(colIndex, styles.NumbericStyle);
                     colIndex++;
@@ -139,15 +135,15 @@ namespace FeiNuo.Core
                 // 相邻列相同的合并列
                 if (titleRowCount > 1)
                 {
-                    int titleColEndIndex = config.StartColIndex + config.ExcelColumns.Count - 1;
+                    int titleColEndIndex = columnCount - 1;
                     for (int i = 0; i < titleRowCount; i++) // 循环每一行，合并行中的列
                     {
                         rowIndex = titleRowStartIndex + i;
-                        var mergeStartCol = config.StartColIndex;
+                        var mergeStartCol = 0;
                         string? lastTitle = null;
-                        for (var j = 0; j < config.ExcelColumns.Count; j++)
+                        for (var j = 0; j < columnCount; j++)
                         {
-                            colIndex = config.StartColIndex + j;
+                            colIndex = j;
                             cell = PoiUtils.GetCell(sheet, rowIndex, colIndex);
                             var curTitle = cell.StringCellValue;
                             lastTitle ??= curTitle;
@@ -172,25 +168,11 @@ namespace FeiNuo.Core
             }
             #endregion
 
-            #region 添加数据行
-            #endregion
-
             #region 工作表整体配置
             // 设置默认列宽
             if (config.DefaultColumnWidth.HasValue)
             {
                 sheet.DefaultColumnWidth = config.DefaultColumnWidth.Value;
-            }
-
-            // 设置自动列宽
-            foreach (var item in autoSizeCols)
-            {
-                sheet.AutoSizeColumn(item);
-            }
-            // 设置隐藏
-            foreach (var item in hiddenCols)
-            {
-                sheet.SetColumnHidden(item, true);
             }
 
             // 自动计算公式
@@ -203,16 +185,23 @@ namespace FeiNuo.Core
             return sheet;
         }
 
-        public static ISheet CreateWorkSheet<T>(IWorkbook wb, ExcelSheet<T> config, StyleFactory styles) where T : class
+        public static ISheet CreateDataSheet<T>(IWorkbook wb, ExcelSheet<T> config, StyleFactory styles) where T : class
         {
             var sheet = CreateWorkSheet(wb, config, styles);
-            var dataGetter = config.ExcelColumns.Select(a =)
-            foreach (var data in config.DataList)
+            if (config.ExcelColumns.Count() > 0)
             {
-
+                IRow row;
+                int rowIndex = config.DataRowIndex;
+                foreach (var data in config.DataList)
+                {
+                    row = CellUtil.GetRow(rowIndex++, sheet);
+                    var values = config.ExcelColumns.Select(a => a.ValueGetter!(data)).ToArray();
+                    SetCellValues(row, 0, values);
+                }
             }
             return sheet;
         }
+
         #endregion
 
         #region 单元格赋值
@@ -422,7 +411,7 @@ namespace FeiNuo.Core
         /// </summary>
         public static byte[] GetExcelBytes(ExcelConfig config)
         {
-            var wb = CreateWorkBook(config, out _);
+            var wb = CreateWorkbook(config, out _);
             return GetExcelBytes(wb);
         }
 
@@ -445,18 +434,19 @@ namespace FeiNuo.Core
     public class StyleFactory
     {
         private readonly IWorkbook workbook;
-        private readonly Dictionary<string, ICellStyle> createdStyles = [];
-        private readonly string defaultStyleKey;
+        private readonly Dictionary<string, ICellStyle> CACHED_STYLES = [];
 
-        public StyleFactory(IWorkbook workbook)
+        public StyleFactory(IWorkbook workbook, ExcelStyle? defaultStyle = null)
         {
             this.workbook = workbook;
             // 创建默认格式
-            var defaultCfg = new ExcelStyle() { HorizontalAlignment = (int)HorizontalAlignment.Left, VerticalAlignment = (int)VerticalAlignment.Center };
-            defaultStyleKey = defaultCfg.StyleKey;
-            var defaultStyle = ExcelHelper.CreateCellStyle(defaultCfg, workbook);
-            createdStyles.Add(defaultStyleKey, defaultStyle);
+            DefaultStyle = ExcelHelper.CreateCellStyle(defaultStyle ?? new ExcelStyle(), workbook);
         }
+
+        /// <summary>
+        /// 默认样式
+        /// </summary>
+        public ICellStyle DefaultStyle { get; private set; }
 
         /// <summary>
         /// 根本配置内容生成格式
@@ -465,50 +455,23 @@ namespace FeiNuo.Core
         public ICellStyle GetStyle(ExcelStyle config)
         {
             var key = config.StyleKey;
-            if (!createdStyles.TryGetValue(key, out var style))
+            if (!CACHED_STYLES.TryGetValue(key, out var style))
             {
                 style = ExcelHelper.CreateCellStyle(config, workbook, DefaultStyle);
+                CACHED_STYLES.Add(key, style);
             }
             return style;
         }
 
         /// <summary>
-        /// 默认格式：常规格式，水平居左，上下居中
+        /// 新建style,不从缓存中取。不要在循环中调用该方法，会产生较多样式，影响性能
         /// </summary>
-        public ICellStyle DefaultStyle { get { return createdStyles[defaultStyleKey]; } }
-
-        /// <summary>
-        /// 标题格式：继承Default，居中，加背景色
-        /// </summary>
-        public ICellStyle TitleStyle
+        public ICellStyle NewStyle(ExcelStyle config)
         {
-            get
-            {
-                return GetStyle(new()
-                {
-                    FontBold = true,
-                    HorizontalAlignment = (int)HorizontalAlignment.Center,
-                    BackgroundColor = HSSFColor.LemonChiffon.Index,
-                });
-            }
+            return ExcelHelper.CreateCellStyle(config, workbook, DefaultStyle);
         }
 
-        /// <summary>
-        /// 描述格式：继承Default，自动换行
-        /// </summary>
-        public ICellStyle DescriptionStyle
-        {
-            get
-            {
-                return GetStyle(new()
-                {
-                    HorizontalAlignment = (int)HorizontalAlignment.Left,
-                    //BackgroundColor = HSSFColor.LemonChiffon.Index,
-                    WrapText = true,
-                });
-            }
-        }
-
+        #region 预定义常用的样式
         /// <summary>
         /// 文本格式：，格式 @
         /// </summary>
@@ -533,6 +496,7 @@ namespace FeiNuo.Core
         /// 百分比：居中，格式 0.00%
         /// </summary>
         public ICellStyle PersentStyle { get { return GetStyle(new() { DataFormat = "0.00%", HorizontalAlignment = (int)HorizontalAlignment.Center }); } }
+        #endregion
     }
     #endregion
 }

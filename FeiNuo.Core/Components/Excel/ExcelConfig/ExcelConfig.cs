@@ -7,9 +7,9 @@
     {
         #region 属性定义
         /// <summary>
-        /// 文件名称：导出文件名，导入的模板下载名
+        /// 文件名
         /// </summary>
-        public string FileName { get; set; } = null!;
+        public string FileName { get; set; }
 
         /// <summary>
         /// Excel类型,2007/2003
@@ -22,15 +22,21 @@
         public List<ExcelSheet> ExcelSheets { get; set; } = [];
 
         /// <summary>
-        /// 是否2007格式
+        /// 默认样式：水平自动，垂直居中
         /// </summary>
-        public bool IsExcel2007 { get { return ExcelType == ExcelType.Excel2007; } }
+        public ExcelStyle DefaultStyle { get; set; } = new() { HorizontalAlignment = 0, VerticalAlignment = 1 };
+        #endregion
 
-        /// <summary>
-        /// contentType
-        /// </summary>
-        public string ContentType { get { return IsExcel2007 ? "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" : "application/vnd.ms-excel"; } }
-
+        #region 构造函数
+        public ExcelConfig(string fileName)
+        {
+            //如果没有后缀的话加上后缀
+            FileName = fileName + (string.IsNullOrWhiteSpace(Path.GetExtension(fileName)) ? (IsExcel2007 ? ".xlsx" : ".xls") : "");
+        }
+        public ExcelConfig(string fileName, Action<ExcelSheet> configExcelSheet) : this(fileName)
+        {
+            AddExcelSheet("Sheet1", configExcelSheet);
+        }
         #endregion
 
         #region 公共方法
@@ -71,17 +77,16 @@
                 }
             }
         }
-        #endregion
 
-        #region 构造函数
-        public ExcelConfig(string fileName)
-        {
-            FileName = fileName + (string.IsNullOrWhiteSpace(Path.GetExtension(fileName)) ? (IsExcel2007 ? ".xlsx" : ".xls") : "");
-        }
-        public ExcelConfig(string fileName, Action<ExcelSheet> configExcelSheet) : this(fileName)
-        {
-            AddExcelSheet("Sheet1", configExcelSheet);
-        }
+        /// <summary>
+        /// 是否2007格式
+        /// </summary>
+        public bool IsExcel2007 { get { return ExcelType == ExcelType.Excel2007; } }
+
+        /// <summary>
+        /// contentType
+        /// </summary>
+        public string ContentType { get { return IsExcel2007 ? "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" : "application/vnd.ms-excel"; } }
         #endregion
     }
 

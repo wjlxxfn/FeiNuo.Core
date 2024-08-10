@@ -2,9 +2,14 @@
 {
     public class ExcelColumn
     {
-        public ExcelColumn(string title)
+        public ExcelColumn(string title, int? width = null, string format = "")
         {
             Title = title;
+            Width = width;
+            if (!string.IsNullOrWhiteSpace(format))
+            {
+                ColumnStyle.DataFormat = format;
+            }
         }
 
         /// <summary>
@@ -26,11 +31,6 @@
         public int? Width { get; set; }
 
         /// <summary>
-        /// 自动列宽
-        /// </summary>
-        public bool AutoSizeColumn { get; set; } = false;
-
-        /// <summary>
         /// 该列是否隐藏
         /// </summary>
         public bool Hidden { get; set; } = false;
@@ -44,11 +44,11 @@
 
     public class ExcelColumn<T> : ExcelColumn where T : class
     {
-        public ExcelColumn(string title, Func<T, object>? valueGetter) : base(title)
+        public ExcelColumn(string title, Func<T, object>? valueGetter, int? width = null, string format = "") : base(title, width, format)
         {
             ValueGetter = valueGetter;
         }
-        public ExcelColumn(string title, Action<T, IConvertible?>? valueSetter) : base(title)
+        public ExcelColumn(string title, Action<T, IConvertible?>? valueSetter, int? width = null, string format = "") : base(title, width, format)
         {
             ValueSetter = valueSetter;
         }
