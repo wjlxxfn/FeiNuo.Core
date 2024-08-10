@@ -150,7 +150,7 @@ namespace FeiNuo.Core
                     // 设置默认格式
                     if (!col.ColumnStyle.IsEmptyStyle)
                     {
-                        sheet.SetDefaultColumnStyle(colIndex, styles.NumbericStyle);
+                        sheet.SetDefaultColumnStyle(colIndex, styles.GetStyle(col.ColumnStyle));
                     }
                     colIndex++;
                 }
