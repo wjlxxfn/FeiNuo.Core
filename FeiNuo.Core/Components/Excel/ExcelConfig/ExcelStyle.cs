@@ -67,5 +67,20 @@
                 + $"FN{FontName ?? ""},FC{FontColor ?? -1},FS{FontSize ?? -1},FB{FontBold ?? false}";
             }
         }
+
+        /// <summary>
+        /// 是否初始值，没设置任何格式
+        /// </summary>
+        public bool IsEmptyStyle
+        {
+            get
+            {
+                return !(
+                    BorderStyle.HasValue || HorizontalAlignment.HasValue || VerticalAlignment.HasValue
+                    || BackgroundColor.HasValue || (!string.IsNullOrWhiteSpace(DataFormat)) || WrapText.HasValue
+                    || (!string.IsNullOrWhiteSpace(FontName)) || FontColor.HasValue || FontSize.HasValue || FontBold.HasValue
+                    );
+            }
+        }
     }
 }

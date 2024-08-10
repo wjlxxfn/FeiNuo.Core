@@ -129,7 +129,10 @@ namespace FeiNuo.Core
                     if (col.Width.HasValue) sheet.SetColumnWidth(colIndex, col.Width.Value * 256);
                     if (col.Hidden) sheet.SetColumnHidden(colIndex, true);
                     // 设置默认格式
-                    sheet.SetDefaultColumnStyle(colIndex, styles.NumbericStyle);
+                    if (!col.ColumnStyle.IsEmptyStyle)
+                    {
+                        sheet.SetDefaultColumnStyle(colIndex, styles.NumbericStyle);
+                    }
                     colIndex++;
                 }
                 // 相邻列相同的合并列
