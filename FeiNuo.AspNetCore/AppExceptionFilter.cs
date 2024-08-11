@@ -37,6 +37,11 @@ namespace FeiNuo.Core
                     msgVO.Type = msgExp.MessageType;
                     httpStatus = HttpStatusCode.UnprocessableEntity;
                 }
+                else if (exception is NotFoundException nfExp)
+                {
+                    msgVO.Type = MessageType.Error;
+                    httpStatus = HttpStatusCode.UnprocessableEntity;
+                }
                 else
                 {
                     _logger.LogError(exception, "系统异常：{Message}", exception.Message);

@@ -6,7 +6,7 @@ namespace FeiNuo.Core
     /// 普通查询类的基类：实现IQueryExpression，提供添加条件的公共方法
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public abstract class AbstractQuery<T> : BaseQuery, IQueryExpression<T> where T : class
+    public abstract class AbstractQuery<T> : BaseQuery, IQueryExpression<T> where T : BaseEntity
     {
         // 表达式集合
         private Expression<Func<T, bool>> _exp = ExpressionUtils.True<T>();
@@ -82,6 +82,23 @@ namespace FeiNuo.Core
             {
                 var end = EndDate.Value.ToDateTime(TimeOnly.MaxValue);
                 AddExpression(endDatePredicate(end));
+            }
+        }
+
+        /// <summary>
+        /// 根据BaseEntity.CreatedTime和BaseQuery.StartDate、EndDate匹配
+        /// </summary>
+        protected void AddCreatedDateExpression()
+        {
+            if (StartDate.HasValue)
+            {
+                var start = StartDate.Value.ToDateTime(TimeOnly.MinValue);
+                AddExpression(a => a.CreatedTime >= start);
+            }
+            if (EndDate.HasValue)
+            {
+                var end = EndDate.Value.ToDateTime(TimeOnly.MaxValue);
+                AddExpression(a => a.CreatedTime <= end);
             }
         }
         #endregion

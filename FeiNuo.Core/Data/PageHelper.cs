@@ -17,7 +17,7 @@ namespace FeiNuo.Core
         public static async Task<PageResult<TEntity>> FindPagedList<TEntity>(IQueryable<TEntity> query, Pager pager, Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>> defaultOrder) where TEntity : class, new()
         {
             var orderdQuery = ApplySort(query, pager, defaultOrder);
-            return await FindPagedlist(orderdQuery, pager);
+            return await FindPagedList(orderdQuery, pager);
         }
 
         /// <summary>
@@ -27,7 +27,7 @@ namespace FeiNuo.Core
         /// <param name="query">linq查询(已排序)</param>
         /// <param name="pager">分页参数</param>
         /// <returns>PageResult</returns>
-        public static async Task<PageResult<TEntity>> FindPagedlist<TEntity>(IOrderedQueryable<TEntity> query, Pager pager) where TEntity : class, new()
+        public static async Task<PageResult<TEntity>> FindPagedList<TEntity>(IOrderedQueryable<TEntity> query, Pager pager) where TEntity : class, new()
         {
             if (pager.PageSize <= 0) // 没有分页参数直接查全部
             {

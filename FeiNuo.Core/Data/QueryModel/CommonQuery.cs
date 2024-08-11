@@ -9,7 +9,7 @@ namespace FeiNuo.Core
     /// </summary>
     public class CommonQuery
     {
-        private Dictionary<string, StringValues> query;
+        private readonly Dictionary<string, StringValues> query;
         /// <summary>
         /// 通过Request.Query.ToDictionary()初始化查询条件
         /// </summary>
