@@ -49,6 +49,10 @@
             return this;
         }
 
+        /// <summary>
+        /// 取值逻辑
+        /// </summary>
+        public Func<object, object?>? ValueGetter { get; set; } = o => o;
     }
 
     /// <summary>
@@ -56,20 +60,14 @@
     /// </summary>
     public class ExcelColumn<T> : ExcelColumn where T : class
     {
-        public ExcelColumn(string title, Func<T, object?>? valueGetter, int? width = null, string format = "") : base(title, width, format)
+        public ExcelColumn(string title, Func<T, object?> valueGetter, int? width = null, string format = "") : base(title, width, format)
         {
-            ValueGetter = valueGetter;
+            ValueGetter = o => valueGetter((T)o);
         }
-        public ExcelColumn(string title, Action<T, IConvertible?>? valueSetter, int? width = null, string format = "") : base(title, width, format)
+        public ExcelColumn(string title, Action<T, IConvertible?> valueSetter, int? width = null, string format = "") : base(title, width, format)
         {
             ValueSetter = valueSetter;
         }
-
-        /// <summary>
-        /// 列的取值方法
-        /// </summary>
-        public Func<T, object?>? ValueGetter { get; set; }
-
 
         /// <summary>
         /// 列的赋值方法

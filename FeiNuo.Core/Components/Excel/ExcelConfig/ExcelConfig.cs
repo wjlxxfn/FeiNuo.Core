@@ -28,10 +28,12 @@
         #endregion
 
         #region 构造函数
-        public ExcelConfig(string fileName)
+        public ExcelConfig(string fileName, ExcelType? excelType = null, ExcelStyle? defaultStyle = null)
         {
             //如果没有后缀的话加上后缀
             FileName = fileName + (string.IsNullOrWhiteSpace(Path.GetExtension(fileName)) ? (IsExcel2007 ? ".xlsx" : ".xls") : "");
+            if (excelType.HasValue) ExcelType = excelType.Value;
+            if (defaultStyle != null) DefaultStyle = defaultStyle;
         }
         public ExcelConfig(string fileName, Action<ExcelSheet> configExcelSheet) : this(fileName)
         {
@@ -40,31 +42,6 @@
         #endregion
 
         #region 公共方法
-        public ExcelConfig AddExcelSheet(string sheetName, Action<ExcelSheet>? configExcelSheet = null)
-        {
-            if (string.IsNullOrWhiteSpace(sheetName)) throw new ArgumentNullException(nameof(sheetName));
-            if (ExcelSheets.Any(t => t.SheetName == sheetName))
-            {
-                throw new MessageException($"已存在名为【{sheetName}】的工作表。");
-            }
-            var sheet = new ExcelSheet(sheetName);
-            configExcelSheet?.Invoke(sheet);
-            ExcelSheets.Add(sheet);
-            return this;
-        }
-
-        public ExcelConfig AddExcelSheet<T>(string sheetName, Action<ExcelSheet<T>> configExcelSheet) where T : class
-        {
-            if (string.IsNullOrWhiteSpace(sheetName)) throw new ArgumentNullException(nameof(sheetName));
-            if (ExcelSheets.Any(t => t.SheetName == sheetName))
-            {
-                throw new MessageException($"已存在名为【{sheetName}】的工作表。");
-            }
-            var sheet = new ExcelSheet<T>(sheetName);
-            configExcelSheet?.Invoke(sheet);
-            ExcelSheets.Add(sheet);
-            return this;
-        }
 
         /// <summary>
         /// 验证配置数据是否有不合适的
@@ -90,6 +67,66 @@
                 }
             }
         }
+
+        /// <summary>
+        /// 添加工作表
+        /// </summary>
+        public ExcelConfig AddExcelSheet(ExcelSheet excelSheet)
+        {
+            if (string.IsNullOrWhiteSpace(excelSheet.SheetName))
+            {
+                throw new MessageException("Sheet名不能为空");
+            }
+            if (ExcelSheets.Any(t => t.SheetName == excelSheet.SheetName))
+            {
+                throw new MessageException($"已存在名为【{excelSheet.SheetName}】的工作表。");
+            }
+            ExcelSheets.Add(excelSheet);
+            return this;
+        }
+
+        #region 重载AddExcelSheet，方便各种场景下的调用
+        /// <summary>
+        /// 提供数据和列配置生成Excel Sheet，SheetName默认为Sheet1
+        /// </summary>
+        /// <typeparam name="T">数据类型</typeparam>
+        /// <param name="lstData">数据集合</param>
+        /// <param name="columns">列配置</param>
+        /// <param name="sheetConfig">工作表整体配置</param>
+        public ExcelConfig AddExcelSheet<T>(IEnumerable<T> lstData, IEnumerable<ExcelColumn<T>> columns, Action<ExcelSheet<T>>? sheetConfig = null) where T : class
+        {
+            return AddExcelSheet("Sheet1", lstData, columns, sheetConfig);
+        }
+
+        /// <summary>
+        /// 提供数据和列配置生成Excel Sheet，SheetName默认为Sheet1
+        /// </summary>
+        /// <typeparam name="T">数据类型</typeparam>
+        /// <param name="sheetName">工作表名</param>
+        /// <param name="lstData">数据集合</param>
+        /// <param name="columns">列配置</param>
+        /// <param name="sheetConfig">工作表整体配置</param>
+        public ExcelConfig AddExcelSheet<T>(string sheetName, IEnumerable<T> lstData, IEnumerable<ExcelColumn<T>> columns, Action<ExcelSheet<T>>? sheetConfig = null) where T : class
+        {
+            var excelSheet = new ExcelSheet<T>(sheetName, lstData, columns);
+            sheetConfig?.Invoke(excelSheet);
+            return AddExcelSheet(excelSheet);
+        }
+
+        public ExcelConfig AddExcelSheet(string sheetName, Action<ExcelSheet>? configExcelSheet = null)
+        {
+            var sheet = new ExcelSheet(sheetName);
+            configExcelSheet?.Invoke(sheet);
+            return AddExcelSheet(sheet);
+        }
+
+        public ExcelConfig AddExcelSheet<T>(string sheetName, Action<ExcelSheet<T>> configExcelSheet) where T : class
+        {
+            var sheet = new ExcelSheet<T>(sheetName);
+            configExcelSheet?.Invoke(sheet);
+            return AddExcelSheet(sheet);
+        }
+        #endregion
 
         /// <summary>
         /// 是否2007格式

@@ -190,6 +190,25 @@ namespace FeiNuo.Core
             }
             #endregion
 
+            #region 生成数据行
+            if (config.DataList.Any())
+            {
+                foreach (var data in config.DataList)
+                {
+                    row = GetRow(sheet, rowIndex++);
+                    colIndex = 0;
+                    foreach (var col in config.ExcelColumns)
+                    {
+                        var val = col.ValueGetter?.Invoke(data);
+                        var style = col.ColumnStyle.IsEmptyStyle
+                            ? ((val != null && (val is DateOnly || val is DateTime)) ? styles.DateStyle : null)
+                            : styles.GetStyle(col.ColumnStyle);
+                        SetCellValue(row, colIndex++, val, false, style);
+                    }
+                }
+            }
+            #endregion
+
             #region 工作表整体配置
             // 设置默认列宽
             if (config.DefaultColumnWidth.HasValue)
@@ -203,40 +222,6 @@ namespace FeiNuo.Core
             // 自动设置边框
             if (config.AddConditionalBorderStyle) AddConditionalBorderStyle(sheet);
             #endregion
-
-            return sheet;
-        }
-
-        /// <summary>
-        /// 创建带数据的工作表，添加标题，数据
-        /// </summary>
-        public static ISheet CreateDataSheet<T>(IWorkbook wb, ExcelSheet<T> config, StyleFactory styles) where T : class
-        {
-            // 边框添加的先设置成false,如果需要添加，等加完数据后在添加
-            bool addBorder = config.AddConditionalBorderStyle;
-            config.AddConditionalBorderStyle = false;
-            var sheet = CreateWorkSheet(wb, config, styles);
-            if (config.ExcelColumns.Any())
-            {
-                IRow row;
-                int rowIndex = config.DataRowIndex, colIndex = 0;
-                foreach (var data in config.DataList)
-                {
-                    row = GetRow(sheet, rowIndex++);
-                    colIndex = 0;
-                    var values = config.ExcelColumns.Select(a => a.ValueGetter!(data)).ToArray();
-                    foreach (var col in config.ExcelColumns)
-                    {
-                        var val = col.ValueGetter?.Invoke(data);
-                        var style = col.ColumnStyle.IsEmptyStyle
-                            ? ((val != null && (val is DateOnly || val is DateTime)) ? styles.DateStyle : null)
-                            : styles.GetStyle(col.ColumnStyle);
-                        SetCellValue(row, colIndex++, val, false, style);
-                    }
-                }
-            }
-            // 添加边框
-            if (addBorder) AddConditionalBorderStyle(sheet);
 
             return sheet;
         }

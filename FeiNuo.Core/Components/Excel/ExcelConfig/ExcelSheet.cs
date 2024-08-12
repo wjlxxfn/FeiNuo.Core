@@ -100,6 +100,11 @@
         }
         #endregion
 
+        /// <summary>
+        /// 数据集合
+        /// </summary>
+        public IEnumerable<object> DataList { get; set; }
+
     }
 
     public class ExcelSheet<T> : ExcelSheet where T : class
@@ -116,7 +121,11 @@
         /// <summary>
         /// 数据集合
         /// </summary>
-        public IEnumerable<T> DataList = [];
+        public new IEnumerable<T> DataList
+        {
+            get { return (IEnumerable<T>)base.DataList; }
+            set { base.DataList = value; }
+        }
 
         public ExcelSheet(string sheetName) : base(sheetName)
         {
