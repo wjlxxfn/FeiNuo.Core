@@ -8,10 +8,15 @@ namespace FeiNuo.Core
         public static IServiceCollection AutoInjectServcice(this IServiceCollection services)
         {
             // 扫描所有类
-            var types = AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypes());
+            var types = AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(x => x.GetTypes())
+                .Where(t => t.IsClass && !t.IsAbstract);
 
-            #region 自动注入服务类：实现[IBaseServicer]
-            var businessServiceTypes = types.Where(t => typeof(IService).IsAssignableFrom(t) && t.IsClass && !t.IsAbstract);
+            #region 自动注入服务类：实现[IServicer]，排除掉Service特性，有特性的以特性为准
+            var businessServiceTypes = types.Where(t =>
+                    typeof(IService).IsAssignableFrom(t)
+                    && t.GetCustomAttributes(typeof(ServiceAttribute), false).Length == 0
+                );
             foreach (var type in businessServiceTypes)
             {
                 // 服务类有接口的根据接口注入
@@ -26,12 +31,12 @@ namespace FeiNuo.Core
             #endregion
 
             #region 自动注入服务类：注解[ServiceAttribute]
-            var attributeTypes = types.Where(t => t.GetCustomAttributes(typeof(ServiceAttribute), false).Length > 0 && t.IsClass && !t.IsAbstract);
+            var attributeTypes = types.Where(t => t.GetCustomAttributes(typeof(ServiceAttribute), false).Length > 0);
             foreach (var type in attributeTypes)
             {
                 var attr = type.GetCustomAttribute<ServiceAttribute>()!;
                 var lifetime = attr.Lifetime;
-                // 有指定接口类型的，根据接口类型注入
+                // 在特性中有指定接口类型的，根据特性接口类型注入
                 if (null != attr.ServiceTypes && attr.ServiceTypes.Length > 0)
                 {
                     attr.ServiceTypes.ToList().ForEach(t => AddService(services, lifetime, t, type));
@@ -39,12 +44,11 @@ namespace FeiNuo.Core
                 else
                 {
                     // 有实现接口的注入接口
-                    var interfaces = type.GetInterfaces().ToList();
+                    var interfaces = type.GetInterfaces().Where(a => a != typeof(IService) && a != typeof(BaseService)).ToList();
                     if (interfaces.Count > 0)
                     {
                         foreach (var r in interfaces)
                         {
-                            if (r == typeof(IService) || r == typeof(BaseService)) continue;
                             AddService(services, ServiceLifetime.Scoped, r, type);
                         }
                     }

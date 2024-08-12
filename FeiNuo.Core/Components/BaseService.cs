@@ -10,12 +10,12 @@ namespace FeiNuo.Core
     /// <summary>
     /// 服务类基类
     /// </summary>
-    public class BaseService : IService { }
+    public abstract class BaseService : IService { }
 
     /// <summary>
     /// 服务类基类：指定数据库上下文和实体类型，提供基础操作
     /// </summary>
-    public class BaseService<T> : BaseService where T : BaseEntity
+    public abstract class BaseService<T> : BaseService where T : BaseEntity
     {
         #region 构造函数
         private readonly DbContext ctx;
