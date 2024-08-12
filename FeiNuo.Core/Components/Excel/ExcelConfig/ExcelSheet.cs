@@ -6,16 +6,17 @@
     public class ExcelSheet
     {
         public string SheetName { get; set; }
-        public ExcelSheet(string sheetName)
+        public ExcelSheet(string sheetName, IEnumerable<ExcelColumn>? columns = null)
         {
             SheetName = sheetName;
+            ExcelColumns = columns ?? [];
         }
 
         #region 数据列配置,标题样式
         /// <summary>
         /// 列配置
         /// </summary>
-        public IEnumerable<ExcelColumn> ExcelColumns { get; set; } = [];
+        public IEnumerable<ExcelColumn> ExcelColumns { get; set; }
 
         /// <summary>
         /// 列标题样式：水平居中，字体加粗，加背景色
@@ -133,14 +134,14 @@
             set { base.DataList = value; }
         }
 
-        public ExcelSheet(string sheetName) : base(sheetName)
+        public ExcelSheet(string sheetName, IEnumerable<ExcelColumn<T>>? columns) : base(sheetName)
         {
+            ExcelColumns = columns ?? [];
         }
 
-        public ExcelSheet(string sheetName, IEnumerable<T> dataList, IEnumerable<ExcelColumn<T>> columns) : base(sheetName)
+        public ExcelSheet(string sheetName, IEnumerable<T> dataList, IEnumerable<ExcelColumn<T>> columns) : this(sheetName, columns)
         {
             DataList = dataList;
-            ExcelColumns = columns;
         }
     }
 }

@@ -37,7 +37,7 @@
         }
         public ExcelConfig(string fileName, Action<ExcelSheet> configExcelSheet) : this(fileName)
         {
-            AddExcelSheet("Sheet1", configExcelSheet);
+            AddExcelSheet("Sheet1", [], configExcelSheet);
         }
         #endregion
 
@@ -86,6 +86,16 @@
         }
 
         #region 重载AddExcelSheet，方便各种场景下的调用
+        public ExcelConfig AddExcelSheet(IEnumerable<ExcelColumn> columns, Action<ExcelSheet>? sheetConfig = null)
+        {
+            return AddExcelSheet("Sheet1", columns, sheetConfig);
+        }
+        public ExcelConfig AddExcelSheet(string sheetName, IEnumerable<ExcelColumn> columns, Action<ExcelSheet>? sheetConfig = null)
+        {
+            var excelSheet = new ExcelSheet(sheetName, columns);
+            sheetConfig?.Invoke(excelSheet);
+            return AddExcelSheet(excelSheet);
+        }
         /// <summary>
         /// 提供数据和列配置生成Excel Sheet，SheetName默认为Sheet1
         /// </summary>
@@ -111,20 +121,6 @@
             var excelSheet = new ExcelSheet<T>(sheetName, lstData, columns);
             sheetConfig?.Invoke(excelSheet);
             return AddExcelSheet(excelSheet);
-        }
-
-        public ExcelConfig AddExcelSheet(string sheetName, Action<ExcelSheet>? configExcelSheet = null)
-        {
-            var sheet = new ExcelSheet(sheetName);
-            configExcelSheet?.Invoke(sheet);
-            return AddExcelSheet(sheet);
-        }
-
-        public ExcelConfig AddExcelSheet<T>(string sheetName, Action<ExcelSheet<T>> configExcelSheet) where T : class
-        {
-            var sheet = new ExcelSheet<T>(sheetName);
-            configExcelSheet?.Invoke(sheet);
-            return AddExcelSheet(sheet);
         }
         #endregion
 

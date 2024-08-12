@@ -9,23 +9,7 @@ namespace FeiNuo.Core
 {
     public class PoiHelper
     {
-        #region 创建POI对象
-        /// <summary>
-        /// 创建工作簿
-        /// </summary>
-        public static IWorkbook CreateWorkbook(bool xlsx = true)
-        {
-            return xlsx ? new XSSFWorkbook() : new HSSFWorkbook();
-        }
-
-        /// <summary>
-        /// 创建工作簿
-        /// </summary>
-        public static IWorkbook CreateWorkbook(Stream stream)
-        {
-            return WorkbookFactory.Create(stream);
-        }
-
+        #region 转换ExcelConfig
         /// <summary>
         /// 创建工作簿
         /// </summary>
@@ -245,7 +229,11 @@ namespace FeiNuo.Core
         {
             if (!config.ValidateImportTemplate) return;
             var sheet = wb.GetSheet(config.SheetName);
-            if (sheet == null) throw new MessageException($"没有找到名为【{config.SheetName}】的Sheet页");
+            if (sheet == null)
+            {
+                throw new MessageException($"没有找到名为【{config.SheetName}】的Sheet页");
+            }
+
             if (!config.ExcelColumns.Any()) return;
             var row = GetRow(sheet, config.TitleRowIndex + config.ExcelColumns.Max(t => t.RowTitles.Length) - 1);
             int colIndex = 0;
@@ -257,8 +245,25 @@ namespace FeiNuo.Core
                 }
             }
         }
+        #endregion
 
-        #region 其他POI对象
+        #region 创建POI对象
+        /// <summary>
+        /// 创建工作簿
+        /// </summary>
+        public static IWorkbook CreateWorkbook(bool xlsx = true)
+        {
+            return xlsx ? new XSSFWorkbook() : new HSSFWorkbook();
+        }
+
+        /// <summary>
+        /// 创建工作簿
+        /// </summary>
+        public static IWorkbook CreateWorkbook(Stream stream)
+        {
+            return WorkbookFactory.Create(stream);
+        }
+
         /// <summary>
         /// 获取行，不存在的创建一行
         /// </summary>
@@ -301,8 +306,6 @@ namespace FeiNuo.Core
         {
             return xlsx ? new XSSFClientAnchor(dx1, dy1, dx2, dy2, col1, row1, col2, row2) : new HSSFClientAnchor(dx1, dy1, dx2, dy2, col1, row1, col2, row2);
         }
-
-        #endregion
         #endregion
 
         #region 单元格赋值

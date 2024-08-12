@@ -52,7 +52,7 @@
         /// <summary>
         /// 取值逻辑
         /// </summary>
-        public Func<object, object?>? ValueGetter { get; set; } = o => o;
+        public Func<object, object?> ValueGetter { get; set; } = o => o;
     }
 
     /// <summary>
@@ -64,15 +64,6 @@
         {
             ValueGetter = o => valueGetter((T)o);
         }
-        public ExcelColumn(string title, Action<T, IConvertible?> valueSetter, int? width = null, string format = "") : base(title, width, format)
-        {
-            ValueSetter = valueSetter;
-        }
-
-        /// <summary>
-        /// 列的赋值方法
-        /// </summary>
-        public Action<T, IConvertible?>? ValueSetter { get; set; }
 
         /// <summary>
         /// 配置样式：方便链式调用
