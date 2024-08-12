@@ -53,6 +53,19 @@
             return this;
         }
 
+        public ExcelConfig AddExcelSheet<T>(string sheetName, Action<ExcelSheet<T>> configExcelSheet) where T : class
+        {
+            if (string.IsNullOrWhiteSpace(sheetName)) throw new ArgumentNullException(nameof(sheetName));
+            if (ExcelSheets.Any(t => t.SheetName == sheetName))
+            {
+                throw new MessageException($"已存在名为【{sheetName}】的工作表。");
+            }
+            var sheet = new ExcelSheet<T>(sheetName);
+            configExcelSheet?.Invoke(sheet);
+            ExcelSheets.Add(sheet);
+            return this;
+        }
+
         /// <summary>
         /// 验证配置数据是否有不合适的
         /// </summary>
