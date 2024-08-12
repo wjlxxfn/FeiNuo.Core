@@ -1,4 +1,5 @@
 ﻿using NPOI.HSSF.UserModel;
+using NPOI.SS.Formula.Eval;
 using NPOI.SS.UserModel;
 using NPOI.SS.Util;
 using NPOI.XSSF.UserModel;
@@ -226,6 +227,37 @@ namespace FeiNuo.Core
             return sheet;
         }
 
+        /// <summary>
+        /// 根据模板配置，检查excel是否指定模板
+        /// </summary>
+        public static void ValidateExcelTemplate(IWorkbook wb, ExcelConfig config)
+        {
+            foreach (var sheet in config.ExcelSheets)
+            {
+                ValidateExcelTemplate(wb, sheet);
+            }
+        }
+
+        /// <summary>
+        /// 根据模板配置，检查excel是否指定模板
+        /// </summary>
+        public static void ValidateExcelTemplate(IWorkbook wb, ExcelSheet config)
+        {
+            if (!config.ValidateImportTemplate) return;
+            var sheet = wb.GetSheet(config.SheetName);
+            if (sheet == null) throw new MessageException($"没有找到名为【{config.SheetName}】的Sheet页");
+            if (!config.ExcelColumns.Any()) return;
+            var row = GetRow(sheet, config.TitleRowIndex + config.ExcelColumns.Max(t => t.RowTitles.Length) - 1);
+            int colIndex = 0;
+            foreach (var col in config.ExcelColumns)
+            {
+                if (GetCellValue<string>(GetCell(row, colIndex++)) != col.Title)
+                {
+                    throw new Exception($"【{config.SheetName}】模板错误，【{colIndex}】列标题应为【{col.Title}】，请重新下载模板。");
+                }
+            }
+        }
+
         #region 其他POI对象
         /// <summary>
         /// 获取行，不存在的创建一行
@@ -345,7 +377,53 @@ namespace FeiNuo.Core
         }
         #endregion
 
-        #region 获取单元格值
+        #region 单元格取值
+        /// <summary>
+        /// 获取单元格的值
+        /// </summary>
+        public static T? GetCellValue<T>(ICell cell)
+        {
+            var value = GetCellValue(cell);
+            if (null == value) return (T?)value;
+
+            return (T)Convert.ChangeType(value, typeof(T));
+        }
+
+        /// <summary>
+        /// 获取单元格的值
+        /// </summary>
+        public static IConvertible? GetCellValue(ICell cell)
+        {
+            if (null == cell || cell.CellType == CellType.Blank)
+            {
+                return null;
+            }
+            // 公式的默认已提前计算
+            var cellType = cell.CellType == CellType.Formula ? cell.CachedFormulaResultType : cell.CellType;
+
+            switch (cellType)
+            {
+                case CellType.Boolean:
+                    return cell.BooleanCellValue;
+                case CellType.Error:
+                    return ErrorEval.GetText(cell.ErrorCellValue);
+                case CellType.Numeric:
+                    if (DateUtil.IsCellDateFormatted(cell))
+                    {
+                        return cell.DateCellValue;
+                    }
+                    else
+                    {
+                        return cell.NumericCellValue;
+                    }
+                case CellType.String:
+                    return cell.StringCellValue.Trim();
+                case CellType.Unknown:
+                    throw new Exception("CellType Unknown!");
+                default:
+                    return null;
+            }
+        }
         #endregion
 
         #region 其他辅助方法
@@ -491,9 +569,7 @@ namespace FeiNuo.Core
             workboox.Write(ms, leaveOpen);
             return ms.ToArray();
         }
-        #endregion
 
-        #region POIUtils
         /// <summary>
         /// 将Excel的列索引转换为列名，列索引从0开始，列名从A开始。如第0列为A，第1列为B...
         /// </summary>

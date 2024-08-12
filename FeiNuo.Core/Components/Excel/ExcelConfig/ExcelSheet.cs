@@ -21,6 +21,11 @@
         /// 列标题样式：水平居中，字体加粗，加背景色
         /// </summary>
         public ExcelStyle ColumnTitleStyle = new() { HorizontalAlignment = 2, FontBold = true, BackgroundColor = 26 };
+
+        /// <summary>
+        /// 在上传Excel数据时，是否效验模板：根据sheet名，标题名必须一致才能继续导入
+        /// </summary>
+        public bool ValidateImportTemplate { get; set; } = true;
         #endregion
 
         #region 工作表整体配置：默认列宽，自动计算公式，自动添加边框
@@ -79,6 +84,13 @@
         public int? MainTitleColSpan { get; set; }
         #endregion
 
+        #region 数据集合
+        /// <summary>
+        /// 数据集合
+        /// </summary>
+        public IEnumerable<object> DataList { get; set; } = [];
+        #endregion
+
         #region 其他辅助方法
         /// <summary>
         /// 标题行行号
@@ -99,12 +111,6 @@
             get { return TitleRowIndex + ExcelColumns.Max(t => t.RowTitles.Length); }
         }
         #endregion
-
-        /// <summary>
-        /// 数据集合
-        /// </summary>
-        public IEnumerable<object> DataList { get; set; }
-
     }
 
     public class ExcelSheet<T> : ExcelSheet where T : class
