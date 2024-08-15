@@ -245,6 +245,75 @@ namespace FeiNuo.Core
                 }
             }
         }
+
+        /// <summary>
+        /// 从Excel中读取数据，并赋值到ExcelSheet的DataList
+        /// </summary>
+        public static List<T> GetDataFromExcel<T>(IWorkbook wb, ExcelSheet<T> config) where T : class, new()
+        {
+            var sheet = wb.GetSheet(config.SheetName) ?? throw new Exception($"找不到Sheet【{config.SheetName}】");
+            // 计算公式
+            sheet.ForceFormulaRecalculation = true;
+
+            string errMsg = "", rowMsg, keyValue;
+            var keyMap = new Dictionary<string, int>();
+
+            IRow row; ICell cell; T? data;
+            var lstData = new List<T>();
+            for (var rowIndex = config.DataRowIndex; rowIndex <= sheet.LastRowNum; rowIndex++)
+            {
+                rowMsg = ""; keyValue = "";
+
+                data = Activator.CreateInstance(typeof(T)) as T;
+                if (data == null) throw new Exception($"无法实例化对象{typeof(T)}");
+
+                row = GetRow(sheet, rowIndex);
+                var colIndex = 0;
+                foreach (var col in config.ExcelColumns)
+                {
+                    var val = GetCellValue(GetCell(row, colIndex++));
+                    try
+                    {
+                        var msg = col.ValueSetter(data, val);
+                        if (msg == "_UniqueKey_")
+                        {
+                            keyValue += (val ?? "null") + "|";
+                        }
+                        else if (!string.IsNullOrWhiteSpace(msg))
+                        {
+                            rowMsg += $"列【{col.RowTitles.Last()}】{msg}；";
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        rowMsg += $"列【{col.RowTitles.Last()}】{ex.Message}；";
+                    }
+
+                }
+
+                if (rowMsg != "")
+                {
+                    errMsg += $"第【{rowIndex}】行：" + rowMsg + "<br/>";
+                }
+                else if (null != data)
+                {
+                    if (keyValue != "")
+                    {
+                        if (keyMap.TryGetValue(keyValue, out int value))
+                        {
+                            errMsg += $"第【{rowIndex}】行：与{value}行重复,重复键值：{keyValue}； <br/>";
+                        }
+                        else keyMap.Add(keyValue, rowIndex);
+                    }
+                    lstData.Add(data);
+                }
+            }
+            if (errMsg != "")
+            {
+                throw new MessageException($"获取Excel数据出错:<br/>" + errMsg);
+            }
+            return lstData;
+        }
         #endregion
 
         #region 创建POI对象
