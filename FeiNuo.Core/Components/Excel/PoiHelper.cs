@@ -249,7 +249,7 @@ namespace FeiNuo.Core
         /// <summary>
         /// 从Excel中读取数据，并赋值到ExcelSheet的DataList
         /// </summary>
-        public static List<T> GetDataFromExcel<T>(IWorkbook wb, ExcelSheet<T> config) where T : class, new()
+        public static List<T> GetDataFromExcel<T>(IWorkbook wb, ExcelSheet config) where T : class, new()
         {
             var sheet = wb.GetSheet(config.SheetName) ?? throw new Exception($"找不到Sheet【{config.SheetName}】");
             // 计算公式
@@ -258,7 +258,7 @@ namespace FeiNuo.Core
             string errMsg = "", rowMsg, keyValue;
             var keyMap = new Dictionary<string, int>();
 
-            IRow row; ICell cell; T? data;
+            IRow row; T? data;
             var lstData = new List<T>();
             for (var rowIndex = config.DataRowIndex; rowIndex <= sheet.LastRowNum; rowIndex++)
             {

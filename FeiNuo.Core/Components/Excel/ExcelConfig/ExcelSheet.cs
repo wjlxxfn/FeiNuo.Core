@@ -5,19 +5,41 @@
     /// </summary>
     public class ExcelSheet
     {
-        public string SheetName { get; set; }
+        #region 构造函数
         public ExcelSheet(string sheetName, IEnumerable<ExcelColumn>? columns = null)
         {
+            if (string.IsNullOrWhiteSpace(sheetName))
+            {
+                throw new ArgumentNullException(nameof(sheetName));
+            }
             SheetName = sheetName;
             ExcelColumns = columns ?? [];
         }
 
-        #region 数据列配置,标题样式
+        public ExcelSheet(string sheetName, IEnumerable<object> dataList, IEnumerable<ExcelColumn> columns) : this(sheetName, columns)
+        {
+            DataList = dataList ?? [];
+        }
+        #endregion
+
+        #region 核心字段：SheetName,ExcelColumns，DataList
+        /// <summary>
+        /// 工作表名
+        /// </summary>
+        public string SheetName { get; set; }
+
         /// <summary>
         /// 列配置
         /// </summary>
         public IEnumerable<ExcelColumn> ExcelColumns { get; set; }
 
+        /// <summary>
+        /// 数据集合
+        /// </summary>
+        public IEnumerable<object> DataList { get; set; } = [];
+        #endregion
+
+        #region 数据列配置,标题样式
         /// <summary>
         /// 列标题样式：水平居中，字体加粗，加背景色
         /// </summary>
@@ -85,13 +107,6 @@
         public int? MainTitleColSpan { get; set; }
         #endregion
 
-        #region 数据集合
-        /// <summary>
-        /// 数据集合
-        /// </summary>
-        public IEnumerable<object> DataList { get; set; } = [];
-        #endregion
-
         #region 其他辅助方法
         /// <summary>
         /// 标题行行号
@@ -104,6 +119,7 @@
                     + (!string.IsNullOrWhiteSpace(MainTitle) ? 1 : 0);
             }
         }
+
         /// <summary>
         /// 内容行起始行号
         /// </summary>
@@ -112,36 +128,5 @@
             get { return TitleRowIndex + ExcelColumns.Max(t => t.RowTitles.Length); }
         }
         #endregion
-    }
-
-    public class ExcelSheet<T> : ExcelSheet where T : class
-    {
-        /// <summary>
-        /// 列配置
-        /// </summary>
-        public new IEnumerable<ExcelColumn<T>> ExcelColumns
-        {
-            get { return (IEnumerable<ExcelColumn<T>>)base.ExcelColumns; }
-            set { base.ExcelColumns = value; }
-        }
-
-        /// <summary>
-        /// 数据集合
-        /// </summary>
-        public new IEnumerable<T> DataList
-        {
-            get { return (IEnumerable<T>)base.DataList; }
-            set { base.DataList = value; }
-        }
-
-        public ExcelSheet(string sheetName, IEnumerable<ExcelColumn<T>>? columns) : base(sheetName)
-        {
-            ExcelColumns = columns ?? [];
-        }
-
-        public ExcelSheet(string sheetName, IEnumerable<T> dataList, IEnumerable<ExcelColumn<T>> columns) : this(sheetName, columns)
-        {
-            DataList = dataList;
-        }
     }
 }

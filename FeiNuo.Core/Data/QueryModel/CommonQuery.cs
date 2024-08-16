@@ -4,7 +4,8 @@ namespace FeiNuo.Core
 {
     /// <summary>
     /// 通用查询类，不需要定义查询类。
-    /// 直接把Request.Query转成Dictionary,构建CommonQuery。然后在Service中通过CommonQuery手动拼接查询
+    /// 使用QueryHelpers.ParseQuery把Request.Query转成Dictionary,构建CommonQuery。
+    /// 然后在Service中通过CommonQuery手动拼接查询
     /// 适用于条件不多的简单查询
     /// </summary>
     public class CommonQuery

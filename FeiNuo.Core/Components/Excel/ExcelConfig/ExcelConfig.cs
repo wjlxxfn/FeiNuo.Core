@@ -35,6 +35,11 @@
             if (excelType.HasValue) ExcelType = excelType.Value;
             if (defaultStyle != null) DefaultStyle = defaultStyle;
         }
+        public ExcelConfig(string fileName, IEnumerable<object> DataList, IEnumerable<ExcelColumn> columns) : this(fileName)
+        {
+            ExcelSheets.Add(new("Sheet1", DataList, columns));
+        }
+
         public ExcelConfig(string fileName, Action<ExcelSheet> configExcelSheet) : this(fileName)
         {
             AddExcelSheet("Sheet1", [], configExcelSheet);
@@ -42,7 +47,6 @@
         #endregion
 
         #region 公共方法
-
         /// <summary>
         /// 验证配置数据是否有不合适的
         /// </summary>
@@ -96,29 +100,9 @@
             sheetConfig?.Invoke(excelSheet);
             return AddExcelSheet(excelSheet);
         }
-        /// <summary>
-        /// 提供数据和列配置生成Excel Sheet，SheetName默认为Sheet1
-        /// </summary>
-        /// <typeparam name="T">数据类型</typeparam>
-        /// <param name="lstData">数据集合</param>
-        /// <param name="columns">列配置</param>
-        /// <param name="sheetConfig">工作表整体配置</param>
-        public ExcelConfig AddExcelSheet<T>(IEnumerable<T> lstData, IEnumerable<ExcelColumn<T>> columns, Action<ExcelSheet<T>>? sheetConfig = null) where T : class
+        public ExcelConfig AddExcelSheet(string sheetName, IEnumerable<object> lstData, IEnumerable<ExcelColumn> columns, Action<ExcelSheet>? sheetConfig = null)
         {
-            return AddExcelSheet("Sheet1", lstData, columns, sheetConfig);
-        }
-
-        /// <summary>
-        /// 提供数据和列配置生成Excel Sheet，SheetName默认为Sheet1
-        /// </summary>
-        /// <typeparam name="T">数据类型</typeparam>
-        /// <param name="sheetName">工作表名</param>
-        /// <param name="lstData">数据集合</param>
-        /// <param name="columns">列配置</param>
-        /// <param name="sheetConfig">工作表整体配置</param>
-        public ExcelConfig AddExcelSheet<T>(string sheetName, IEnumerable<T> lstData, IEnumerable<ExcelColumn<T>> columns, Action<ExcelSheet<T>>? sheetConfig = null) where T : class
-        {
-            var excelSheet = new ExcelSheet<T>(sheetName, lstData, columns);
+            var excelSheet = new ExcelSheet(sheetName, lstData, columns);
             sheetConfig?.Invoke(excelSheet);
             return AddExcelSheet(excelSheet);
         }

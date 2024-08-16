@@ -6,40 +6,29 @@
     public class ImportConfig
     {
         #region 构造方法
-        /// <summary>
-        /// 导入配置构造函数
-        /// </summary>
-        /// <param name="templateName">如果需要下载模板，则必须指定模板名称</param>
-        public ImportConfig(string templateName = "导入模板.xlsx")
+        public ImportConfig(string templateName = "导入模板.xlsx", string? basicDataName = null, string? importRemark = null)
         {
-            if (!string.IsNullOrWhiteSpace(templateName))
-            {
-                ImportTemplate = new ExcelConfig(templateName);
-            }
-            else
-            {
-                ShowTemplate = false;
-            }
+            TemplateName = templateName;
+            BasicDataName = basicDataName ?? "";
+            ImportRemark = importRemark ?? "";
         }
+        #endregion
 
+        #region 导入配置
         /// <summary>
-        /// 方便链式调用
+        /// 导入所需的角色
         /// </summary>
-        public ImportConfig ConfigImport(Action<ImportConfig> configAction)
-        {
-            configAction(this);
-            return this;
-        }
+        public string[] AuthRoles { get; set; } = [];
         #endregion
 
         #region 导入模板
-        public bool ShowTemplate { get; private set; } = true;
-        public ExcelConfig? ImportTemplate { get; set; }
+        public string TemplateName { get; private set; } = "导入模板.xlsx";
+        public bool ShowTemplate { get { return !string.IsNullOrWhiteSpace(TemplateName); } }
         #endregion
 
         #region 基础数据
-        public bool ShowBasicData { get; set; } = true;
         public string BasicDataName { get; set; } = "基础数据.xlsx";
+        public bool ShowBasicData { get { return !string.IsNullOrWhiteSpace(BasicDataName); } }
         #endregion
 
         #region 导入说明
@@ -60,49 +49,9 @@
         public string SavePath { get; set; } = "Attachment/ExcelImport";
         #endregion
 
-        #region 配置模板
-        internal ImportConfig AddTemplate<T>(ExcelSheet<T> sheetConfig) where T : class, new()
-        {
-            if (ImportTemplate == null)
-            {
-                throw new MessageException("请指定导入模板名称");
-            }
-
-            // 必须使用ExcelColumnImp类配置列
-            var col = sheetConfig.ExcelColumns.FirstOrDefault();
-            if (col == null)
-            {
-                throw new MessageException($"【{sheetConfig.SheetName}】未配置数据列");
-            }
-            ImportTemplate.AddExcelSheet(sheetConfig);
-
-            return this;
-        }
-
         /// <summary>
-        /// 配置导入模板的Sheet,默认SheetName = Sheet1
+        /// 传参用：默认为空，在上传excel时，系统给赋值，避免在执行逻辑时在查一次模板
         /// </summary>
-        /// <typeparam name="T">导入数据对应的实体类</typeparam>
-        /// <param name="columns">列配置，必须是ExcelColumnImp类或其子类</param>
-        /// <param name="sheetConfig">工作表配置</param>
-        public ImportConfig AddTemplate<T>(IEnumerable<ExcelColumn<T>> columns, Action<ExcelSheet<T>>? sheetConfig = null) where T : class, new()
-        {
-            return AddTemplate("Sheet1", columns, sheetConfig);
-        }
-        /// <summary>
-        /// 配置导入模板的Sheet
-        /// </summary>
-        /// <typeparam name="T">导入数据对应的实体类</typeparam>
-        /// <param name="sheetName">工作表名</param>
-        /// <param name="columns">列配置，必须是ExcelColumnImp类或其子类</param>
-        /// <param name="sheetConfig">工作表配置</param>
-        public ImportConfig AddTemplate<T>(string sheetName, IEnumerable<ExcelColumn<T>> columns, Action<ExcelSheet<T>>? sheetConfig = null) where T : class, new()
-        {
-            var sheet = new ExcelSheet<T>(sheetName, columns);
-            sheetConfig?.Invoke(sheet);
-            AddTemplate(sheet);
-            return this;
-        }
-        #endregion
+        public ExcelConfig? ImportTemplate { get; internal set; }
     }
 }

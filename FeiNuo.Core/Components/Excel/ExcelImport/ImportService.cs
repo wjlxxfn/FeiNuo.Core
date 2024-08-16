@@ -16,31 +16,39 @@ namespace FeiNuo.Core
         /// <summary>
         /// 获取导入配置数据
         /// </summary>
-        public abstract Task<ImportConfig> GetImportConfigAsync(Dictionary<string, StringValues> paramMap, LoginUser user);
+        public abstract ImportConfig GetImportConfig(Dictionary<string, StringValues> paramMap, LoginUser user);
 
         /// <summary>
-        /// 下载基础数据
+        /// 下载导入模板
         /// </summary>
-        public virtual Task<ExcelConfig> GetBasicDataExcelAsync(Dictionary<string, StringValues> paramMap, LoginUser user)
+        public virtual Task<ExcelConfig> GetExcelTemplateAsync(Dictionary<string, StringValues> paramMap, LoginUser user)
         {
             return Task.FromResult(new ExcelConfig("基础数据.xlsx"));
         }
 
         /// <summary>
-        /// 执行导入：默认根据第一个excel转成实体类 然后调用 HandleImportAsync(lstData, paramMap, user)
-        /// 如果多个Sheet页的需要重新该方法，参数实现逻辑，循环转成不同实体类即可
+        /// 下载基础数据
+        /// </summary>
+        public virtual Task<ExcelConfig> GetExcelBasicDataAsync(Dictionary<string, StringValues> paramMap, LoginUser user)
+        {
+            return Task.FromResult(new ExcelConfig("基础数据.xlsx"));
+        }
+
+        /// <summary>
+        /// 执行导入：默认根据第一个Sheet转成实体类 然后调用 HandleImportAsync(lstData, paramMap, user)
+        /// 如果多个Sheet页的需要重写该方法：使用PoiHelper.GetDataFromExcel循环Sheet转成不同实体类即可
         /// </summary>
         public virtual async Task HandleImportAsync(IWorkbook workbook, ImportConfig cfg, Dictionary<string, StringValues> paramMap, LoginUser user)
         {
             if (cfg.ShowTemplate && cfg.ImportTemplate != null)
             {
-                var lstData = PoiHelper.GetDataFromExcel(workbook, (ExcelSheet<T>)cfg.ImportTemplate.ExcelSheets[0]);
+                var lstData = PoiHelper.GetDataFromExcel<T>(workbook, cfg.ImportTemplate.ExcelSheets[0]);
                 await HandleImportAsync(lstData, paramMap, user);
             }
         }
 
         /// <summary>
-        /// 执行导入
+        /// 执行导入:最常用的方法，数据已经映射到实体类中
         /// </summary>
         public abstract Task HandleImportAsync(IEnumerable<T> lstData, Dictionary<string, StringValues> paramMap, LoginUser user);
     }
