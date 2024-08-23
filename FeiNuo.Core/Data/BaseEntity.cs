@@ -3,7 +3,7 @@
     /// <summary>
     /// 实体 基类
     /// </summary>
-    public class BaseEntity
+    public class BaseEntity : ICloneable
     {
         /// <summary>
         /// 创建人
@@ -43,6 +43,14 @@
         {
             UpdatedBy = user;
             UpdatedTime = DateTime.Now;
+        }
+
+        /// <summary>
+        /// 浅拷贝，调用Object.MemberwiseClone实现，如需深拷贝需另外实现
+        /// </summary>
+        public object Clone()
+        {
+            return MemberwiseClone();
         }
     }
 }
