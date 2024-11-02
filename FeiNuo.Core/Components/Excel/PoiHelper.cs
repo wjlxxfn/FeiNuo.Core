@@ -268,6 +268,9 @@ namespace FeiNuo.Core
                 if (data == null) throw new Exception($"无法实例化对象{typeof(T)}");
 
                 row = GetRow(sheet, rowIndex);
+                // 空行不处理
+                if (IsBlankRow(row)) continue;
+
                 var colIndex = 0;
                 foreach (var col in config.ExcelColumns)
                 {
@@ -666,6 +669,22 @@ namespace FeiNuo.Core
                 sb.Append(digArray[j]);
             }
             return sb.ToString();
+        }
+
+        /// <summary>
+        /// 判断该行是否有数据
+        /// </summary>
+        public static bool IsBlankRow(IRow row)
+        {
+            if (row == null) return true;
+            foreach (var cell in row.Cells)
+            {
+                if (cell != null && cell.CellType != CellType.Blank && !string.IsNullOrWhiteSpace(cell.ToString()))
+                {
+                    return false;
+                }
+            }
+            return true;
         }
         #endregion
     }

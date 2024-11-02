@@ -54,6 +54,11 @@
         public string? Icon { get; set; }
 
         /// <summary>
+        /// 是否隐藏：不显示在菜单中
+        /// </summary>
+        public bool Hidden { get; set; }
+
+        /// <summary>
         /// 禁止缓存页面
         /// </summary>
         public bool NoCache { get; set; }
@@ -69,6 +74,7 @@
         public MetaVO(string title, string? icon, bool hidden = false, bool noCache = false)
         {
             Title = title;
+            Hidden = hidden;
             Icon = icon;
             NoCache = noCache;
         }
