@@ -228,12 +228,7 @@ namespace FeiNuo.Core
         public static void ValidateExcelTemplate(IWorkbook wb, ExcelSheet config)
         {
             if (!config.ValidateImportTemplate) return;
-            var sheet = wb.GetSheet(config.SheetName);
-            if (sheet == null)
-            {
-                throw new MessageException($"没有找到名为【{config.SheetName}】的Sheet页");
-            }
-
+            var sheet = wb.GetSheet(config.SheetName) ?? throw new MessageException($"没有找到名为【{config.SheetName}】的Sheet页");
             if (!config.ExcelColumns.Any()) return;
             var row = GetRow(sheet, config.TitleRowIndex + config.ExcelColumns.Max(t => t.RowTitles.Length) - 1);
             int colIndex = 0;

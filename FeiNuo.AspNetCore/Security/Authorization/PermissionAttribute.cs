@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 
-namespace FeiNuo.Core;
+namespace FeiNuo.AspNetCore;
 
 /// <summary>
 /// 通过字符串实现权限控制

@@ -10,7 +10,22 @@ namespace FeiNuo.Core
     /// <summary>
     /// 服务类基类
     /// </summary>
-    public abstract class BaseService : IService { }
+    public abstract class BaseService : IService
+    {
+        /// <summary>
+        /// 实体类添加操作用户信息
+        /// </summary>
+        protected static void AppendOperator(BaseEntity entity, string user, bool isNew)
+        {
+            if (isNew)
+            {
+                entity.CreatedBy = user;
+                entity.CreatedTime = DateTime.Now;
+            }
+            entity.UpdatedBy = user;
+            entity.UpdatedTime = DateTime.Now;
+        }
+    }
 
     /// <summary>
     /// 服务类基类：指定数据库上下文和实体类型，提供基础操作
@@ -34,19 +49,6 @@ namespace FeiNuo.Core
             var obj = await ctx.FindAsync<T>(id)
                 ?? throw new NotFoundException($"找不到指定数据,Id:{id},Type:{typeof(T)}");
             return obj;
-        }
-        #endregion
-
-        #region 其它操作
-        protected void AppendOperator(BaseEntity entity, string user, bool isNew)
-        {
-            if (isNew)
-            {
-                entity.CreatedBy = user;
-                entity.CreatedTime = DateTime.Now;
-            }
-            entity.UpdatedBy = user;
-            entity.UpdatedTime = DateTime.Now;
         }
         #endregion
     }

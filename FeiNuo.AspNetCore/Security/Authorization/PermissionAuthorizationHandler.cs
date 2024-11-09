@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 
-namespace FeiNuo.Core.Security;
+namespace FeiNuo.AspNetCore.Security.Authorization;
 
 /// <summary>
 /// 鉴权处理类

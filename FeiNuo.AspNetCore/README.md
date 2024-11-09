@@ -1,9 +1,9 @@
 # FeiNuo.AspNetCore
 ## 功能介绍
     本项目基于Net8开发，用于辅助开发WebApi项目。    
-1. 封装自动注入，异常处理，登录认证，系统授权等通用代码；
+1. 封装自动注入，异常处理，登录认证，系统授权等通用功能；
 2. 提供常用工具类和扩展功能：如JsonUtil,StringExtensions等;
-3. 提供常用组件的封装，如：Excel操作，日志操作等,验证码生成等；
+3. 提供常用组件的封装，如：Excel操作，日志操作等, 验证码生成等；
 
 ## 一、自动注入
     builder.Services.AddAppServices();
@@ -49,111 +49,112 @@
 
 |    接口   | 类型  |     参数   |   返回  |
 |    ----   | :---: |    ------  |   ----  |
-| /login    | POST  | LoginForm  | Token字体为串
+| /login    | POST  | LoginForm  | Token字符串
 | /logout   | POST  | 无         | 无
 | /userinfo | GET   | 无         | LoginUser
 | /captcha  | GET   | 无         | CaptchaResult  
 
-#### 必需实现 ILoginService，以提供登录所需的用户信息
+#### 必需实现 ILoginUserService，以提供登录所需的用户信息
 ```
 public interface ILoginUserService
+{
+    /// <summary>
+    /// 通过用户名查询用户信息：包括，用户名，密码，角色，权限
+    /// </summary>
+    Task<LoginUser?> LoadUserByUsername(string username);
+
+    /// <summary>
+    /// 获取用户信息，根据前端需要返回
+    /// </summary>
+    virtual Task<Dictionary<string, object>> GetLoginUserInfo(LoginUser user)
     {
-        /// <summary>
-        /// 通过用户名查询用户信息：包括，用户名，密码，角色，权限
-        /// </summary>
-        Task<LoginUser?> LoadUserByUsername(string username);
-
-        /// <summary>
-        /// 获取用户信息，根据前端需要返回
-        /// </summary>
-        virtual Task<Dictionary<string, object>> GetLoginUserInfo(LoginUser user)
+        var map = new Dictionary<string, object>
         {
-            var map = new Dictionary<string, object>
-            {
-                { "username", user.Username },
-                { "roles", user.Roles },
-                { "permissions", user.Permissions },
-                { "data", user.UserData??"" },
-            };
-            return Task.FromResult(map);
-        }
-
-        /// <summary>
-        /// 验证登录密码，默认直接通过密码明文对比,有加密的可重写该方法
-        /// </summary>
-        /// <param name="form">用户填写的登录表单数据</param>
-        /// <param name="user">数据库中的用户信息</param>
-        /// <returns>验证结果</returns>
-        virtual bool ValidatePassword(LoginForm form, LoginUser user)
+            { "username", user.Username },
+            { "roles", user.Roles },
+            { "permissions", user.Permissions },
+            { "data", user.UserData??"" },
+        };
+        if (!string.IsNullOrWhiteSpace(user.Nickname))
         {
-            return form.Password == user.Password;
+            map.Add("nickname", user.Nickname);
         }
+        return Task.FromResult(map);
     }
+
+    /// <summary>
+    /// 验证登录密码，默认直接通过密码明文对比,有加密的可重写该方法
+    /// </summary>
+    /// <param name="form">用户填写的登录表单数据</param>
+    /// <param name="user">数据库中的用户信息</param>
+    /// <returns>验证结果</returns>
+    virtual bool ValidatePassword(LoginForm form, LoginUser user)
+    {
+        return form.Password == user.Password;
+    }
+}
 ```
 #### 可实现ILoginService或继承LoginService重写相关方法来修改默认的登录接口实现逻辑
 ```
 public interface ILoginService
+{
+    /// <summary>
+    /// 登录系统
+    /// </summary>
+    Task<string> HandleLogin(LoginForm form);
+
+    /// <summary>
+    /// 退出登录
+    /// </summary>
+    /// <param name="token">要退出的token</param>
+    /// <param name="user">当前操作用户</param>
+    Task HandleLogout(string token, LoginUser user);
+
+    /// <summary>
+    /// 获取登录用户的详细信息，前端用啥，就返回啥，默认返回LoginUser里的信息
+    /// </summary>
+    Task<Dictionary<string, object>> GetLoginUserInfo(LoginUser user)
     {
-        /// <summary>
-        /// 登录系统
-        /// </summary>
-        Task<string> HandleLogin(LoginForm form);
-
-        /// <summary>
-        /// 退出登录
-        /// </summary>
-        /// <param name="token">要退出的token</param>
-        /// <param name="user">当前操作用户</param>
-        Task HandleLogout(string token, LoginUser user);
-
-        /// <summary>
-        /// 获取登录用户的详细信息，前端用啥，就返回啥，默认返回LoginUser里的信息
-        /// </summary>
-        Task<Dictionary<string, object>> GetLoginUserInfo(LoginUser user)
+        var map = new Dictionary<string, object>
         {
-            var map = new Dictionary<string, object>
-            {
-                { "username", user.Username },
-                { "roles", user.Roles },
-                { "permissions", user.Permissions },
-            };
-            return Task.FromResult(map);
-        }
-
-        /// <summary>
-        /// 生成验证码
-        /// </summary>
-        /// <returns></returns>
-        Task<CaptchaResult> CreateCaptcha()
-        {
-            return Task.FromResult(new CaptchaResult());
-        }
+            { "username", user.Username },
+            { "roles", user.Roles },
+            { "permissions", user.Permissions },
+        };
+        return Task.FromResult(map);
     }
+
+    /// <summary>
+    /// 生成验证码
+    /// </summary>
+    /// <returns></returns>
+    Task<CaptchaResult> CreateCaptcha()
+    {
+        return Task.FromResult(new CaptchaResult());
+    }
+}
 ```
 ### 2、认证模块
 #### 采用token认证模块，系统默认实现Jwt和基于Cache的token
 > 也可实现ITokenService接口，自定义token的实现方式，然后将实现类注入系统即可
 ```
-/// <summary>
-    /// Token服务类
+public interface ITokenService
+{
+    /// <summary>
+    /// 根据用户信息创建Token
     /// </summary>
-    public interface ITokenService
-    {
-        /// <summary>
-        /// 根据用户信息创建Token
-        /// </summary>
-        Task<string> CreateTokenAsync(LoginUser user);
+    Task<string> CreateTokenAsync(LoginUser user);
 
-        /// <summary>
-        /// 验证Token合法性，通过后根据token获取用户信息,不通过写入原因
-        /// </summary>
-        Task<TokenValidationResult> ValidateTokenAsync(string token);
+    /// <summary>
+    /// 验证Token合法性，通过后根据token获取用户信息,不通过写入原因
+    /// </summary>
+    Task<TokenValidationResult> ValidateTokenAsync(string token);
 
-        /// <summary>
-        /// 作废Token
-        /// </summary>
-        Task DisableTokenAsync(string token);
-    }
+    /// <summary>
+    /// 作废Token
+    /// </summary>
+    Task DisableTokenAsync(string token);
+}
 ```
 
 ### 3、授权模块
@@ -196,6 +197,30 @@ public IActionResult Export()
     return File(excel.GetBytes(), excel.ContentType, excel.FileName);
 }
 ```
+## 七、代码生成，使用EFCore Tools，反向工程    
+  部分配置说明：efpt.renaming.json
+  1. 去掉开头，添加后续的正则表达式配置
+```
+[
+  {
+    "SchemaName": "dbo",
+    "UseSchemaName": false,
+    "TableRegexPattern": "(^md|sys)_(?<table>.+$)",
+    "TablePatternReplaceWith": "${table}_entity",
+    "Tables": []
+  }
+]
+```
+  2. 需要注意sqlserver，需要SchemaName,mysql不能有SchemaName那一行
+  
+  3. 使用迁移说明Migration
+        
+    需要在WebApi项目添加 Microsoft.EntityFrameworkCore.Tools
+    在程序包管理器控制台使用命令   Add-Migration，升级数据库使用 Update-Database
+    如：  Add-Migration InitialCreate
+    另外拆分项目时，需要配置 Assembly
+    如：opt.UseSqlServer(conn, b => b.MigrationsAssembly("WebApi"));
+
 
 ## 常用扩展和工具类
 

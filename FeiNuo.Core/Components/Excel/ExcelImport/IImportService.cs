@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Primitives;
-using NPOI.SS.UserModel;
 
 namespace FeiNuo.Core
 {
@@ -54,30 +53,28 @@ namespace FeiNuo.Core
         public Task<ExcelConfig> GetExcelBasicDataAsync(Dictionary<string, StringValues> paramMap, LoginUser user);
         #endregion
 
-        #region 处理数据导入
         /// <summary>
         /// 执行导入: 默认实现逻辑，保存文件，效验模板        
         /// </summary>
-        public async Task HandleImportAsync(Stream stream, ImportConfig cfg, Dictionary<string, StringValues> paramMap, LoginUser user)
+        public Task HandleImportAsync(Stream stream, ImportConfig cfg, Dictionary<string, StringValues> paramMap, LoginUser user);
+
+    }
+
+
+    /// <summary>
+    /// 下载excel的辅助类
+    /// </summary>
+    public class ExcelDownload
+    {
+        public string FileName { get; set; }
+        public string ContentType { get; set; }
+        public byte[] Bytes { get; set; }
+
+        public ExcelDownload(string fileName, string contentType, byte[] bytes)
         {
-            var workbook = PoiHelper.CreateWorkbook(stream) ?? throw new MessageException("无法识别导入的Excel，请检查文件是否标准Excel文件");
-
-            // 检查模板，sheet数量，列标题
-            if (cfg.ShowTemplate)
-            {
-                var template = await GetExcelTemplateAsync(paramMap, user);
-                cfg.ImportTemplate = template;
-                PoiHelper.ValidateExcelTemplate(workbook, template);
-            }
-
-            // 执行导入
-            await HandleImportAsync(workbook, cfg, paramMap, user);
+            FileName = fileName;
+            ContentType = contentType;
+            Bytes = bytes;
         }
-
-        /// <summary>
-        /// 执行导入：默认根据模板配置，读取excel中的数据并存储到DatList中，
-        /// </summary>
-        public Task HandleImportAsync(IWorkbook workbook, ImportConfig cfg, Dictionary<string, StringValues> paramMap, LoginUser user);
-        #endregion
     }
 }

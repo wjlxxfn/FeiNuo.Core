@@ -1,23 +1,22 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 
-namespace FeiNuo.Core.Security
+namespace FeiNuo.AspNetCore.Security.Authorization;
+
+/// <summary>
+/// 超级管理员拥有所有权限
+/// </summary>
+internal class SuperAdminAuthorizationHandler : IAuthorizationHandler
 {
-    /// <summary>
-    /// 超级管理员拥有所有权限
-    /// </summary>
-    internal class SuperAdminAuthorizationHandler : IAuthorizationHandler
+    public Task HandleAsync(AuthorizationHandlerContext context)
     {
-        public Task HandleAsync(AuthorizationHandlerContext context)
+        if (context.User != null && (context.User.Identity?.IsAuthenticated ?? false))
         {
-            if (context.User != null && (context.User.Identity?.IsAuthenticated ?? false))
+            var user = new LoginUser(context.User.Claims);
+            if (user.IsSuperAdmin)
             {
-                var user = new LoginUser(context.User.Claims);
-                if (user.IsSuperAdmin)
-                {
-                    context.PendingRequirements.ToList().ForEach(context.Succeed);
-                }
+                context.PendingRequirements.ToList().ForEach(context.Succeed);
             }
-            return Task.CompletedTask;
         }
+        return Task.CompletedTask;
     }
 }

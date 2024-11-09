@@ -321,17 +321,17 @@
 
         public ExcelColumnPersent(string title, int? width = WIDTH) : base(title, width)
         {
-            ColumnStyle.DataFormat = "0.00%";
+            ColumnStyle.DataFormat = FORMAT;
         }
 
         public ExcelColumnPersent(string title, Func<T, object?> valueGetter, int? width = WIDTH) : base(title, valueGetter, width)
         {
-            ColumnStyle.DataFormat = "0.00%";
+            ColumnStyle.DataFormat = FORMAT;
         }
 
         public ExcelColumnPersent(string title, Action<T, decimal?> valueSetter, bool required = false, int? width = 8) : base(title, valueSetter, required, width)
         {
-            ColumnStyle.DataFormat = "0.00%";
+            ColumnStyle.DataFormat = FORMAT;
             MinValue = 0; MaxValue = 1;
 
             InternalValidator = v =>

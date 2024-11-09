@@ -35,6 +35,25 @@ namespace FeiNuo.Core
         }
 
         /// <summary>
+        /// 执行导入: 默认实现逻辑，保存文件，效验模板        
+        /// </summary>
+        public async Task HandleImportAsync(Stream stream, ImportConfig cfg, Dictionary<string, StringValues> paramMap, LoginUser user)
+        {
+            var workbook = PoiHelper.CreateWorkbook(stream) ?? throw new MessageException("无法识别导入的Excel，请检查文件是否标准Excel文件");
+
+            // 检查模板，sheet数量，列标题
+            if (cfg.ShowTemplate)
+            {
+                var template = await GetExcelTemplateAsync(paramMap, user);
+                cfg.ImportTemplate = template;
+                PoiHelper.ValidateExcelTemplate(workbook, template);
+            }
+
+            // 执行导入
+            await HandleImportAsync(workbook, cfg, paramMap, user);
+        }
+
+        /// <summary>
         /// 执行导入：默认根据第一个Sheet转成实体类 然后调用 HandleImportAsync(lstData, paramMap, user)
         /// 如果多个Sheet页的需要重写该方法：使用PoiHelper.GetDataFromExcel循环Sheet转成不同实体类即可
         /// </summary>
