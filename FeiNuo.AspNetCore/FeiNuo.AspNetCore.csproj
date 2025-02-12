@@ -3,6 +3,13 @@
 		<TargetFramework>net9.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
+		<Version>1.0.3</Version>
+		<Authors>FeiNuo</Authors>
+		<Description>这是一个开发WebApi的通用辅助类库，基于Net9开发</Description>
+		<Copyright>MIT</Copyright>
+		<PackageProjectUrl>https://github.com/wjlxxfn/FeiNuo.Core</PackageProjectUrl>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<RepositoryUrl>https://github.com/wjlxxfn/FeiNuo.Core</RepositoryUrl>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -17,5 +24,12 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\FeiNuo.Core\FeiNuo.Core.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Update="README.md">
+	    <Pack>True</Pack>
+	    <PackagePath>\</PackagePath>
+	  </None>
 	</ItemGroup>
 </Project>
