@@ -2,7 +2,6 @@
 using FeiNuo.AspNetCore.Security;
 using FeiNuo.AspNetCore.Security.Authentication;
 using FeiNuo.AspNetCore.Security.Authorization;
-using FeiNuo.AspNetCore.Security.FormLogin;
 using FeiNuo.Core.Utilities;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;

@@ -1,5 +1,4 @@
-﻿using FeiNuo.AspNetCore.Security.FormLogin;
-using FeiNuo.Core.Utilities;
+﻿using FeiNuo.Core.Utilities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;

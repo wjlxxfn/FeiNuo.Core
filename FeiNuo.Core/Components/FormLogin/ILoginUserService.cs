@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 
-namespace FeiNuo.AspNetCore.Security.FormLogin;
+namespace FeiNuo.Core;
 
 public interface ILoginUserService
 {

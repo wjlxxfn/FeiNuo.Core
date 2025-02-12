@@ -1,4 +1,4 @@
-﻿namespace FeiNuo.AspNetCore.Security.FormLogin;
+﻿namespace FeiNuo.Core;
 
 /// <summary>
 /// 登录接口
