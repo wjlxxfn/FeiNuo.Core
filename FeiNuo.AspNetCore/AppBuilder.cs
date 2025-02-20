@@ -109,6 +109,8 @@ public static class ServiceCollectionExtensions
         services.AddAuthorizationBuilder()
             // 超管账号策略（只有SuperAdmin才行，角色加上SuperAdmin也不行）
             .AddPolicy(AppConstants.SUPER_ADMIN, c => c.RequireUserName(AppConstants.SUPER_ADMIN))
+            // 不需要授权的策略
+            .AddPolicy(AppConstants.AUTH_POLICY_IGNORE, c => c.RequireAssertion(v => true))
             // 默认策略,必须登录
             .SetFallbackPolicy(new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build());
 

@@ -42,4 +42,20 @@ public class AppConstants
     /// </summary>
     public const string CACHE_PREFIX_FORBIDDEN = "FORBIDDEN::";
     #endregion
+
+    #region 日志格式
+    /// <summary>
+    /// 输出到文件的日志格式
+    /// </summary>
+    public const string LOG_FORMAT_CONSOLE = "[{Timestamp:HH:mm:ss.fff} {Level:u3}] [{SourceContext}] {Message:lj}{NewLine}{Exception}{NewLine}";
+
+    /// <summary>
+    /// 输出到控制台的日志格式
+    /// </summary>
+    public const string LOG_FORMAT_FILE = "[{Timestamp:HH:mm:ss.fff} {Level:u3}] [{SourceContext}] {Message:lj}{NewLine}{Exception}";
+    #endregion
+
+    #region 认证策略
+    public const string AUTH_POLICY_IGNORE = "Ignore";
+    #endregion
 }
