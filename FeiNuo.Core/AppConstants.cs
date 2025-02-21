@@ -15,6 +15,11 @@ public class AppConstants
     /// </summary>
     public const string SUPER_ADMIN_TOKEN = "00000000000000000000000000000000";
 
+    /// <summary>
+    /// 生成刷新Token返回到Response中的键值
+    /// </summary>
+    public const string REFRESH_TOKEN_KEY = "fn-refresh-token";
+
     #region 缓存键值前缀
 
     /// <summary>

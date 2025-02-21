@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Logging;
 
 namespace FeiNuo.AspNetCore.Security.Authorization;
 
@@ -7,16 +8,28 @@ namespace FeiNuo.AspNetCore.Security.Authorization;
 /// </summary>
 internal class PermissionAuthorizationHandler : AuthorizationHandler<PermissionAttribute>
 {
+    private readonly ILogger<PermissionAuthorizationHandler> logger;
+
+    public PermissionAuthorizationHandler(ILogger<PermissionAuthorizationHandler> logger)
+    {
+        this.logger = logger;
+    }
     /// <summary>
     /// 鉴权：根据权限字符串鉴权
     /// </summary>
     protected override Task HandleRequirementAsync(AuthorizationHandlerContext context, PermissionAttribute requirement)
     {
-        if (context.User != null)
+        if (logger.IsEnabled(LogLevel.Debug))
+        {
+            logger.LogDebug("CheckPermission:User = {User},RequirePermissions = {Permission}", context.User.Identity?.Name ?? "", requirement.Permission);
+        }
+        if (context.User.Identity != null)
         {
             var user = new LoginUser(context.User.Claims);
+            var perms = requirement.Permission.Split(',');
+
             // 有其中一个权限即可
-            if (user.Permissions.Any(t => requirement.Permission.Split(',').Contains(t)))
+            if (perms.Any(user.Permissions.Contains))
             {
                 context.Succeed(requirement);
             }

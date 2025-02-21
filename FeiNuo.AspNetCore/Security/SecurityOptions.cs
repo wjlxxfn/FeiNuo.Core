@@ -8,11 +8,6 @@ public class SecurityOptions
     public const string ConfigKey = AppConfig.ConfigKey + ":Security";
 
     /// <summary>
-    /// Token类型：Jwt,Cache或Other
-    /// </summary>
-    public string TokenType { get; set; } = "Jwt";
-
-    /// <summary>
     /// Token超时时间，单位秒，0不超时，默认2小时
     /// </summary>
     public int TokenExpiration { get; set; } = 7200;
@@ -46,9 +41,14 @@ public class JwtOptions
     public string SigningKey { get; set; } = "pt&wjl[6xxfn8]%.";
 
     /// <summary>
-    /// JWT的缓冲时间，实际的过期时间 = exp+clockskew<br/>
-    /// 系统使用该时间实现token的滑动过期，即token过期但在缓冲时间内会生成刷新token<br/>
+    /// JWT的缓冲时间，默认30分钟
     /// </summary>
+    /// <remarks>
+    /// 实际的过期时间 = exp+clockskew <br/>
+    /// 系统使用该时间实现jwt的滑动过期刷新token，为0的话则不会自动刷新token <br/>
+    /// 比如clockskew=30分钟，则在到期时间前30分钟或后30分钟访问时都会重新生成token <br/>
+    /// 在前30分钟刷新token有个前提，过期时间必须大于缓冲时间的两倍，避免太频繁刷新
+    /// </remarks>
     public int ClockSkew { get; set; } = 1800;
 
     /// <summary>
@@ -60,6 +60,11 @@ public class JwtOptions
     /// 受众方，不配置默认不验证
     /// </summary>
     public string? Audience { get; set; }
+
+    /// <summary>
+    /// 如果设置为true, 退出登录后，jwt加入到黑名单的缓存中，每次访问会判断黑名单，会影响性能，安全要求较高时在配置
+    /// </summary>
+    public bool CheckForbidden { get; set; } = false;
 }
 #endregion
 

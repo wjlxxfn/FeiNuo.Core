@@ -108,46 +108,35 @@ public class LoginUser
             var claims = new List<Claim>()
             {
                 new (FNClaimTypes.UserName, Username),
-                // new (FNClaimTypes.NotBefore, LoginTime.ToUnixTimeSeconds().ToString(),ClaimValueTypes.Double),
             };
-
             if (!string.IsNullOrWhiteSpace(Nickname))
             {
                 claims.Add(new(FNClaimTypes.NickName, Nickname));
             }
-
-            if (Roles.Count > 0)
+            foreach (var role in Roles)
             {
-                claims.Add(new(FNClaimTypes.Role, string.Join(",", Roles)));
+                claims.Add(new(FNClaimTypes.Role, role));
             }
-
-            if (Permissions.Count > 0)
+            foreach (var perm in Permissions)
             {
-                claims.Add(new(FNClaimTypes.Permission, string.Join(",", Permissions)));
+                claims.Add(new(FNClaimTypes.Permission, perm));
             }
-
             if (!string.IsNullOrEmpty(UserData))
             {
                 claims.Add(new(FNClaimTypes.Data, UserData));
             }
-
             return claims;
         }
         private set
         {
+            if (!value.Any()) return;
             Username = value.SingleOrDefault(a => a.Type == FNClaimTypes.UserName)!.Value;
-            Nickname = value.SingleOrDefault(a => a.Type == FNClaimTypes.NickName)?.Value ?? "";
+            Nickname = value.SingleOrDefault(a => a.Type == FNClaimTypes.NickName)?.Value ?? string.Empty;
 
-            var roles = value.Where(a => a.Type == FNClaimTypes.Role).SingleOrDefault();
-            Roles = null == roles ? [] : [.. roles.Value.Split(',')];
+            Roles = value.Where(a => a.Type == FNClaimTypes.Role || a.Type == ClaimTypes.Role).Select(a => a.Value).Distinct().ToList();
+            Permissions = value.Where(a => a.Type == FNClaimTypes.Permission).Select(a => a.Value).Distinct().ToList();
 
-            var perms = value.Where(a => a.Type == FNClaimTypes.Permission).SingleOrDefault();
-            Permissions = null == perms ? [] : [.. perms.Value.Split(',')];
-
-            UserData = value.SingleOrDefault(a => a.Type == FNClaimTypes.Data)?.Value ?? "";
-
-            //var nbf = long.Parse(value.SingleOrDefault(a => a.Type == FNClaimTypes.NotBefore)?.Value ?? "0");
-            //LoginTime = DateTimeOffset.FromUnixTimeSeconds(nbf).UtcDateTime.ToLocalTime();
+            UserData = value.SingleOrDefault(a => a.Type == FNClaimTypes.Data)?.Value ?? string.Empty;
         }
     }
 }

@@ -1,6 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -9,16 +12,29 @@ using System.Text.Encodings.Web;
 
 namespace FeiNuo.AspNetCore.Security.Authentication;
 
-public class TokenAuthentication : AuthenticationHandler<AuthenticationSchemeOptions>
+
+public static class TokenAuthentication
 {
-    public const string AuthenticationScheme = "Bearer";
+    public static IServiceCollection AddFNAuthenticationCacheToken(this IServiceCollection services, IConfiguration configuration)
+    {
+        // 注入token服务
+        services.TryAddSingleton<ITokenService, CacheTokenService>();
+
+        var scheme = JwtBearerDefaults.AuthenticationScheme;
+        services.AddAuthentication(scheme).AddScheme<AuthenticationSchemeOptions, TokenAuthenticationHandler>(scheme, null);
+        return services;
+    }
+}
+
+public class TokenAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
+{
 
     private readonly bool isDevelopment;
     private readonly ILogService logService;
     private readonly ITokenService tokenService;
     private readonly SecurityOptions securityOptions = new();
 
-    public TokenAuthentication(ITokenService tokenService, ILogService logService, IConfiguration configuration, IHostEnvironment hostEnvironment, IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder) : base(options, logger, encoder)
+    public TokenAuthenticationHandler(ITokenService tokenService, ILogService logService, IConfiguration configuration, IHostEnvironment hostEnvironment, IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder) : base(options, logger, encoder)
     {
         this.logService = logService;
         this.tokenService = tokenService;
@@ -36,7 +52,7 @@ public class TokenAuthentication : AuthenticationHandler<AuthenticationSchemeOpt
         try
         {
             var result = isDevelopment && token == AppConstants.SUPER_ADMIN_TOKEN
-                ? new TokenValidationResult(new LoginUser(AppConstants.SUPER_ADMIN, AppConstants.SUPER_ADMIN, "", [AppConstants.SUPER_ADMIN], []))
+                ? new TokenValidationResult(new LoginUser(AppConstants.SUPER_ADMIN, "超级管理员", "", [AppConstants.SUPER_ADMIN], []))
                 : await tokenService.ValidateTokenAsync(token);
 
             if (!result.IsValid)
@@ -61,7 +77,7 @@ public class TokenAuthentication : AuthenticationHandler<AuthenticationSchemeOpt
             if (result.RefreshToken)
             {
                 var refreshToken = await tokenService.CreateTokenAsync(user);
-                Response.Headers.Append("fn-refresh-token", refreshToken);
+                Response.Headers.Append(AppConstants.REFRESH_TOKEN_KEY, refreshToken);
                 //TODO 作废原token? 同时有多个请求时，token作废后，后面的请求会报错
                 //await tokenService.DisableTokenAsync(token);
             }
