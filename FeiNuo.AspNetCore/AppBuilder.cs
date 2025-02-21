@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.OpenApi.Models;
 using System.ComponentModel;
 
 namespace FeiNuo.AspNetCore;
@@ -191,39 +190,6 @@ public static class ServiceCollectionExtensions
         #endregion
 
         return services;
-    }
-    #endregion
-
-    #region Swagger
-    public static IServiceCollection AddAppSwaggerGen(this IServiceCollection services, IConfiguration configuration, string[] xmlPaths)
-    {
-        // 注入 Swagger
-        services.AddEndpointsApiExplorer();
-        services.AddSwaggerGen(c =>
-        {
-            var scheme = TokenAuthentication.AuthenticationScheme;
-            c.AddSecurityDefinition(scheme, new OpenApiSecurityScheme
-            {
-                Description = $"授权认证，在下方输入Bearer {{token}},例如：<br/>Bearer {AppConstants.SUPER_ADMIN_TOKEN}",
-                Name = "Authorization",
-                In = ParameterLocation.Header,
-                Type = SecuritySchemeType.ApiKey,
-            });
-            c.AddSecurityRequirement(new OpenApiSecurityRequirement
-            {
-                {
-                    new OpenApiSecurityScheme {Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = scheme }},
-                    Array.Empty<string>()
-                }
-            });
-            var basePath = Path.GetDirectoryName(AppContext.BaseDirectory)!;
-            foreach (var path in xmlPaths)
-            {
-                c.IncludeXmlComments(Path.Combine(basePath, path), true);
-            }
-        });
-        return services;
-
     }
     #endregion
 }
