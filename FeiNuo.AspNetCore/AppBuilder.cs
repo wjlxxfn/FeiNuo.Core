@@ -111,7 +111,8 @@ public static class ServiceCollectionExtensions
             // 不需要授权的策略
             .AddPolicy(AppConstants.AUTH_POLICY_IGNORE, c => c.RequireAssertion(v => true))
             // 默认策略,必须登录
-            .SetFallbackPolicy(new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build());
+            //.SetFallbackPolicy(new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build())
+            ;
 
         // 授权：添加超管策略，允许所有权限
         services.AddSingleton<IAuthorizationHandler, SuperAdminAuthorizationHandler>();
