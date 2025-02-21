@@ -1,4 +1,6 @@
-﻿namespace FeiNuo.Core;
+﻿using System.ComponentModel;
+
+namespace FeiNuo.Core;
 
 /// <summary>
 /// DTO 基类
@@ -8,11 +10,13 @@ public class BaseDto : ICloneable
     /// <summary>
     /// 创建人
     /// </summary>
+    [Description("创建人")]
     public string? CreateBy { get; set; }
 
     /// <summary>
     /// 创建时间
     /// </summary>
+    [Description("创建时间")]
     public DateTime? CreateTime { get; set; }
 
     /// <summary>

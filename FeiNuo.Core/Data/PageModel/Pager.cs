@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.ComponentModel;
+using System.Text.Json.Serialization;
 
 namespace FeiNuo.Core;
 
@@ -9,18 +10,21 @@ namespace FeiNuo.Core;
 public class Pager
 {
     /// <summary>
-    /// 当前页码，从0开始
+    /// 当前页码
     /// </summary>
+    [Description("当前页码")]
     public int PageNo { get; set; }
 
     /// <summary>
     /// 每页记录数
     /// </summary>
+    [Description("每页记录数")]
     public int PageSize { get; set; }
 
     /// <summary>
     /// 排序
     /// </summary>
+    [Description("排序")]
     public List<SortItem> SortBy { get; set; } = [];
 
     /// <summary>
@@ -54,11 +58,13 @@ public class SortItem
     /// <summary>
     /// 排序字段
     /// </summary>
+    [Description("排序字段")]
     public string SortField { get; set; } = string.Empty;
 
     /// <summary>
     /// 排序类型
     /// </summary>
+    [Description("排序类型")]
     public SortTypeEnum SortType { get; set; } = SortTypeEnum.ASC;
 
     /// <summary>
@@ -86,10 +92,12 @@ public enum SortTypeEnum
     /// <summary>
     /// 升序
     /// </summary>
+    [Description("升序")]
     ASC,
 
     /// <summary>
     /// 降序
     /// </summary>
+    [Description("降序")]
     DESC
 }

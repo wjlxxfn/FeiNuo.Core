@@ -1,4 +1,6 @@
-﻿namespace FeiNuo.Core;
+﻿using System.ComponentModel;
+
+namespace FeiNuo.Core;
 
 /// <summary>
 /// Vue路由模型
@@ -9,31 +11,37 @@ public class RouteVO
     /// <summary>
     /// 路由名
     /// </summary>
+    [Description("路由名")]
     public string Name { get; set; } = null!;
 
     /// <summary>
     /// 路径
     /// </summary>
+    [Description("路径")]
     public string Path { get; set; } = null!;
 
     /// <summary>
     /// Vue组件
     /// </summary>
+    [Description("Vue组件")]
     public string? Component { get; set; }
 
     /// <summary>
     /// 重定向地址
     /// </summary>
+    [Description("重定向地址")]
     public string? Redirect { get; set; }
 
     /// <summary>
     /// 元数据
     /// </summary>
+    [Description("元数据")]
     public MetaVO Meta { get; set; } = null!;
 
     /// <summary>
     /// 子路由
     /// </summary>
+    [Description("子路由")]
     public List<RouteVO> Children { get; set; } = [];
 }
 
@@ -46,21 +54,25 @@ public class MetaVO
     /// <summary>
     /// 标题
     /// </summary>
+    [Description("标题")]
     public string Title { get; set; } = null!;
 
     /// <summary>
     /// 图标
     /// </summary>
+    [Description("图标")]
     public string? Icon { get; set; }
 
     /// <summary>
     /// 是否隐藏：不显示在菜单中
     /// </summary>
+    [Description("是否隐藏：不显示在菜单中")]
     public bool Hidden { get; set; }
 
     /// <summary>
-    /// 禁止缓存页面
+    /// 是否禁止缓存页面
     /// </summary>
+    [Description("是否禁止缓存页面")]
     public bool NoCache { get; set; }
 
     /// <summary>

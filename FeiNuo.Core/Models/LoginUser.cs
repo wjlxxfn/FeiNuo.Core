@@ -1,4 +1,5 @@
-﻿using System.Security.Claims;
+﻿using System.ComponentModel;
+using System.Security.Claims;
 using System.Text.Json.Serialization;
 
 namespace FeiNuo.Core;
@@ -12,37 +13,44 @@ public class LoginUser
     /// <summary>
     /// 用户名
     /// </summary>
+    [Description("用户名")]
     public string Username { get; set; } = null!;
 
     /// <summary>
     /// 姓名/昵称
     /// </summary>
+    [Description("姓名/昵称")]
     public string Nickname { get; set; } = string.Empty;
 
     /// <summary>
     /// 用户密码
     /// </summary>
     [JsonIgnore]
+    [Description("用户密码")]
     public string? Password { get; set; }
 
     /// <summary>
     /// 用户角色
     /// </summary>
+    [Description("用户角色")]
     public List<string> Roles { get; set; } = [];
 
     /// <summary>
     /// 权限字符串
     /// </summary>
+    [Description("权限字符串")]
     public List<string> Permissions { get; set; } = [];
 
     /// <summary>
     /// 其他信息
     /// </summary>
+    [Description("其他信息")]
     public string UserData { get; set; } = string.Empty;
 
     /// <summary>
     /// 请求的客户端信息，方便传参用，有需要时需手动在Controller中赋值 
     /// </summary>
+    [Description("请求的客户端信息，方便传参用，有需要时需手动在Controller中赋值 ")]
     public RequestClient? RequestClient { get; set; }
 
     /// <summary>
@@ -128,7 +136,7 @@ public class LoginUser
         private set
         {
             Username = value.SingleOrDefault(a => a.Type == FNClaimTypes.UserName)!.Value;
-            Nickname = value.SingleOrDefault(a => a.Type == FNClaimTypes.UserName)?.Value ?? "";
+            Nickname = value.SingleOrDefault(a => a.Type == FNClaimTypes.NickName)?.Value ?? "";
 
             var roles = value.Where(a => a.Type == FNClaimTypes.Role).SingleOrDefault();
             Roles = null == roles ? [] : [.. roles.Value.Split(',')];

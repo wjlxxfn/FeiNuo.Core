@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.ComponentModel;
+using System.Text.Json.Serialization;
 
 namespace FeiNuo.Core;
 
@@ -10,22 +11,26 @@ public class MessageResult
     /// <summary>
     /// 消息类型：info,success,warning,error
     /// </summary>
+    [Description("消息类型：info,success,warning,error")]
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public MessageType Type { get; set; } = MessageType.Info;
 
     /// <summary>
     /// 消息内容
     /// </summary>
+    [Description("消息内容")]
     public string Message { get; set; } = string.Empty;
 
     /// <summary>
     /// 其它数据
     /// </summary>
+    [Description("其它数据")]
     public object? Data { get; set; }
 
     /// <summary>
     /// 时间戳
     /// </summary>
+    [Description("时间戳")]
     public DateTime Timestamp { get; set; } = DateTime.Now;
 
     ///<summary>
@@ -33,8 +38,8 @@ public class MessageResult
     /// </summary>
     public MessageResult(string message, MessageType type = MessageType.Info, object? data = null)
     {
-        Message = message;
         Type = type;
+        Message = message;
         Data = data;
         Timestamp = DateTime.Now;
     }
