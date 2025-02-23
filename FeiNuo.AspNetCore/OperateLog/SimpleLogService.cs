@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 
 namespace FeiNuo.AspNetCore;
 
@@ -12,7 +11,7 @@ internal class SimpleLogService : ILogService
 {
     private readonly ILogger<SimpleLogService> _logger;
 
-    public SimpleLogService(ILoggerFactory logFactory, IHttpContextAccessor httpContextAccessor)
+    public SimpleLogService(ILoggerFactory logFactory)
     {
         _logger = logFactory.CreateLogger<SimpleLogService>();
         _logger.LogWarning("未注入日志服务，使用默认的日志组件ILogger输出Info类型的日志.");
