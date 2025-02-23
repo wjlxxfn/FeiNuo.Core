@@ -26,13 +26,13 @@ public static class ServiceCollectionExtensions
     /// <remarks>
     /// useJwtAuthentication=false时，系统会根据注入的ITokenService类型判断是jwt还是cache的实现，默认注入的是CacheTokenService
     /// </remarks>
-    public static IServiceCollection AddFNAll(this IServiceCollection services, IConfiguration configuration, bool useJwtAuthentication = true)
+    public static IServiceCollection AddFNAspNetCore(this IServiceCollection services, IConfiguration configuration, bool useJwtAuthentication = true)
     {
         // 服务
         services.AddFNServices();
         // 认证
         if (useJwtAuthentication) services.AddFNAuthenticationJwt(configuration);
-        else services.AddFNAuthenticationCacheToken(configuration);
+        else services.AddFNAuthenticationToken(configuration);
         // 授权
         services.AddFNAuthorization(configuration);
         // 控制器
@@ -124,7 +124,7 @@ public static class ServiceCollectionExtensions
     /// <summary>
     /// Token 认证，默认注入CacheTokenService
     /// </summary>
-    public static IServiceCollection AddFNAuthenticationCacheToken(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddFNAuthenticationToken(this IServiceCollection services, IConfiguration configuration)
     {
         // 注入token服务
         services.TryAddSingleton<ITokenService, CacheTokenService>();
