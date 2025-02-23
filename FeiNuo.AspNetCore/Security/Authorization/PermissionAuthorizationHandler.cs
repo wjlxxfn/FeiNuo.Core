@@ -6,7 +6,7 @@ namespace FeiNuo.AspNetCore.Security.Authorization;
 /// <summary>
 /// 鉴权处理类
 /// </summary>
-internal class PermissionAuthorizationHandler : AuthorizationHandler<PermissionAttribute>
+public class PermissionAuthorizationHandler : AuthorizationHandler<PermissionAttribute>
 {
     private readonly ILogger<PermissionAuthorizationHandler> logger;
 

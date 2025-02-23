@@ -3,6 +3,8 @@ using FeiNuo.AspNetCore.Security;
 using FeiNuo.AspNetCore.Security.Authentication;
 using FeiNuo.AspNetCore.Security.Authorization;
 using FeiNuo.Core.Utilities;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -102,12 +104,45 @@ public static class ServiceCollectionExtensions
     }
     #endregion
 
-    #region 认证，授权
+    #region 认证，授权。认证分jwt和token两种方式
     /// <summary>
-    /// 添加Token认证
+    /// Jwt 认证
+    /// </summary>
+    public static IServiceCollection AddFNAuthenticationJwt(this IServiceCollection services, IConfiguration configuration)
+    {
+        // 注入token服务
+        services.TryAddSingleton<ITokenService, JwtTokenService>();
+
+        var cfg = configuration.GetSection(SecurityOptions.ConfigKey).Get<SecurityOptions>() ?? new();
+        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
+        {
+            options.TokenValidationParameters = JsonWebTokenHelper.GetTokenValidationParameters(cfg);
+            // jwt事件处理：401，403，以及验证通过后刷新token等
+            options.Events = JsonWebTokenHelper.GetJwtBearerEvents(cfg);
+        });
+
+        return services;
+    }
+
+    /// <summary>
+    /// Token 认证，默认注入CacheTokenService
+    /// </summary>
+    public static IServiceCollection AddFNAuthenticationCacheToken(this IServiceCollection services, IConfiguration configuration)
+    {
+        // 注入token服务
+        services.TryAddSingleton<ITokenService, CacheTokenService>();
+
+        var scheme = JwtBearerDefaults.AuthenticationScheme;
+        services.AddAuthentication(scheme).AddScheme<AuthenticationSchemeOptions, TokenAuthenticationHandler>(scheme, null);
+
+        return services;
+    }
+
+    /// <summary>
+    /// 鉴权：超管策略，忽略策略。 Permission特性
     /// </summary>
     /// <param name="setFallbackPolicy">true:添加默认策略，必须登录，默认为true</param>
-    public static IServiceCollection AddFNAuthorization(this IServiceCollection services, IConfiguration configuration,bool setFallbackPolicy = true)
+    public static IServiceCollection AddFNAuthorization(this IServiceCollection services, IConfiguration configuration, bool setFallbackPolicy = true)
     {
         // 授权
         var builder = services.AddAuthorizationBuilder()

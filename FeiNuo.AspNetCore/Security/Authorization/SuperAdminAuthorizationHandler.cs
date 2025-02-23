@@ -6,7 +6,7 @@ namespace FeiNuo.AspNetCore.Security.Authorization;
 /// <summary>
 /// 超级管理员拥有所有权限
 /// </summary>
-internal class SuperAdminAuthorizationHandler : IAuthorizationHandler
+public class SuperAdminAuthorizationHandler : IAuthorizationHandler
 {
     private readonly ILogger<SuperAdminAuthorizationHandler> logger;
 

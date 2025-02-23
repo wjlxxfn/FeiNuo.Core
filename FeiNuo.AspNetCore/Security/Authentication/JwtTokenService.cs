@@ -51,31 +51,9 @@ public class JwtTokenService : ITokenService
     /// </summary>
     public async Task<TokenValidationResult> ValidateTokenAsync(string token)
     {
-        var validationParameters = new TokenValidationParameters()
-        {
-            // 验证发行人
-            ValidateIssuer = !string.IsNullOrEmpty(cfg.Jwt.Issuer),
-            ValidIssuer = cfg.Jwt.Issuer,
-
-            // 验证受众人
-            ValidateAudience = !string.IsNullOrEmpty(cfg.Jwt.Audience),
-            ValidAudience = cfg.Jwt.Audience,
-
-            // 验证签名
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(SHA256.HashData(Encoding.UTF8.GetBytes(cfg.Jwt.SigningKey))),
-
-            RequireExpirationTime = cfg.TokenExpiration > 0,
-
-            // 允许服务器时间偏移量(默认1800秒)
-            // 即我们配置的过期时间加上这个允许偏移的时间值，才是真正过期的时间(过期时间 +偏移值)
-            ClockSkew = TimeSpan.FromSeconds(cfg.Jwt.ClockSkew),
-
-            NameClaimType = FNClaimTypes.UserName,
-            RoleClaimType = FNClaimTypes.Role
-        };
-
+        var validationParameters = JsonWebTokenHelper.GetTokenValidationParameters(cfg);
         var result = await tokenHandler.ValidateTokenAsync(token, validationParameters);
+
         if (result.IsValid)
         {
             // 作废的，退出的

@@ -13,6 +13,8 @@ public class ExcelImportController : BaseController
     /// 获取导入页面的配置信息，判断是否需要下载基础数据，显示说明文字等
     /// </summary>
     [HttpGet("config")]
+    [EndpointSummary("获取Excel上传的配置信息")]
+    [EndpointDescription("是否显示说明文字，是否显示下载基础数据，是否显示上传模板")]
     public ActionResult GetImportConfig([FromQuery] string importKey)
     {
         var service = GetExcelImportService(importKey);
@@ -34,6 +36,7 @@ public class ExcelImportController : BaseController
     /// 下载导入模板
     /// </summary>
     [HttpGet("template")]
+    [EndpointSummary("下载导入模板")]
     public async Task<IActionResult> DownloadTemplate([FromQuery] string importKey)
     {
         var service = GetExcelImportService(importKey);
@@ -45,6 +48,7 @@ public class ExcelImportController : BaseController
     /// 下载基础数据
     /// </summary>
     [HttpGet("basicdata")]
+    [EndpointSummary("下载基础数据")]
     public async Task<IActionResult> DownloadBasicData([FromQuery] string importKey)
     {
         var service = GetExcelImportService(importKey);
@@ -56,6 +60,7 @@ public class ExcelImportController : BaseController
     /// 上传文件，执行导入
     /// </summary>
     [HttpPost]
+    [EndpointSummary("上传文件，执行导入")]
     public async Task<IActionResult> UploadExcel(IFormFile file, [FromForm] string importKey)
     {
         if (file == null || file.Length == 0)

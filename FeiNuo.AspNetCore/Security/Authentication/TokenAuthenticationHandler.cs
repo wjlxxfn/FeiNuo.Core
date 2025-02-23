@@ -1,9 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -11,20 +9,6 @@ using System.Security.Claims;
 using System.Text.Encodings.Web;
 
 namespace FeiNuo.AspNetCore.Security.Authentication;
-
-
-public static class TokenAuthentication
-{
-    public static IServiceCollection AddFNAuthenticationCacheToken(this IServiceCollection services, IConfiguration configuration)
-    {
-        // 注入token服务
-        services.TryAddSingleton<ITokenService, CacheTokenService>();
-
-        var scheme = JwtBearerDefaults.AuthenticationScheme;
-        services.AddAuthentication(scheme).AddScheme<AuthenticationSchemeOptions, TokenAuthenticationHandler>(scheme, null);
-        return services;
-    }
-}
 
 public class TokenAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
 {
