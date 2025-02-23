@@ -30,7 +30,12 @@ public class LoginController : BaseController
         try
         {
             var token = await loginService.HandleLogin(loginForm);
+            // 记录日志
             log.LogContent = token;
+            log.OperateBy = loginForm.Username;
+            log.RequestParam = JsonUtils.Serialize(loginForm);
+            log.MergeContextParam(HttpContext);
+
             return token;
         }
         catch (Exception ex)
@@ -43,9 +48,6 @@ public class LoginController : BaseController
         {
             stopwatch.Stop();
             log.ExecuteTime = stopwatch.ElapsedMilliseconds;
-            log.MergeContextParam(HttpContext);
-            log.RequestParam = JsonUtils.Serialize(loginForm);
-            log.OperateBy = loginForm.Username;
             await logService.SaveLog(log);
         }
     }
@@ -61,6 +63,7 @@ public class LoginController : BaseController
         var stopwatch = Stopwatch.StartNew();
         try
         {
+
             var token = await GetAccessToken();
             if (string.IsNullOrWhiteSpace(token) || User == null)
             {
@@ -68,9 +71,12 @@ public class LoginController : BaseController
                 log.Success = false;
                 return;
             }
-            log.OperateBy = CurrentUser.Username;
-            log.RequestParam = token;
             await loginService.HandleLogout(token, CurrentUser);
+
+            // 记录日志
+            log.RequestParam = token;
+            log.OperateBy = CurrentUser.Username;
+            log.MergeContextParam(HttpContext);
 
         }
         catch (Exception ex)
@@ -83,7 +89,6 @@ public class LoginController : BaseController
         {
             stopwatch.Stop();
             log.ExecuteTime = stopwatch.ElapsedMilliseconds;
-            log.MergeContextParam(HttpContext);
             await logService.SaveLog(log);
         }
     }

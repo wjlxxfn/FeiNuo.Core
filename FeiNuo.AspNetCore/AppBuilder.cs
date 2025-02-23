@@ -46,10 +46,6 @@ public static class ServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddFNServices(this IServiceCollection services)
     {
-        //TODO net9已取消默认注入，性能不好，看能不能不要注入
-        // 注入Http上下文类，服务类中有时需要使用
-        services.AddHttpContextAccessor();
-
         // 自动注入[Service]特性的类或实现IService接口的类
         services.AutoInjectServcice();
 
@@ -63,6 +59,7 @@ public static class ServiceCollectionExtensions
         services.TryAddScoped<ILoginUserService, SimpleLoginUserService>();
         // 注入登录服务
         services.TryAddScoped<ILoginService, LoginService>();
+
         return services;
     }
     #endregion

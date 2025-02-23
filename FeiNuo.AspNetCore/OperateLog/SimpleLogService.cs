@@ -11,11 +11,9 @@ namespace FeiNuo.AspNetCore;
 internal class SimpleLogService : ILogService
 {
     private readonly ILogger<SimpleLogService> _logger;
-    private readonly IHttpContextAccessor _httpContextAccessor;
 
     public SimpleLogService(ILoggerFactory logFactory, IHttpContextAccessor httpContextAccessor)
     {
-        _httpContextAccessor = httpContextAccessor;
         _logger = logFactory.CreateLogger<SimpleLogService>();
         _logger.LogWarning("未注入日志服务，使用默认的日志组件ILogger输出Info类型的日志.");
     }
@@ -30,10 +28,13 @@ internal class SimpleLogService : ILogService
         });
     }
 
-    public async Task SaveLog(OperateType operateType, string logTitle, string logDetail)
+    public async Task SaveLog(OperateType operateType, string logTitle, string logDetail, RequestClient? request = null)
     {
         var log = new OperateLog(operateType, logTitle, logDetail);
-        log.MergeContextParam(_httpContextAccessor.HttpContext);
+        if (request != null)
+        {
+            log.MergeClientInfo(request);
+        }
         await SaveLog(log);
     }
 }
