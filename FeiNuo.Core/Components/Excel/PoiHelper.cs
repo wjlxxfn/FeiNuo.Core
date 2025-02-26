@@ -85,6 +85,12 @@ public class PoiHelper
             colIndex = 0;
             foreach (var col in config.ExcelColumns)
             {
+                // 设置默认格式
+                if (col.ColumnStyle.IsNonEmptyStyle)
+                {
+                    sheet.SetDefaultColumnStyle(colIndex, styles.GetStyle(col.ColumnStyle));
+                }
+
                 var rowTitles = col.RowTitles.ToList();
                 #region 保证每列都有相同的行数，不足的用最后的行标题填充
                 if (rowTitles.Count < titleRowCount)
@@ -132,11 +138,7 @@ public class PoiHelper
                 // 配置列宽，隐藏
                 if (col.Width.HasValue) sheet.SetColumnWidth(colIndex, col.Width.Value * 256);
                 if (col.Hidden) sheet.SetColumnHidden(colIndex, true);
-                // 设置默认格式
-                if (!col.ColumnStyle.IsEmptyStyle)
-                {
-                    sheet.SetDefaultColumnStyle(colIndex, styles.GetStyle(col.ColumnStyle));
-                }
+
                 colIndex++;
             }
             // 相邻列相同的合并列
@@ -185,9 +187,9 @@ public class PoiHelper
                 foreach (var col in config.ExcelColumns)
                 {
                     var val = col.ValueGetter?.Invoke(data);
-                    var style = col.ColumnStyle.IsEmptyStyle
-                        ? ((val != null && (val is DateOnly || val is DateTime)) ? styles.DateStyle : null)
-                        : styles.GetStyle(col.ColumnStyle);
+                    var style = col.ColumnStyle.IsNonEmptyStyle
+                        ? styles.GetStyle(col.ColumnStyle)
+                        : ((val != null && (val is DateOnly || val is DateTime)) ? styles.DateStyle : null);
                     SetCellValue(row, colIndex++, val, false, style);
                 }
             }

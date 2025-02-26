@@ -71,15 +71,14 @@ public class ExcelStyle
     /// <summary>
     /// 是否初始值，没设置任何格式
     /// </summary>
-    public bool IsEmptyStyle
+    public bool IsNonEmptyStyle
     {
         get
         {
-            return !(
-                BorderStyle.HasValue || HorizontalAlignment.HasValue || VerticalAlignment.HasValue
+            return BorderStyle.HasValue || HorizontalAlignment.HasValue || VerticalAlignment.HasValue
                 || BackgroundColor.HasValue || (!string.IsNullOrWhiteSpace(DataFormat)) || WrapText.HasValue
                 || (!string.IsNullOrWhiteSpace(FontName)) || FontColor.HasValue || FontSize.HasValue || FontBold.HasValue
-                );
+                ;
         }
     }
 }

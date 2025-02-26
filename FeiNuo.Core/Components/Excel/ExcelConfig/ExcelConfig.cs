@@ -30,9 +30,9 @@ public class ExcelConfig
     #region 构造函数
     public ExcelConfig(string fileName, ExcelType? excelType = null, ExcelStyle? defaultStyle = null)
     {
+        if (excelType.HasValue) ExcelType = excelType.Value;
         //如果没有后缀的话加上后缀
         FileName = fileName + (string.IsNullOrWhiteSpace(Path.GetExtension(fileName)) ? (IsExcel2007 ? ".xlsx" : ".xls") : "");
-        if (excelType.HasValue) ExcelType = excelType.Value;
         if (defaultStyle != null) DefaultStyle = defaultStyle;
     }
     public ExcelConfig(string fileName, IEnumerable<object> DataList, IEnumerable<ExcelColumn> columns) : this(fileName)

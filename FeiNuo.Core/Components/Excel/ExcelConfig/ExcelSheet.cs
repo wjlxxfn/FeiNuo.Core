@@ -43,7 +43,7 @@ public class ExcelSheet
     /// <summary>
     /// 列标题样式：水平居中，字体加粗，加背景色
     /// </summary>
-    public ExcelStyle ColumnTitleStyle = new() { HorizontalAlignment = 2, FontBold = true, BackgroundColor = 26 };
+    public ExcelStyle ColumnTitleStyle = new() { HorizontalAlignment = 2, BackgroundColor = 26 };
 
     /// <summary>
     /// 在上传Excel数据时，是否效验模板：根据sheet名，标题名必须一致才能继续导入
@@ -55,7 +55,7 @@ public class ExcelSheet
     /// <summary>
     /// 默认列宽
     /// </summary>
-    public int? DefaultColumnWidth { get; set; }
+    public int? DefaultColumnWidth { get; set; } = 12;
 
     /// <summary>
     /// 默认计算公式的值
