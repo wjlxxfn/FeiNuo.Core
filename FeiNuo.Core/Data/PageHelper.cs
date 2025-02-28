@@ -76,4 +76,18 @@ public class PageHelper
         }
         return orderedQuery;
     }
+
+    /// <summary>
+    /// 内存分页
+    /// </summary>
+    /// <param name="lstAll">已排序的数据</param>
+    /// <param name="pager">分页参数</param>
+    /// <returns>PageResult</returns>
+    public static PageResult<T> Page<T>(IOrderedEnumerable<T> lstAll, Pager pager)
+    {
+        var totalCount = lstAll.Count();
+        var skipSize = Math.Max(pager.PageNo - 1, 0) * pager.PageSize;
+        var pageData = lstAll.Skip(skipSize).Take(pager.PageSize);
+        return new PageResult<T>(pageData.ToList(), totalCount);
+    }
 }
