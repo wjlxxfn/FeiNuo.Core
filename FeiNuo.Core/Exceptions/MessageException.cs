@@ -12,3 +12,13 @@ public class MessageException(string message, MessageType messageType = MessageT
     /// </summary>
     public MessageType MessageType { get; set; } = messageType;
 }
+
+public class WarningException(string message) : MessageException(message, MessageType.Warning)
+{
+
+}
+
+public class ErrorException(string message) : MessageException(message, MessageType.Error)
+{
+
+}
