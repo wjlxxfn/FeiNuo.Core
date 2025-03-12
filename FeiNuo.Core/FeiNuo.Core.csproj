@@ -1,11 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<TargetFramework>net9.0</TargetFramework>
+		<TargetFramework>net8.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-		<Version>1.0.4.3</Version>
+		<Version>1.1.0</Version>
 		<Title>FeiNuo.Core</Title>
 		<Authors>FeiNuo</Authors>
 		<Description>FeiNuo基础库</Description>
@@ -13,11 +13,18 @@
 		<PackageProjectUrl>https://github.com/wjlxxfn/FeiNuo.Core</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/wjlxxfn/FeiNuo.Core</RepositoryUrl>
 		<PackageReleaseNotes>初始化</PackageReleaseNotes>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.2" />
 		<PackageReference Include="NPOI" Version="2.7.2" PrivateAssets="All" />
 		<PackageReference Include="SixLabors.ImageSharp.Drawing" Version="2.1.5" PrivateAssets="All" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Update="README.md">
+			<PackagePath>\</PackagePath>
+			<Pack>True</Pack>
+		</None>
 	</ItemGroup>
 </Project>

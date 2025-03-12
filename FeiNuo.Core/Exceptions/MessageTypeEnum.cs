@@ -6,7 +6,7 @@ namespace FeiNuo.Core;
 /// 消息类型
 /// </summary>
 [TypeConverter(typeof(EnumConverter))]
-public enum MessageType
+public enum MessageTypeEnum
 {
     /// <summary>
     /// 普通信息

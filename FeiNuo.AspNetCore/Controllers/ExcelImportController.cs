@@ -108,11 +108,17 @@ public class ExcelImportController : BaseController
     }
 
     #region 辅助方法
-    private Dictionary<string, StringValues> ParamMap
+    private Dictionary<string, string> ParamMap
     {
         get
         {
-            return QueryHelpers.ParseQuery(Request.QueryString.Value);
+            var paramMap = QueryHelpers.ParseQuery(Request.QueryString.Value);
+            var dic = new Dictionary<string, string>();
+            foreach (var param in paramMap)
+            {
+                dic.Add(param.Key, param.Value.ToString());
+            }
+            return dic;
         }
     }
 

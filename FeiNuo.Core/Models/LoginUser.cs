@@ -73,8 +73,8 @@ public class LoginUser
         Username = username;
         Nickname = nickname;
         Password = password;
-        Roles = roles.ToList();
-        if (permissions != null) Permissions = permissions.ToList();
+        Roles = [.. roles];
+        if (permissions != null) Permissions = [.. permissions];
         if (!string.IsNullOrWhiteSpace(userData)) UserData = userData;
     }
 
@@ -133,8 +133,8 @@ public class LoginUser
             Username = value.SingleOrDefault(a => a.Type == FNClaimTypes.UserName)!.Value;
             Nickname = value.SingleOrDefault(a => a.Type == FNClaimTypes.NickName)?.Value ?? string.Empty;
 
-            Roles = value.Where(a => a.Type == FNClaimTypes.Role || a.Type == ClaimTypes.Role).Select(a => a.Value).Distinct().ToList();
-            Permissions = value.Where(a => a.Type == FNClaimTypes.Permission).Select(a => a.Value).Distinct().ToList();
+            Roles = [.. value.Where(a => a.Type == FNClaimTypes.Role || a.Type == ClaimTypes.Role).Select(a => a.Value).Distinct()];
+            Permissions = [.. value.Where(a => a.Type == FNClaimTypes.Permission).Select(a => a.Value).Distinct()];
 
             UserData = value.SingleOrDefault(a => a.Type == FNClaimTypes.Data)?.Value ?? string.Empty;
         }

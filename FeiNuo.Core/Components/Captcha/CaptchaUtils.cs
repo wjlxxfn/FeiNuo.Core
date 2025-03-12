@@ -1,6 +1,4 @@
-﻿using FeiNuo.Core.Captcha;
-
-namespace FeiNuo.Core.Utilities;
+﻿namespace FeiNuo.Core.Captcha;
 
 public class CaptchaUtils
 {

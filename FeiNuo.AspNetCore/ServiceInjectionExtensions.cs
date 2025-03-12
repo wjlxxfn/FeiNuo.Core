@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
-namespace FeiNuo.Core;
+namespace FeiNuo.AspNetCore;
 
 public static class ServiceInjectionExtensions
 {

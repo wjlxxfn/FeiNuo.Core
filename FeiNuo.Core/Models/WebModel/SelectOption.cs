@@ -32,12 +32,6 @@ public class SelectOption
     public string? Color { get; set; } = null;
 
     /// <summary>
-    /// 是否禁用
-    /// </summary>
-    [Description("是否可选择")]
-    public bool? Selectable { get; set; } = null;
-
-    /// <summary>
     /// 其它内容：比如额外属性值，助词码等
     /// </summary>
     [Description("其它内容：比如额外属性值，助词码等")]
@@ -55,6 +49,9 @@ public class SelectOption
     }
 }
 
+/// <summary>
+/// 树形选项结构
+/// </summary>
 public class TreeOption : SelectOption
 {
     public TreeOption()
@@ -68,6 +65,6 @@ public class TreeOption : SelectOption
     /// <summary>
     /// 下级节点：树形结构使用
     /// </summary>
-    [Description("下级节点：树形结构使用")]
+    [Description("下级节点")]
     public List<TreeOption> Children { get; set; } = [];
 }

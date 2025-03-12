@@ -13,7 +13,7 @@ public class MessageResult
     /// </summary>
     [Description("消息类型：info,success,warning,error")]
     [JsonConverter(typeof(JsonStringEnumConverter))]
-    public MessageType Type { get; set; } = MessageType.Info;
+    public MessageTypeEnum Type { get; set; } = MessageTypeEnum.Info;
 
     /// <summary>
     /// 消息内容
@@ -36,7 +36,7 @@ public class MessageResult
     ///<summary>
     /// 构造函数
     /// </summary>
-    public MessageResult(string message, MessageType type = MessageType.Info, object? data = null)
+    public MessageResult(string message, MessageTypeEnum type = MessageTypeEnum.Info, object? data = null)
     {
         Type = type;
         Message = message;
