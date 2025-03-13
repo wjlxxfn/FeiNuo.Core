@@ -58,7 +58,7 @@ public static class ServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddFNServices(this IServiceCollection services)
     {
-        // 自动注入[Service]特性的类或实现IService接口的类
+        // 自动注入[Service]特性的类或继承自BaseService接口的类
         services.AutoInjectServcice();
 
         // 注入内存缓存和默认的分布式缓存

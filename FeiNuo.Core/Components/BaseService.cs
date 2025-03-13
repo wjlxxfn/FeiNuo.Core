@@ -1,9 +1,9 @@
 ﻿namespace FeiNuo.Core;
 
 /// <summary>
-/// 服务类基类
+/// 服务类接口
 /// </summary>
-public abstract class BaseService
+public interface BaseService
 {
 
 }

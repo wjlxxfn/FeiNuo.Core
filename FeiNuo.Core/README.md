@@ -216,6 +216,35 @@
 #### 1、对NPOI Excel的功能封装
   > 该功能需要此入 NPOI (>=2.7.2)
 
+  1. ExcelConfig，ExcelSheet,ExcelColumn,ExcelStyle类将常用Excel属性剥离出来,单独定义 
+  1. PoiHelper类封装POI实现，提供Excel常用操作
+  1. ExcelStyle类封装常用excel格式
+
+```
+    // 导出excel示例
+    [HttpGet("export")]
+    [EndpointSummary("导出Excel")]
+    public async Task<ActionResult> ExportRoles([FromQuery] RoleQuery query)
+    {
+        var data = await service.FindDataList(query);
+        var excel = new ExcelConfig($"角色导出{DateTime.Now:yyyyMMddHHmmss}.xlsx", data, [
+            new ExcelColumn<RoleDto>("角色编码", d => d.RoleCode),
+            new ExcelColumn<RoleDto>("角色名称", d => d.RoleName),
+            new ExcelColumn<RoleDto>("角色状态", d => d.Status.GetDescription()),
+            new ExcelColumn<RoleDto>("备注说明", d => d.Remark, 15, s => s.WrapText = true),
+            new ExcelColumn<RoleDto>("创建人", d => d.CreateBy),
+            new ExcelColumn<RoleDto>("创建时间", d => d.CreateTime),
+        ]);
+        var bytes = PoiHelper.GetExcelBytes(excel);
+        return File(bytes, excel.ContentType, excel.FileName);
+    }
+```
+
+```
+ // 导入excel示例
+
+```
+
 #### 2、验证码功能封装
   > 该功能需要此入 SixLabors.ImageSharp.Drawing (>=2.1.5) 
 
@@ -223,7 +252,7 @@
 
   *生成的验证码包括文本和图片的base64格式，后续使用需自己实现*
   
-#### 2、操作日志定义
-  1、OperateLog  定义操作日志
-  2、OperateType 定义操作类型
-  3、ILogService 定义操作接口：保存日志用
+#### 3、操作日志定义
+  1. OperateLog:  定义操作日志
+  2. OperateType: 定义操作类型
+  3. ILogService: 定义操作接口：保存日志用

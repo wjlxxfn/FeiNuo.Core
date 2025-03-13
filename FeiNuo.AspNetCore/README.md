@@ -1,51 +1,193 @@
 ﻿# FeiNuo.AspNetCore
 ## 功能介绍
-    本项目基于Net8开发，用于辅助开发WebApi项目。    
-1. 封装自动注入，异常处理，登录认证，系统授权等通用功能；
-2. 提供常用工具类和扩展功能：如JsonUtil,StringExtensions等;
-3. 提供常用组件的封装，如：Excel操作，日志操作等, 验证码生成等；
+> 本项目基于Net8开发，用于辅助开发WebApi项目。    
+1. 自动注入服务
+2. 认证授权服务
+3. MVC相关辅助功能
+4. 其他辅助功能
 
-## 一、自动注入
-    builder.Services.AddAppServices();
-1. 系统自动注入实现IService接口或继承BaseService类的所有类
-    1. 如果该类有实现的接口(除IService)则根据接口类注入
-    2. 如果没有实现接口(除IService)，则根据当前类型注入
-    3. 注入的生命周期全部为 `ServiceLifetime.Scoped`
-    4. 如果默认注入的不合适，可添加[Service]特性自定义
-    5. 如果有[Service]特性，则根据下面[Service]特性的规则注入
-    
-2. 系统自动注入标注有[Service]特性的所有类
+## 一、自动注入服务
+  1、_自动注入[Service]特性的类或继承自BaseService的类_
+  ```
+    builder.Services.AutoInjectServcice();
+
+    对于标注有[Service]特性的类：
     1. 如果特性中有注入类型，则以特性中指定的类型为准
-    2. 如果特性中没有注入类型，则根据当前类实现的接口注入
-    3. 如果当前类也没有实现接口，则根据当前类型注入
+    2. 如果特性中没有注入类型，则根据当前类实现的接口类型注入
+    3. 如果当前类也没有实现接口，则根据当前类的类型注入
     4. 生命周期默认为 `ServiceLifetime.Scoped`，可以在特性中修改
-    
-3.  默认注入内存缓存和内存分布式缓存
 
-## 二、API行为处理
-    builder.Services.AddAppControllers();
-1. 系统约定统一根据HTTP状态码返回数据
-2. 支持DateOnly类型接收带时间的日期
-3. 正常响应，返回状态码2XX,直接返回系统数据
-4. 异常响应：
-    1. 没有登录信息：返回 401,UnauthorizedResult
-    2. 没有权限：返回 403,ForbidResult
-    3. 模型数据验证不通过：返回 400,BadRequestResult
-    4. 系统自定义异常消息：返回 422,UnprocessableEntityResult
-    5. 系统异常：返回 500
-1. 统一序列化配置
-    1. null值默认不输出
-    1. 阻断循环引用
-    1. 属性转换策略：小驼峰
-    1. 支持从字符串转成数字
-    1. 日期类型默认输出格式 yyyy-MM-dd HH:mm:ss
+    实现BaseService的所有类
+    1. 如果该类有[Service]特性,按前面规则注入
+    2. 有实现的接口(BaseService除外)则根据接口类型注入
+    3. 如果没有实现接口(BaseService除外)，则根据当前类型注入
+    4. 注入的生命周期全部为 `ServiceLifetime.Scoped`
+    5. 如果默认注入的不合适，可添加[Service]特性自定义
+  ```
+
+  2、_注入常用服务类,自动注入+缓存服务+日志服务_
+  ```
+    public static IServiceCollection AddFNServices(this IServiceCollection services)
+    {
+        // 自动注入[Service]特性的类或继承自BaseService接口的类
+        services.AutoInjectServcice();
+
+        // 注入内存缓存和默认的分布式缓存
+        services.AddMemoryCache();
+        services.AddDistributedMemoryCache();
+
+        // 添加默认的操作日志记录服务
+        services.TryAddSingleton<ILogService, SimpleLogService>();
+
+        return services;
+    }
+   ```
+
+  3、_注入控制器，实现异常处理，JSON配置_
+   ```
+    public static IServiceCollection AddFNControllers(this IServiceCollection services)
+    {
+        services.AddControllers(config =>
+        {
+            // 添加自定义异常处理过滤器
+            // 异常响应：
+            // 1. 没有登录信息：返回 401,UnauthorizedResult
+            // 2. 没有权限：返回 403,ForbidResult
+            // 3. 模型数据验证不通过：返回 400,BadRequestResult
+            // 4. 系统自定义异常消息：返回 422,UnprocessableEntityResult
+            // 5. 系统异常：返回 500
+            config.Filters.Add<AppExceptionFilter>();
+            //  DateOnly，默认只支持日期格式，如果前端是完整的日期包含时间的转换不了,这里添加一个转换类
+            TypeDescriptor.AddAttributes(typeof(DateOnly), new TypeConverterAttribute(typeof(DateOnlyTypeConverter)));
+        })
+        .ConfigureApiBehaviorOptions(options =>
+        {
+            // 数据校验不通过返回400，修改下返回格式
+            options.InvalidModelStateResponseFactory = (context) =>
+            {
+                var errors = context.ModelState.Values
+                    .Select(a => string.Join(",", a.Errors.Select(t => t.ErrorMessage)))
+                    .Where(a => !string.IsNullOrEmpty(a))
+                    .ToArray();
+                var msgVo = new MessageResult("数据效验不通过：" + string.Join("，", errors), MessageTypeEnum.Error);
+                // 400 
+                return new BadRequestObjectResult(msgVo);
+            };
+        })
+        // 配置Json格式化规则
+        // 1. 统一序列化配置
+        // 2. null值默认不输出
+        // 3. 阻断循环引用
+        // 4. 属性转换策略：小驼峰
+        // 5. 支持从字符串转成数字
+        // 6. 日期类型默认输出格式 yyyy-MM-dd HH:mm:ss
+        .AddJsonOptions(options => JsonUtils.MergeSerializerOptions(options.JsonSerializerOptions));
+        return services;
+    }
+   ```
+
+  4、注入用户认证，实现登录服务
+   ```
+    /// <summary>
+    /// Jwt 认证
+    /// </summary>
+    public static IServiceCollection AddFNAuthenticationJwt(this IServiceCollection services, IConfiguration configuration)
+    {
+        // 注入token服务
+        services.TryAddSingleton<ITokenService, JwtTokenService>();
+
+        // 添加初始的登录用户服务，保证新初始化项目时不报错。
+        services.TryAddScoped<ILoginUserService, SimpleLoginUserService>();
+        // 注入登录服务
+        services.TryAddScoped<ILoginService, LoginService>();
+
+        var cfg = configuration.GetSection(SecurityOptions.ConfigKey).Get<SecurityOptions>() ?? new();
+        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
+        {
+            options.TokenValidationParameters = JsonWebTokenHelper.GetTokenValidationParameters(cfg);
+            // jwt事件处理：401，403，以及验证通过后刷新token等
+            options.Events = JsonWebTokenHelper.GetJwtBearerEvents(cfg);
+        });
+
+        return services;
+    }
+
+    /// <summary>
+    /// Token 认证，默认注入CacheTokenService
+    /// </summary>
+    public static IServiceCollection AddFNAuthenticationToken(this IServiceCollection services, IConfiguration configuration)
+    {
+        // 注入token服务
+        services.TryAddSingleton<ITokenService, CacheTokenService>();
+
+        // 添加初始的登录用户服务，保证新初始化项目时不报错。
+        services.TryAddScoped<ILoginUserService, SimpleLoginUserService>();
+        // 注入登录服务
+        services.TryAddScoped<ILoginService, LoginService>();
+
+        var scheme = JwtBearerDefaults.AuthenticationScheme;
+        services.AddAuthentication(scheme).AddScheme<AuthenticationSchemeOptions, TokenAuthenticationHandler>(scheme, null);
+
+        return services;
+    }
+   ```
+  5、注入权限管理
+  ```
+    public static IServiceCollection AddFNAuthorization(this IServiceCollection services, IConfiguration configuration, bool setFallbackPolicy = true)
+    {
+        // 授权
+        var builder = services.AddAuthorizationBuilder()
+            // 超管账号策略（只有SuperAdmin才行，角色加上SuperAdmin也不行）
+            .AddPolicy(AppConstants.SUPER_ADMIN, c => c.RequireUserName(AppConstants.SUPER_ADMIN))
+            // 不需要授权的策略
+            .AddPolicy(AppConstants.AUTH_POLICY_IGNORE, c => c.RequireAssertion(v => true));
+
+        // 默认策略,必须登录
+        if (setFallbackPolicy)
+        {
+            builder.SetFallbackPolicy(new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build());
+        }
+
+        // 授权：添加超管策略，允许所有权限
+        services.AddSingleton<IAuthorizationHandler, SuperAdminAuthorizationHandler>();
+
+        // 授权：通过permission字符串授权[Permission("system:user:delete")]
+        services.AddSingleton<IAuthorizationHandler, PermissionAuthorizationHandler>();
+
+        return services;
+    }
+  ```
+
+  6、全部注入
+   ```
+    public static IServiceCollection AddFNAspNetCore(this IServiceCollection services, IConfiguration configuration, bool useJwtAuthentication = true)
+    {
+        // 服务
+        services.AddFNServices();
+        // 认证
+        if (useJwtAuthentication)
+        {
+            services.AddFNAuthenticationJwt(configuration);
+        }
+        else
+        {
+            services.AddFNAuthenticationToken(configuration);
+        }
+        // 授权
+        services.AddFNAuthorization(configuration);
+        // 控制器
+        services.AddFNControllers();
+        return services;
+    }
+ ```
+
+
     
-## 三、认证授权
-    builder.Services.AddAppSecurity(builder.Configuration);
+## 三、认证授权相关实现
 
 ### 1、登录接口
-    提供登录相关Rest接口  
-    需要需要注入查询登录用户的实现类：ILoginUserService  
+    提供登录相关Rest接口: LoginController
+    需要注入查询登录用户的实现类：ILoginUserService  
 
 |    接口   | 类型  |     参数   |   返回  |
 |    ----   | :---: |    ------  |   ----  |
@@ -164,39 +306,10 @@ public interface ITokenService
 ## 四、日志模块
 
 ## 五、分页组件
+使用 EFCore时，可以使用PageHelper实现分页
+>该模块需要引入Microsoft.EntityFrameworkCore(>=8.0.0)
 
-## 六、PoiExcel封装
-    将常用属性方法封装到ExcelConfig相关类中，然后使用PoiHelper封装POI实现
-    提供ExcelExporter和ExcelImporter方法Excel的导入导出
-1. POIUtils提供常用的Excel操作
-1. ExcelConfig，ExcelSheet,ExcelColumn,ExcelStyle 将常用Excel属性剥离出来,单独定义，和POI没关系 
-1. POIHelper类使用POI和将ExcelConfig构建成Excel对象
-1. ExcelExporter类实现快速导出数据，内部也是封装ExcelConfig实现。使用简单且灵活。
-    1. 配置列和数据对应关系
-    1. 支持配置列宽，样式
-    1. 支持多行标题，标题样式配置等
-```
-[HttpGet("export")]
-public IActionResult Export()
-{
-    var lstData = new List<UserEntity>();
-    var excel = new ExcelExporter("用户数据导出.xlsx")     // 定义导出文件名
-        .AddDataSheet(lstData, [                            // 添加Sheet,可多次添加，同时导出多个Sheet
-            new("姓名", s => s.Username, 20, "@"),         // 样式配置：列宽20，文本格式
-            new("姓别", s => s.UserData?.Gender, 15),      // 灵活取数：返回最终显示的即可
-            new("籍贯#省",s => s.Addr.Province,15),        // 多行标题：以#分隔，自动合并
-            new("籍贯#市",s => s.Addr.City),
-            new("学历",s => s.Education)
-         ], s =>                                           // 额外在配置更多内容
-        {
-            s.Description = "说明文字";
-            s.DescriptionStyle.FontBold = true;
-            s.MainTitle = "主标题";
-            s.MainTitleColSpan = 15;
-        });
-    return File(excel.GetBytes(), excel.ContentType, excel.FileName);
-}
-```
+
 ## 七、代码生成，使用EFCore Tools，反向工程    
   部分配置说明：efpt.renaming.json
   1. 去掉开头，添加后续的正则表达式配置

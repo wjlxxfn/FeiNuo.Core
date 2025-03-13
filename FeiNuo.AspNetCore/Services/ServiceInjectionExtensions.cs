@@ -17,7 +17,7 @@ public static class ServiceInjectionExtensions
             .SelectMany(x => x.GetTypes())
             .Where(t => t.IsClass && !t.IsAbstract);
 
-        #region 自动注入服务类：实现[IServicer]，
+        #region 自动注入服务类：继承自BaseServicer，
         var businessServiceTypes = types.Where(t => typeof(BaseService).IsAssignableFrom(t));
         foreach (var type in businessServiceTypes)
         {
