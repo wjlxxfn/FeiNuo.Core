@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace FeiNuo.AspNetCore.Controllers;
 
-[Route("/api/excel/upload")]
+[Route("/api/excel/import")]
 public class ExcelImportController : BaseController
 {
     /// <summary>

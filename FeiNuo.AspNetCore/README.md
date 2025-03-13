@@ -336,6 +336,10 @@ public interface ITokenService
 
 
 ## 常用扩展和工具类
+####  1、ClientUtils 客户端工具类，
+使用UAParser，根据UserAgeng 获取客户端操作系统和浏览器信息。根据HttpContext获取用户IP
+####  2、JsonUtils Json序列化工具类    
+
 
 ## 系统所有配置项
 以下配置值为系统默认值，只配置需要调整的部分即可。
@@ -348,7 +352,6 @@ public interface ITokenService
 
     // 登录认证相关配置
     "Security": {
-      "TokenType": "Jwt",      // Token类型：Jwt/Cache
       "TokenExpiration": 7200, // Token超时时间，单位秒，0不超时
 
       // Jwt配置

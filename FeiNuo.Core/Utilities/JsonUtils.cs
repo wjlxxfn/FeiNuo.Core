@@ -13,21 +13,22 @@ public class JsonUtils
     /// <summary>
     /// 序列化
     /// </summary>
-    public static string Serialize(object obj, bool writeIndented = false)
+    public static string Serialize(object obj, Action<JsonSerializerOptions>? customerOptions = null)
     {
         var options = new JsonSerializerOptions();
         MergeSerializerOptions(options);
-        options.WriteIndented = writeIndented;
+        customerOptions?.Invoke(options);
         return JsonSerializer.Serialize(obj, options);
     }
 
     /// <summary>
     /// 反序列化
     /// </summary>
-    public static T? Deserialize<T>(string json)
+    public static T? Deserialize<T>(string json, Action<JsonSerializerOptions>? customerOptions = null)
     {
         var options = new JsonSerializerOptions();
         MergeSerializerOptions(options);
+        customerOptions?.Invoke(options);
         return JsonSerializer.Deserialize<T>(json, options);
     }
 
