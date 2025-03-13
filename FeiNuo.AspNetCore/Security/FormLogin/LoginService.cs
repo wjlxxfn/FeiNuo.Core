@@ -1,9 +1,9 @@
 ﻿using FeiNuo.AspNetCore.Security.Authentication;
-using FeiNuo.Core.Utilities;
+using FeiNuo.Core.Captcha;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Configuration;
 
-namespace FeiNuo.AspNetCore.Security;
+namespace FeiNuo.AspNetCore.Security.FormLogin;
 
 public class LoginService : ILoginService
 {
@@ -33,7 +33,7 @@ public class LoginService : ILoginService
         }
         if (!userService.ValidatePassword(form, user))
         {
-            throw new MessageException($"用户名或密码错误！", MessageType.Error);
+            throw new MessageException($"用户名或密码错误！", MessageTypeEnum.Error);
         }
 
         // 登录成功，清空使用的验证码缓存
@@ -54,11 +54,11 @@ public class LoginService : ILoginService
             var code = await cache.GetStringAsync(AppConstants.CACHE_PREFIX_CAPTCHA + form.CaptchaKey);
             if (string.IsNullOrEmpty(code))
             {
-                throw new MessageException("验证码不存在或已失效！", MessageType.Error);
+                throw new MessageException("验证码不存在或已失效！", MessageTypeEnum.Error);
             }
             if (!code.Equals(form.Captcha.ToLower(), StringComparison.CurrentCultureIgnoreCase))
             {
-                throw new MessageException($"验证码错误！", MessageType.Error);
+                throw new MessageException($"验证码错误！", MessageTypeEnum.Error);
             }
         }
     }
@@ -79,20 +79,21 @@ public class LoginService : ILoginService
     /// </summary>
     public async Task<CaptchaResult> CreateCaptcha()
     {
-        if (securityOptions.Captcha.Enabled)
+        // 先检查是否启用验证码
+        if (!securityOptions.Captcha.Enabled)
         {
-            var key = Guid.NewGuid().ToString();
-            var captcha = CaptchaUtils.CreateCaptcha(securityOptions.Captcha);
-
-            // 加入缓存
-            var cacheOptions = new DistributedCacheEntryOptions
-            {
-                AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(securityOptions.Captcha.Timeout)
-            };
-            await cache.SetStringAsync(AppConstants.CACHE_PREFIX_CAPTCHA + key, captcha.Text, cacheOptions);
-            return new CaptchaResult(key, captcha.ImageBase64);
+            return CaptchaResult.Disabled;
         }
-        return new CaptchaResult();
+
+        var key = Guid.NewGuid().ToString();
+        var captcha = CaptchaUtils.CreateCaptcha(securityOptions.Captcha);
+        // 加入缓存
+        var cacheOptions = new DistributedCacheEntryOptions
+        {
+            AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(securityOptions.Captcha.Timeout)
+        };
+        await cache.SetStringAsync(AppConstants.CACHE_PREFIX_CAPTCHA + key, captcha.Text, cacheOptions);
+        return new CaptchaResult(key, captcha.ImageBase64);
     }
 
     /// <summary>

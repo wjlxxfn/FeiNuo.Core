@@ -49,7 +49,7 @@ public class JsonWebTokenHelper
                 var error = "请先登录系统!" + (context.Error ?? "");
                 var detail = context.ErrorDescription;
 
-                var objMsg = new MessageResult(error, MessageType.Warning, detail);
+                var objMsg = new MessageResult(error, MessageTypeEnum.Warning, detail);
                 context.Response.StatusCode = StatusCodes.Status401Unauthorized;
                 context.Response.ContentType = "application/json; charset=utf-8";
                 await context.Response.WriteAsJsonAsync(objMsg);
@@ -57,7 +57,7 @@ public class JsonWebTokenHelper
             // 没权限 403
             OnForbidden = async context =>
             {
-                var resp = new MessageResult("没有操作权限", MessageType.Warning, context.Request.GetDisplayUrl());
+                var resp = new MessageResult("没有操作权限", MessageTypeEnum.Warning, context.Request.GetDisplayUrl());
                 context.Response.StatusCode = StatusCodes.Status403Forbidden;
                 context.Response.ContentType = "application/json; charset=utf-8";
                 await context.Response.WriteAsJsonAsync(resp);

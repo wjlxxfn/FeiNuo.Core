@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 
-namespace FeiNuo.Core;
+namespace FeiNuo.AspNetCore;
 
 /// <summary>
 /// 标识为服务类的注解，添加注解后可自动注入

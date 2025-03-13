@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.WebUtilities;
 
 namespace FeiNuo.AspNetCore;
 
@@ -49,23 +50,34 @@ public class BaseController : ControllerBase
     #region 返回信息
     protected static ActionResult InfoMessage(string message, object? data = null)
     {
-        return Unprocessable(message, MessageType.Info, data);
+        return Unprocessable(message, MessageTypeEnum.Info, data);
     }
     protected static ActionResult WarningMessage(string message, object? data = null)
     {
-        return Unprocessable(message, MessageType.Warning, data);
+        return Unprocessable(message, MessageTypeEnum.Warning, data);
     }
     protected static ActionResult ErrorMessage(string message, object? data = null)
     {
-        return Unprocessable(message, MessageType.Error, data);
+        return Unprocessable(message, MessageTypeEnum.Error, data);
     }
     /// <summary>
     /// 返回422响应
     /// </summary>
-    protected static ActionResult Unprocessable(string message, MessageType type = MessageType.Warning, object? data = null)
+    protected static ActionResult Unprocessable(string message, MessageTypeEnum type = MessageTypeEnum.Warning, object? data = null)
     {
         var resp = new MessageResult(message, type, data);
         return new UnprocessableEntityObjectResult(resp);
     }
     #endregion
+
+    protected Dictionary<string, string> GetRequestParam()
+    {
+        var paramMap = QueryHelpers.ParseQuery(Request.QueryString.Value);
+        var dic = new Dictionary<string, string>();
+        foreach (var param in paramMap)
+        {
+            dic.Add(param.Key, param.Value.ToString());
+        }
+        return dic;
+    }
 }

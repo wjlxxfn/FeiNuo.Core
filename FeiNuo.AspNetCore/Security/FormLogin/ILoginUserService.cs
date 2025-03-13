@@ -1,4 +1,6 @@
-﻿namespace FeiNuo.Core;
+﻿using Microsoft.Extensions.Logging;
+
+namespace FeiNuo.AspNetCore.Security.FormLogin;
 
 public interface ILoginUserService
 {
@@ -40,3 +42,15 @@ public interface ILoginUserService
 
 
 
+public class SimpleLoginUserService : ILoginUserService
+{
+    public SimpleLoginUserService(ILogger<SimpleLoginUserService> logger)
+    {
+        logger.LogError("未注入查询用户的服务类。如需使用登录接口,需实现接口ILoginUserService并注入容器。");
+    }
+
+    public Task<LoginUser?> LoadUserByUsername(string username)
+    {
+        throw new NotImplementedException();
+    }
+}

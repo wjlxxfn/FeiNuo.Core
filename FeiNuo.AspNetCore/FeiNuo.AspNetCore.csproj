@@ -1,11 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<TargetFramework>net9.0</TargetFramework>
+		<TargetFramework>net8.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
-		<Version>1.0.4.3</Version>
+		<Version>1.1.0</Version>
 		<Authors>FeiNuo</Authors>
-		<Description>这是一个开发WebApi的通用辅助类库，基于Net9开发</Description>
+		<Description>这是一个开发WebApi的通用辅助类库，基于Net8开发</Description>
 		<Copyright>MIT</Copyright>
 		<PackageProjectUrl>https://github.com/wjlxxfn/FeiNuo.Core</PackageProjectUrl>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
@@ -17,8 +17,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.2" />
-		<PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.2" PrivateAssets="all" />
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.0" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.0" PrivateAssets="All" />
 		<PackageReference Include="UAParser" Version="3.1.47" />
 	</ItemGroup>
 
@@ -27,9 +27,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <None Update="README.md">
-	    <Pack>True</Pack>
-	    <PackagePath>\</PackagePath>
-	  </None>
+		<None Update="README.md">
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
+		</None>
 	</ItemGroup>
 </Project>

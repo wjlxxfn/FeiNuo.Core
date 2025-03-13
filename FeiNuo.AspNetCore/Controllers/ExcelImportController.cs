@@ -1,8 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Primitives;
 
 namespace FeiNuo.AspNetCore.Controllers;
 
@@ -18,7 +16,7 @@ public class ExcelImportController : BaseController
     public ActionResult GetImportConfig([FromQuery] string importKey)
     {
         var service = GetExcelImportService(importKey);
-        var cfg = service.GetImportConfig(ParamMap, CurrentUser);
+        var cfg = service.GetImportConfig(GetRequestParam(), CurrentUser);
         return Ok(new
         {
             cfg.ShowRemark,
@@ -40,7 +38,7 @@ public class ExcelImportController : BaseController
     public async Task<IActionResult> DownloadTemplate([FromQuery] string importKey)
     {
         var service = GetExcelImportService(importKey);
-        var file = await service.DownloadTemplateAsync(ParamMap, CurrentUser);
+        var file = await service.DownloadTemplateAsync(GetRequestParam(), CurrentUser);
         return File(file.Bytes, file.ContentType, file.FileName);
     }
 
@@ -52,7 +50,7 @@ public class ExcelImportController : BaseController
     public async Task<IActionResult> DownloadBasicData([FromQuery] string importKey)
     {
         var service = GetExcelImportService(importKey);
-        var file = await service.DownloadBasicDataAsync(ParamMap, CurrentUser);
+        var file = await service.DownloadBasicDataAsync(GetRequestParam(), CurrentUser);
         return File(file.Bytes, file.ContentType, file.FileName);
     }
 
@@ -75,7 +73,7 @@ public class ExcelImportController : BaseController
             throw new Exception("只能上传excel文件");
         }
 
-        var param = ParamMap;
+        var param = GetRequestParam();
         var user = CurrentUser;
         var service = GetExcelImportService(importKey);
         var cfg = service.GetImportConfig(param, user);
@@ -108,20 +106,6 @@ public class ExcelImportController : BaseController
     }
 
     #region 辅助方法
-    private Dictionary<string, string> ParamMap
-    {
-        get
-        {
-            var paramMap = QueryHelpers.ParseQuery(Request.QueryString.Value);
-            var dic = new Dictionary<string, string>();
-            foreach (var param in paramMap)
-            {
-                dic.Add(param.Key, param.Value.ToString());
-            }
-            return dic;
-        }
-    }
-
     private IImportService GetExcelImportService(string key)
     {
         if (string.IsNullOrWhiteSpace(key))

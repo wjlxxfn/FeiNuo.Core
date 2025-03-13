@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Caching.Distributed;
+﻿using FeiNuo.Core.Utilities;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Configuration;
 
 namespace FeiNuo.AspNetCore.Security.Authentication;
@@ -25,7 +26,7 @@ public class CacheTokenService : ITokenService
         {
             SlidingExpiration = TimeSpan.FromSeconds(cfg.TokenExpiration)
         };
-        await cache.SetObjectAsync(token, user, cacheOptions);
+        await cache.SetStringAsync(token, JsonUtils.Serialize(user), cacheOptions);
 
         // 返回token
         return token;
@@ -44,8 +45,8 @@ public class CacheTokenService : ITokenService
         }
 
         // 从缓存中取数据
-        var user = await cache.GetObjectAsync<LoginUser>(token);
-
+        var userJson = await cache.GetStringAsync(token);
+        var user = JsonUtils.Deserialize<LoginUser>(userJson ?? "{}");
         return user != null
             ? new TokenValidationResult(user)
             : new TokenValidationResult("Token不存在或已失效。");

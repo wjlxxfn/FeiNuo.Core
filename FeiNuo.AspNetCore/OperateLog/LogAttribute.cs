@@ -1,7 +1,6 @@
 ﻿using FeiNuo.Core.Utilities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using System.Diagnostics;
 
@@ -72,9 +71,10 @@ public class LogAttribute : ActionFilterAttribute
         if (!log.Success)
         {
             log.LogContent = $"操作异常：";
-            if (resultContext.Exception is DbUpdateException dbEx)
+            // DbUpdateException
+            if (resultContext.Exception!.InnerException != null)
             {
-                log.LogContent += dbEx.InnerException!.Message;
+                log.LogContent += resultContext.Exception.InnerException.Message;
             }
             else
             {

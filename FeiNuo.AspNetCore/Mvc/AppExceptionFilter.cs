@@ -1,12 +1,11 @@
 ﻿using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System.Net;
 
-namespace FeiNuo.AspNetCore;
+namespace FeiNuo.AspNetCore.Mvc;
 
 
 /// <summary>
@@ -28,7 +27,7 @@ public class AppExceptionFilter(IWebHostEnvironment hostEnv, ILogger<AppExceptio
         {
             var exception = context.Exception;
 
-            var msgVO = new MessageResult(exception.Message, MessageType.Error);
+            var msgVO = new MessageResult(exception.Message, MessageTypeEnum.Error);
             var httpStatus = HttpStatusCode.InternalServerError;
 
             // 自定义消息异常，不需要记录日志，返回422
@@ -39,16 +38,17 @@ public class AppExceptionFilter(IWebHostEnvironment hostEnv, ILogger<AppExceptio
             }
             else if (exception is NotFoundException)
             {
-                msgVO.Type = MessageType.Error;
+                msgVO.Type = MessageTypeEnum.Error;
                 httpStatus = HttpStatusCode.UnprocessableEntity;
             }
             else
             {
                 _logger.LogError(exception, "系统异常：{Message}", exception.Message);
+
                 // EF具体异常记录在InnerException
-                if (exception is DbUpdateException)
+                if (exception.InnerException != null)
                 {
-                    exception = exception.InnerException!;
+                    exception = exception.InnerException;
                     msgVO.Message = exception.Message;
                 }
                 // 开发环境显示日志详细信息

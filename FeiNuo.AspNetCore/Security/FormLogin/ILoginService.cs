@@ -1,4 +1,6 @@
-﻿namespace FeiNuo.Core;
+﻿using FeiNuo.Core.Captcha;
+
+namespace FeiNuo.AspNetCore.Security.FormLogin;
 
 /// <summary>
 /// 登录接口
@@ -37,6 +39,6 @@ public interface ILoginService
     /// <returns></returns>
     Task<CaptchaResult> CreateCaptcha()
     {
-        return Task.FromResult(new CaptchaResult());
+        return Task.FromResult(CaptchaResult.Disabled);
     }
 }

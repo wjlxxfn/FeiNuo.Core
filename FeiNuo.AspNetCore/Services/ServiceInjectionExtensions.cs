@@ -5,6 +5,11 @@ namespace FeiNuo.AspNetCore;
 
 public static class ServiceInjectionExtensions
 {
+    /// <summary>
+    /// 自动注入：继承BaseService的类; 标注属性[Service]的类
+    /// </summary>
+    /// <param name="services"></param>
+    /// <returns></returns>
     public static IServiceCollection AutoInjectServcice(this IServiceCollection services)
     {
         // 扫描所有类
@@ -12,15 +17,15 @@ public static class ServiceInjectionExtensions
             .SelectMany(x => x.GetTypes())
             .Where(t => t.IsClass && !t.IsAbstract);
 
-        #region 自动注入服务类：实现[IServicer]，排除掉Service特性，有特性的以特性为准
-        var businessServiceTypes = types.Where(t =>
-                typeof(IService).IsAssignableFrom(t)
-                && t.GetCustomAttributes(typeof(ServiceAttribute), false).Length == 0
-            );
+        #region 自动注入服务类：实现[IServicer]，
+        var businessServiceTypes = types.Where(t => typeof(BaseService).IsAssignableFrom(t));
         foreach (var type in businessServiceTypes)
         {
+            // 排除掉Service特性，有特性的以特性为准
+            if (type.GetCustomAttributes(typeof(ServiceAttribute), false).Length == 0) continue;
+
             // 服务类有接口的根据接口注入
-            var interfaces = type.GetInterfaces().Where(a => a != typeof(IService));
+            var interfaces = type.GetInterfaces().Where(a => a != typeof(BaseService));
             if (interfaces.Any())
             {
                 interfaces.ToList().ForEach(r => AddService(services, ServiceLifetime.Scoped, r, type));
@@ -44,7 +49,7 @@ public static class ServiceInjectionExtensions
             else
             {
                 // 有实现接口的注入接口
-                var interfaces = type.GetInterfaces().Where(a => a != typeof(IService) && a != typeof(BaseService)).ToList();
+                var interfaces = type.GetInterfaces().Where(a => a != typeof(BaseService)).ToList();
                 if (interfaces.Count > 0)
                 {
                     foreach (var r in interfaces)

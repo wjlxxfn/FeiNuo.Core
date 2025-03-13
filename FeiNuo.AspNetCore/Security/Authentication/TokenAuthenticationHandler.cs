@@ -76,7 +76,7 @@ public class TokenAuthenticationHandler : AuthenticationHandler<AuthenticationSc
     }
     protected async override Task HandleForbiddenAsync(AuthenticationProperties properties)
     {
-        var msgVo = new MessageResult("没有操作权限", MessageType.Warning)
+        var msgVo = new MessageResult("没有操作权限", MessageTypeEnum.Warning)
         {
             Data = $"用户 {Context.User.Identity?.Name} 请求 {Request.Path},没有操作权限"
         };
@@ -96,7 +96,7 @@ public class TokenAuthenticationHandler : AuthenticationHandler<AuthenticationSc
     /// </summary>
     protected override async Task HandleChallengeAsync(AuthenticationProperties properties)
     {
-        var msgVo = new MessageResult("请先登录系统", MessageType.Info);
+        var msgVo = new MessageResult("请先登录系统", MessageTypeEnum.Info);
         // 加上错误原因
         var result = await HandleAuthenticateOnceSafeAsync();
         msgVo.Data = result?.Failure?.Message ?? "";

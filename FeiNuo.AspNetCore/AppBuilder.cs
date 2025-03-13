@@ -1,7 +1,9 @@
 ﻿global using FeiNuo.Core;
+using FeiNuo.AspNetCore.Mvc;
 using FeiNuo.AspNetCore.Security;
 using FeiNuo.AspNetCore.Security.Authentication;
 using FeiNuo.AspNetCore.Security.Authorization;
+using FeiNuo.AspNetCore.Security.FormLogin;
 using FeiNuo.Core.Utilities;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -30,19 +32,29 @@ public static class ServiceCollectionExtensions
     {
         // 服务
         services.AddFNServices();
+
         // 认证
-        if (useJwtAuthentication) services.AddFNAuthenticationJwt(configuration);
-        else services.AddFNAuthenticationToken(configuration);
+        if (useJwtAuthentication)
+        {
+            services.AddFNAuthenticationJwt(configuration);
+        }
+        else
+        {
+            services.AddFNAuthenticationToken(configuration);
+        }
+
         // 授权
         services.AddFNAuthorization(configuration);
+
         // 控制器
         services.AddFNControllers();
+
         return services;
     }
 
     #region 注入服务类：BaseService的子类以及[ServiceAttribute]
     /// <summary>
-    /// 注入各项服务：服务层的服务类，注解注入的，以及其他需要注入的组件
+    /// 注入各项服务：服务层的服务类，注解注入的；注入内存缓存服务；注入默认的日志记录服务
     /// </summary>
     public static IServiceCollection AddFNServices(this IServiceCollection services)
     {
@@ -55,10 +67,6 @@ public static class ServiceCollectionExtensions
 
         // 添加默认的操作日志记录服务
         services.TryAddSingleton<ILogService, SimpleLogService>();
-        // 添加初始的登录用户服务，保证新初始化项目时不报错。
-        services.TryAddScoped<ILoginUserService, SimpleLoginUserService>();
-        // 注入登录服务
-        services.TryAddScoped<ILoginService, LoginService>();
 
         return services;
     }
@@ -79,6 +87,7 @@ public static class ServiceCollectionExtensions
         {
             // 添加自定义异常处理过滤器
             config.Filters.Add<AppExceptionFilter>();
+            //  DateOnly，默认只支持日期格式，如果前端是完整的日期包含时间的转换不了,这里添加一个转换类
             TypeDescriptor.AddAttributes(typeof(DateOnly), new TypeConverterAttribute(typeof(DateOnlyTypeConverter)));
         })
         .ConfigureApiBehaviorOptions(options =>
@@ -90,7 +99,7 @@ public static class ServiceCollectionExtensions
                     .Select(a => string.Join(",", a.Errors.Select(t => t.ErrorMessage)))
                     .Where(a => !string.IsNullOrEmpty(a))
                     .ToArray();
-                var msgVo = new MessageResult("数据效验不通过：" + string.Join("，", errors), MessageType.Error);
+                var msgVo = new MessageResult("数据效验不通过：" + string.Join("，", errors), MessageTypeEnum.Error);
                 // 400 
                 return new BadRequestObjectResult(msgVo);
             };
@@ -110,6 +119,11 @@ public static class ServiceCollectionExtensions
         // 注入token服务
         services.TryAddSingleton<ITokenService, JwtTokenService>();
 
+        // 添加初始的登录用户服务，保证新初始化项目时不报错。
+        services.TryAddScoped<ILoginUserService, SimpleLoginUserService>();
+        // 注入登录服务
+        services.TryAddScoped<ILoginService, LoginService>();
+
         var cfg = configuration.GetSection(SecurityOptions.ConfigKey).Get<SecurityOptions>() ?? new();
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
         {
@@ -128,6 +142,11 @@ public static class ServiceCollectionExtensions
     {
         // 注入token服务
         services.TryAddSingleton<ITokenService, CacheTokenService>();
+
+        // 添加初始的登录用户服务，保证新初始化项目时不报错。
+        services.TryAddScoped<ILoginUserService, SimpleLoginUserService>();
+        // 注入登录服务
+        services.TryAddScoped<ILoginService, LoginService>();
 
         var scheme = JwtBearerDefaults.AuthenticationScheme;
         services.AddAuthentication(scheme).AddScheme<AuthenticationSchemeOptions, TokenAuthenticationHandler>(scheme, null);
@@ -156,8 +175,10 @@ public static class ServiceCollectionExtensions
 
         // 授权：添加超管策略，允许所有权限
         services.AddSingleton<IAuthorizationHandler, SuperAdminAuthorizationHandler>();
+
         // 授权：通过permission字符串授权[Permission("system:user:delete")]
         services.AddSingleton<IAuthorizationHandler, PermissionAuthorizationHandler>();
+
         return services;
     }
     #endregion
