@@ -22,7 +22,7 @@ public static class ServiceInjectionExtensions
         foreach (var type in businessServiceTypes)
         {
             // 排除掉Service特性，有特性的以特性为准
-            if (type.GetCustomAttributes(typeof(ServiceAttribute), false).Length == 0) continue;
+            if (type.GetCustomAttributes(typeof(ServiceAttribute), false).Length > 0) continue;
 
             // 服务类有接口的根据接口注入
             var interfaces = type.GetInterfaces().Where(a => a != typeof(BaseService));
