@@ -1,29 +1,28 @@
 ﻿# FeiNuo.Core
-## 功能介绍
-    该类库基于Net8开发，提供NetCore开发常用功能的封装。
+  该类库基于Net8开发，提供NetCore开发常用功能的封装。
 1. 提供常用数据模型；
 2. 提供常用工具类和扩展功能：如JsonUtil,StringExtensions等;
 3. 提供常用组件的封装，如：Excel操作，验证码生成等；
 
 ## 一、常用数据模型  
-1. 实体类基类，提供操作人相关字段
+### 1. 实体类基类，提供操作人相关字段
 ```
    1、BaseDto: CreateBy,CreateTime
    2、BaseEntity:  CreateBy,CreateTime,UpdateBy,UpdateTime
 ```
-2. 分页模型
+### 2. 分页模型
 ```
    1、PageResult:  TotalCount(int), DataList(IEnumerable<TEntity>)
    2、Pager: PageNo(int), PageSize(int), SortBy(List<SortItem>)
    3、SortItem: SortField(string), SortType(SortTypeEnum)
    4、SortTypeEnum: ASC,DESC
 ```   
-3. 查询模型
+### 3. 查询模型
 ```
    BaseQuery: 查询基类，提供一个Search模糊搜索条件和时间范围字段StartDate/EndDate
    AbstractQuery: 查询条件抽象类，提借查询条件的封装拼成Linq表达式，方便EF直接调用
 ```   
-4. 登录用户LoginUser
+### 4. 登录用户LoginUser
 ```
     public class LoginUser
     {
@@ -159,7 +158,7 @@
      }
 ```
 
-5. 其他模型
+### 5. 其他模型
 ```
     1、UpdateDto: 通用更新模型,适用于更新少量常见字段，方便传参用
     2、SelectOption: 前端常用的下拉列表选项，提供Lable,Value,Disabled,Color,Data常用字段
@@ -171,7 +170,7 @@
 ```
 
 ## 二、提供常用工具类和扩展功能
-1. JsonUtils: 使用System.Text.Json处理序列化，默认添加以下序列化配置
+### 1. JsonUtils: 使用System.Text.Json处理序列化，默认添加以下序列化配置
 ```
     public static void MergeSerializerOptions(JsonSerializerOptions options)
     {
@@ -189,7 +188,7 @@
         options.Converters.Add(new DateTimeConverter());
     }
 ```
-2. DateTimeUtils: 日期相关，目前只定义了两个常用日期常量，其他待添加
+### 2. DateTimeUtils: 日期相关，目前只定义了两个常用日期常量，其他待添加
   ```
     /// <summary>
     /// SQL Server中零日期值，主要用于日期字段的默认值。
@@ -201,19 +200,36 @@
     /// </summary>
     public static readonly DateTime MaxSqlDateTime = new(9999, 1, 1);
   ```
-3. 常用类的扩展方法
+### 3. 常用类的扩展方法
 ```
     StringExtensions:
     EnumExtensions:
     DateTimeExtensions:
     EnumExtensions:
     ExpressionExtensions:
-    QueryableExtensions:
+    QueryableExtensions:   
 ```
+  #### ServiceInjectionExtensions
+  自动注入实现BaseService接口的类或者标注Service特性的类。
+  ```
+    builder.Services.AutoInjectServcice();
 
+    对于标注有[Service]特性的类：
+    1. 如果特性中有注入类型，则以特性中指定的类型为准
+    2. 如果特性中没有注入类型，则根据当前类实现的接口类型注入
+    3. 如果当前类也没有实现接口，则根据当前类的类型注入
+    4. 生命周期默认为 `ServiceLifetime.Scoped`，可以在特性中修改
+
+    实现BaseService的所有类
+    1. 如果该类有[Service]特性,按前面规则注入
+    2. 有实现的接口(BaseService除外)则根据接口类型注入
+    3. 如果没有实现接口(BaseService除外)，则根据当前类型注入
+    4. 注入的生命周期全部为 `ServiceLifetime.Scoped`
+    5. 如果默认注入的不合适，可添加[Service]特性自定义
+  ```
 ## 三、提供常用组件功能
    _部分功能需引入相应的依赖库_
-#### 1、对NPOI Excel的功能封装
+### 1、对NPOI Excel的功能封装
   > 该功能需要此入 NPOI (>=2.7.2)
 
   1. ExcelConfig，ExcelSheet,ExcelColumn,ExcelStyle类将常用Excel属性剥离出来,单独定义 
@@ -245,14 +261,15 @@
 
 ```
 
-#### 2、验证码功能封装
+### 2、验证码功能封装
   > 该功能需要此入 SixLabors.ImageSharp.Drawing (>=2.1.5) 
 
    系统提供CaptchaUtils工具类直接生成验证码；另外提供配置选项类CaptchaOptions。
 
   *生成的验证码包括文本和图片的base64格式，后续使用需自己实现*
   
-#### 3、操作日志定义
+### 3、操作日志定义
   1. OperateLog:  定义操作日志
   2. OperateType: 定义操作类型
   3. ILogService: 定义操作接口：保存日志用
+  4. SimpleLogService：默认日志实现类，通过Logger输出

@@ -88,7 +88,7 @@ public class PageHelper
     {
         var totalCount = lstAll.Count();
         var skipSize = Math.Max(pager.PageNo - 1, 0) * pager.PageSize;
-        var pageData = lstAll.Skip(skipSize).Take(pager.PageSize);
-        return new PageResult<T>(pageData.ToList(), totalCount);
+        var pageData = lstAll.Skip(skipSize).Take(pager.PageSize).ToList();
+        return new PageResult<T>(pageData, totalCount);
     }
 }

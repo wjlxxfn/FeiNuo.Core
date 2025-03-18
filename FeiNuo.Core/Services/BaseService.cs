@@ -3,7 +3,9 @@
 /// <summary>
 /// 服务类接口
 /// </summary>
+#pragma warning disable IDE1006 // 命名样式
 public interface BaseService
+#pragma warning restore IDE1006 // 命名样式
 {
 
 }
