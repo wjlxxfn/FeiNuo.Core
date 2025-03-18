@@ -1,7 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using System.Reflection;
 
-namespace FeiNuo.AspNetCore;
+namespace FeiNuo.Core;
 
 public static class ServiceInjectionExtensions
 {
@@ -64,6 +65,9 @@ public static class ServiceInjectionExtensions
             }
         }
         #endregion
+
+        // 添加默认的操作日志记录服务
+        services.TryAddSingleton<ILogService, SimpleLogService>();
 
         return services;
     }

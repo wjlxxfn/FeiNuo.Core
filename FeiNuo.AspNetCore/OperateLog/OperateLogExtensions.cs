@@ -24,18 +24,4 @@ public static class OperateLogExtensions
         var client = ClientUtils.GetClientInfo(context);
         log.MergeClientInfo(client);
     }
-
-    /// <summary>
-    /// 添加Reqest相关参数
-    /// </summary>
-    public static void MergeClientInfo(this OperateLog log, RequestClient? client)
-    {
-        if (null == client) return;
-
-        log.ClientIp = client.ClientIp;
-        log.ClientOs = client.ClientOs;
-        log.ClientBrowser = client.ClientBrowser;
-        log.ClientDevice = client.ClientDevice;
-        log.IsMobile = client.IsMobile;
-    }
 }

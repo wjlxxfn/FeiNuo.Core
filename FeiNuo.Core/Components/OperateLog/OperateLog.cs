@@ -97,4 +97,17 @@ public class OperateLog
     /// </summary>
     public DateTime OperateTime { get; set; } = DateTime.Now;
 
+    /// <summary>
+    /// 添加Reqest相关参数
+    /// </summary>
+    public void MergeClientInfo(RequestClient? client)
+    {
+        if (null == client) return;
+
+        ClientIp = client.ClientIp;
+        ClientOs = client.ClientOs;
+        ClientBrowser = client.ClientBrowser;
+        ClientDevice = client.ClientDevice;
+        IsMobile = client.IsMobile;
+    }
 }

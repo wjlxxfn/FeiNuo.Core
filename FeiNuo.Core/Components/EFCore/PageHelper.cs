@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-namespace FeiNuo.AspNetCore;
+namespace FeiNuo.Core;
 
 /// <summary>
 /// 分页辅助类：执行分页查询

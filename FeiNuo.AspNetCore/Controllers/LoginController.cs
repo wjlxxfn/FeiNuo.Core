@@ -1,5 +1,5 @@
-﻿using FeiNuo.AspNetCore.Security.FormLogin;
-using FeiNuo.Core.Captcha;
+﻿using FeiNuo.Core.Captcha;
+using FeiNuo.Core.Login;
 using FeiNuo.Core.Utilities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

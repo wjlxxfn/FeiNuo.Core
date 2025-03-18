@@ -1,9 +1,10 @@
 ﻿using FeiNuo.AspNetCore.Security.Authentication;
 using FeiNuo.Core.Captcha;
+using FeiNuo.Core.Login;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Configuration;
 
-namespace FeiNuo.AspNetCore.Security.FormLogin;
+namespace FeiNuo.AspNetCore.Security;
 
 public class LoginService : ILoginService
 {

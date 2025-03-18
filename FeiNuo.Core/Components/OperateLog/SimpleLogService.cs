@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 
-namespace FeiNuo.AspNetCore;
+namespace FeiNuo.Core;
 
 /// <summary>
 /// 默认操作日志记录服务，注入系统的日志记录服务

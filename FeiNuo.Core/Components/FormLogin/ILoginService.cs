@@ -1,6 +1,6 @@
 ﻿using FeiNuo.Core.Captcha;
 
-namespace FeiNuo.AspNetCore.Security.FormLogin;
+namespace FeiNuo.Core.Login;
 
 /// <summary>
 /// 登录接口

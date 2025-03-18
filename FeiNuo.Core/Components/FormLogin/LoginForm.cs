@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
-namespace FeiNuo.AspNetCore.Security.FormLogin;
+namespace FeiNuo.Core.Login;
 
 /// <summary>
 /// 登录表单

@@ -3,7 +3,7 @@ using FeiNuo.AspNetCore.Mvc;
 using FeiNuo.AspNetCore.Security;
 using FeiNuo.AspNetCore.Security.Authentication;
 using FeiNuo.AspNetCore.Security.Authorization;
-using FeiNuo.AspNetCore.Security.FormLogin;
+using FeiNuo.Core.Login;
 using FeiNuo.Core.Utilities;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -65,8 +65,7 @@ public static class ServiceCollectionExtensions
         services.AddMemoryCache();
         services.AddDistributedMemoryCache();
 
-        // 添加默认的操作日志记录服务
-        services.TryAddSingleton<ILogService, SimpleLogService>();
+
 
         return services;
     }
@@ -121,6 +120,7 @@ public static class ServiceCollectionExtensions
 
         // 添加初始的登录用户服务，保证新初始化项目时不报错。
         services.TryAddScoped<ILoginUserService, SimpleLoginUserService>();
+
         // 注入登录服务
         services.TryAddScoped<ILoginService, LoginService>();
 
