@@ -86,7 +86,7 @@ public class PoiHelper
             foreach (var col in config.ExcelColumns)
             {
                 // 设置默认格式
-                if (col.ColumnStyle.IsNonEmptyStyle)
+                if (col.ColumnStyle.IsNotEmptyStyle)
                 {
                     sheet.SetDefaultColumnStyle(colIndex, styles.GetStyle(col.ColumnStyle));
                 }
@@ -187,7 +187,7 @@ public class PoiHelper
                 foreach (var col in config.ExcelColumns)
                 {
                     var val = col.ValueGetter?.Invoke(data);
-                    var style = col.ColumnStyle.IsNonEmptyStyle
+                    var style = col.ColumnStyle.IsNotEmptyStyle
                         ? styles.GetStyle(col.ColumnStyle)
                         : ((val != null && (val is DateOnly || val is DateTime)) ? styles.DateStyle : null);
                     SetCellValue(row, colIndex++, val, false, style);
@@ -313,6 +313,35 @@ public class PoiHelper
             throw new MessageException($"获取Excel数据出错:<br/>" + errMsg);
         }
         return lstData;
+    }
+
+    /// <summary>
+    /// Poi.SetDefaultColumnStyle后，如果使用POI赋值会把默认样式覆盖，调用该方法重新设置样式
+    /// </summary>
+    /// <param name="wb"></param>
+    /// <param name="config"></param>
+    /// <param name="styles"></param>
+    public static void ResetColumnStyle(IWorkbook wb, ExcelConfig config, StyleFactory styles)
+    {
+        for (var i = 0; i < config.ExcelSheets.Count; i++)
+        {
+            var sheetConfig = config.ExcelSheets[i];
+            var sheet = wb.GetSheet(sheetConfig.SheetName);
+
+            var colIndex = 0;
+            foreach (var col in sheetConfig.ExcelColumns)
+            {
+                if (col.ColumnStyle.IsNotEmptyStyle)
+                {
+                    for (var r = sheetConfig.DataRowIndex; r <= sheet.LastRowNum; r++)
+                    {
+                        var cell = sheet.GetRow(r)?.GetCell(colIndex);
+                        if (cell != null) cell.CellStyle = styles.GetStyle(col.ColumnStyle);
+                    }
+                }
+                colIndex++;
+            }
+        }
     }
     #endregion
 
@@ -727,6 +756,115 @@ public class PoiHelper
         }
         return true;
     }
+
+    /// <summary>
+    /// 指定列，自动合并内容相同的行
+    /// </summary>
+    /// <param name="sheet"></param>
+    /// <param name="colIndex"></param>
+    /// <param name="startRow"></param>
+    /// <param name="endRow"></param>
+    public static void AutoMergeRows(ISheet sheet, int colIndex, int startRow = 0, int endRow = 0)
+    {
+        if (sheet == null) throw new ArgumentNullException(nameof(sheet));
+        if (endRow == 0) endRow = sheet.LastRowNum;
+
+        for (int i = startRow; i <= endRow; i++)
+        {
+            IRow currentRow = sheet.GetRow(i);
+            IRow nextRow = sheet.GetRow(i + 1);
+
+            if (currentRow == null || nextRow == null) continue;
+
+            ICell currentCell = currentRow.GetCell(colIndex);
+            ICell nextCell = nextRow.GetCell(colIndex);
+
+            if (currentCell == null || nextCell == null) continue;
+
+            string currentValue = currentCell?.ToString() ?? "";
+            string nextValue = nextCell?.ToString() ?? "";
+
+            if (currentValue == nextValue)
+            {
+                int mergeStartRow = i;
+                while (i + 1 <= endRow && currentValue == nextValue)
+                {
+                    i++;
+                    nextRow = sheet.GetRow(i + 1);
+                    if (nextRow == null) break;
+
+                    nextCell = nextRow.GetCell(colIndex);
+                    if (nextCell == null) break;
+
+                    nextValue = nextCell?.ToString() ?? "";
+                }
+                int mergeEndRow = i;
+
+                if (mergeStartRow < mergeEndRow)
+                {
+                    sheet.AddMergedRegion(new CellRangeAddress(mergeStartRow, mergeEndRow, colIndex, colIndex));
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// 根据指定行，自动合并内容相同的列
+    /// </summary>
+    /// <param name="sheet"></param>
+    /// <param name="rowIndex">要合并的行</param>
+    /// <param name="startCol">开始列</param>
+    /// <param name="endCol">结束列</param>
+    /// <exception cref="ArgumentNullException"></exception>
+    public static void AutoMergeColumns(ISheet sheet, int rowIndex, int startCol = 0, int endCol = 0)
+    {
+        if (sheet == null) throw new ArgumentNullException(nameof(sheet));
+
+        IRow row = sheet.GetRow(rowIndex);
+        if (row == null) return;
+
+        if (endCol == 0) endCol = row.LastCellNum - 1;
+
+        while (startCol <= endCol)
+        {
+            ICell currentCell = row.GetCell(startCol);
+            if (currentCell == null)
+            {
+                startCol++;
+                continue;
+            }
+
+            string currentValue = currentCell?.ToString() ?? "";
+            int mergeStartCol = startCol;
+            int mergeEndCol = startCol;
+
+            // 查找需要合并的列
+            for (int i = startCol + 1; i <= endCol; i++)
+            {
+                ICell nextCell = row.GetCell(i);
+                if (nextCell == null) break;
+
+                string nextValue = nextCell?.ToString() ?? "";
+                if (currentValue == nextValue)
+                {
+                    mergeEndCol = i;
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            // 合并单元格
+            if (mergeStartCol < mergeEndCol)
+            {
+                sheet.AddMergedRegion(new CellRangeAddress(rowIndex, rowIndex, mergeStartCol, mergeEndCol));
+            }
+
+            startCol = mergeEndCol + 1;
+        }
+    }
+
     #endregion
 }
 
@@ -799,6 +937,12 @@ public class StyleFactory
     /// 百分比：居中，格式 0.00%
     /// </summary>
     public ICellStyle PersentStyle { get { return GetStyle(new() { DataFormat = "0.00%", HorizontalAlignment = (int)HorizontalAlignment.Right }); } }
+
+    /// <summary>
+    /// 自动换行样式
+    /// </summary>
+    public ICellStyle WrapStyle { get { return GetStyle(new() { HorizontalAlignment = (int)HorizontalAlignment.Center, VerticalAlignment = ((int)VerticalAlignment.Center), WrapText = true }); } }
+
     #endregion
 }
 #endregion

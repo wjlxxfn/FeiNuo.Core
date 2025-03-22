@@ -28,6 +28,9 @@ public class ExcelConfig
     #endregion
 
     #region 构造函数
+    /// <summary>
+    /// 空模板的构造函数
+    /// </summary>
     public ExcelConfig(string fileName, ExcelType? excelType = null, ExcelStyle? defaultStyle = null)
     {
         if (excelType.HasValue) ExcelType = excelType.Value;
@@ -35,14 +38,36 @@ public class ExcelConfig
         FileName = fileName + (string.IsNullOrWhiteSpace(Path.GetExtension(fileName)) ? (IsExcel2007 ? ".xlsx" : ".xls") : "");
         if (defaultStyle != null) DefaultStyle = defaultStyle;
     }
-    public ExcelConfig(string fileName, IEnumerable<object> DataList, IEnumerable<ExcelColumn> columns) : this(fileName)
+
+    /// <summary>
+    /// 适用于导出带数据的构造函数，
+    /// </summary>
+    /// <param name="fileName">文件名</param>
+    /// <param name="DataList">要导出的数据</param>
+    /// <param name="columns">列配置，使用ExcelColumn&lt;T&gt;对象</param>
+    /// <param name="sheetConfig">工作表配置</param>
+    public ExcelConfig(string fileName, IEnumerable<object> DataList, IEnumerable<ExcelColumn> columns, Action<ExcelSheet>? sheetConfig = null) : this(fileName)
     {
-        ExcelSheets.Add(new("Sheet1", DataList, columns));
+        AddExcelSheet("Sheet1", DataList, columns, sheetConfig);
     }
 
-    public ExcelConfig(string fileName, Action<ExcelSheet> configExcelSheet) : this(fileName)
+    /// <summary>
+    /// 适用于导出空的Excel模板,带各列的配置
+    /// </summary>
+    /// <param name="fileName">文件名</param>
+    /// <param name="columns">列配置</param>
+    /// <param name="sheetConfig">工作表配置</param>
+    public ExcelConfig(string fileName, IEnumerable<ExcelColumn> columns, Action<ExcelSheet>? sheetConfig = null) : this(fileName)
     {
-        AddExcelSheet("Sheet1", [], configExcelSheet);
+        AddExcelSheet("Sheet1", columns, sheetConfig);
+    }
+    /// <summary>
+    /// 适用于导出空的Excel模板,带各列标题
+    /// </summary>
+    /// <param name="fileName">文件名</param>
+    /// <param name="titles">各列标题</param>
+    public ExcelConfig(string fileName, params string[] titles) : this(fileName, titles.Select(a => new ExcelColumn(a)))
+    {
     }
     #endregion
 
@@ -50,7 +75,7 @@ public class ExcelConfig
     /// <summary>
     /// 验证配置数据是否有不合适的
     /// </summary>
-    public void ValidateConfigData()
+    internal void ValidateConfigData()
     {
         var extension = Path.GetExtension(FileName).ToLower();
         if ((IsExcel2007 && extension != ".xlsx") || (!IsExcel2007 && extension != ".xls"))
@@ -90,6 +115,12 @@ public class ExcelConfig
     }
 
     #region 重载AddExcelSheet，方便各种场景下的调用
+    /// <summary>
+    /// 添加工作表
+    /// </summary>
+    /// <param name="columns">列配置</param>
+    /// <param name="sheetConfig"></param>
+    /// <returns></returns>
     public ExcelConfig AddExcelSheet(IEnumerable<ExcelColumn> columns, Action<ExcelSheet>? sheetConfig = null)
     {
         return AddExcelSheet("Sheet1", columns, sheetConfig);
@@ -105,6 +136,10 @@ public class ExcelConfig
         var excelSheet = new ExcelSheet(sheetName, lstData, columns);
         sheetConfig?.Invoke(excelSheet);
         return AddExcelSheet(excelSheet);
+    }
+    public ExcelConfig AddExcelSheet(string sheetName, params string[] titles)
+    {
+        return AddExcelSheet(sheetName, titles.Select(a => new ExcelColumn(a)));
     }
     #endregion
 

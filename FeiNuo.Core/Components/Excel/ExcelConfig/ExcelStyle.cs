@@ -69,16 +69,21 @@ public class ExcelStyle
     }
 
     /// <summary>
-    /// 是否初始值，没设置任何格式
+    /// 是否有设置样式，非默认样式
     /// </summary>
-    public bool IsNonEmptyStyle
+    public bool IsNotEmptyStyle { get { return !IsEmptyStyle; } }
+
+    /// <summary>
+    /// 是否默认的样式，没有设置任何格式
+    /// </summary>
+    public bool IsEmptyStyle
     {
         get
         {
-            return BorderStyle.HasValue || HorizontalAlignment.HasValue || VerticalAlignment.HasValue
+            return !(BorderStyle.HasValue || HorizontalAlignment.HasValue || VerticalAlignment.HasValue
                 || BackgroundColor.HasValue || (!string.IsNullOrWhiteSpace(DataFormat)) || WrapText.HasValue
                 || (!string.IsNullOrWhiteSpace(FontName)) || FontColor.HasValue || FontSize.HasValue || FontBold.HasValue
-                ;
+                );
         }
     }
 }
