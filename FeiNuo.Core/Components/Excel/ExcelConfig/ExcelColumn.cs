@@ -47,6 +47,10 @@ public class ExcelColumn
     /// </summary>
     public Func<object, IConvertible?, string> ValueSetter { get; set; } = (o, v) => throw new NotImplementedException();
 
+    /// <summary>
+    /// 列索引，在加入到ExcelSheet时自动设置
+    /// </summary>
+    public int ColumnIndex { get; internal set; }
 }
 
 /// <summary>

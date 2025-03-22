@@ -31,14 +31,32 @@ public class PoiHelper
         return wb;
     }
 
+    public static IWorkbook FillWorkbook(IWorkbook wb, ExcelConfig config, out StyleFactory styles)
+    {
+        // 检查配置内容
+        config.ValidateConfigData();
+
+        styles = new StyleFactory(wb, config.DefaultStyle);
+
+        // 创建工作表
+        foreach (var sheet in config.ExcelSheets)
+        {
+            CreateWorkSheet(wb, sheet, styles);
+        }
+
+        return wb;
+    }
+
     /// <summary>
     /// 创建工作表:添加备注描述，主标题，列标题
     /// </summary>
     public static ISheet CreateWorkSheet(IWorkbook wb, ExcelSheet config, StyleFactory styles)
     {
-        var sheet = wb.CreateSheet(config.SheetName);
+        var sheet = wb.GetSheet(config.SheetName);
+        sheet ??= wb.CreateSheet(config.SheetName);
+
         var columnCount = config.ExcelColumns.Count();
-        int rowIndex = 0, colIndex = 0;
+        int rowIndex = 0;
         IRow row; ICell cell;
 
         #region 生成描述行
@@ -46,14 +64,14 @@ public class PoiHelper
         {
             row = GetRow(sheet, rowIndex);
             row.HeightInPoints = (short)(config.DescriptionRowHeight < 0 ? 20 : config.DescriptionRowHeight);
-            cell = GetCell(row, 0);
+            cell = GetCell(row, config.StartColumnIndex);
             cell.CellStyle = styles.GetStyle(config.DescriptionStyle);
             cell.SetCellValue(config.Description);
 
             var mergeCount = config.DescriptionColSpan ?? columnCount;
             if (mergeCount > 0)
             {
-                sheet.AddMergedRegion(new CellRangeAddress(rowIndex, rowIndex, 0, mergeCount - 1));
+                sheet.AddMergedRegion(new CellRangeAddress(rowIndex, rowIndex, config.StartColumnIndex, config.StartColumnIndex + mergeCount - 1));
             }
             rowIndex++;
         }
@@ -63,13 +81,13 @@ public class PoiHelper
         if (!string.IsNullOrWhiteSpace(config.MainTitle))
         {
             row = GetRow(sheet, rowIndex);
-            cell = GetCell(row, 0);
+            cell = GetCell(row, config.StartColumnIndex);
             cell.CellStyle = styles.GetStyle(config.MainTitleStyle);
             cell.SetCellValue(config.MainTitle);
             var mergeCount = config.MainTitleColSpan ?? columnCount;
             if (mergeCount > 0)
             {
-                sheet.AddMergedRegion(new CellRangeAddress(rowIndex, rowIndex, 0, mergeCount - 1));
+                sheet.AddMergedRegion(new CellRangeAddress(rowIndex, rowIndex, config.StartColumnIndex, config.StartColumnIndex + mergeCount - 1));
             }
             rowIndex++;
         }
@@ -81,13 +99,12 @@ public class PoiHelper
             var titleStyle = styles.GetStyle(config.ColumnTitleStyle);
             var titleRowCount = config.ExcelColumns.Max(a => a.RowTitles.Length);
             int titleRowStartIndex = rowIndex, titleRowEndIndex = rowIndex + titleRowCount - 1;
-            colIndex = 0;
             foreach (var col in config.ExcelColumns)
             {
                 rowIndex = titleRowStartIndex;
                 foreach (var rt in col.RowTitles)
                 {
-                    cell = GetCell(sheet, rowIndex++, colIndex);
+                    cell = GetCell(sheet, rowIndex++, col.ColumnIndex);
                     cell.CellStyle = titleStyle;
                     cell.SetCellValue(rt);
                 }
@@ -95,22 +112,23 @@ public class PoiHelper
                 // 设置默认格式
                 if (col.ColumnStyle.IsNotEmptyStyle)
                 {
-                    sheet.SetDefaultColumnStyle(colIndex, styles.GetStyle(col.ColumnStyle));
+                    sheet.SetDefaultColumnStyle(col.ColumnIndex, styles.GetStyle(col.ColumnStyle));
                 }
                 // 配置列宽，隐藏
-                if (col.Width.HasValue) sheet.SetColumnWidth(colIndex, col.Width.Value * 256);
-                if (col.Hidden) sheet.SetColumnHidden(colIndex, true);
-
-                colIndex++;
+                if (col.Width.HasValue) sheet.SetColumnWidth(col.ColumnIndex, col.Width.Value * 256);
+                if (col.Hidden) sheet.SetColumnHidden(col.ColumnIndex, true);
             }
             //合并标题行
-            for (var i = 0; i < columnCount; i++) AutoMergeRows(sheet, i, titleRowStartIndex, titleRowEndIndex);
+            for (var i = config.StartColumnIndex; i < config.StartColumnIndex + columnCount; i++)
+            {
+                AutoMergeRows(sheet, i, titleRowStartIndex, titleRowEndIndex);
+            }
             // 合并标题列
             if (titleRowCount > 1)
             {
                 for (var i = 0; i < titleRowCount; i++)
                 {
-                    AutoMergeColumns(sheet, i, 0, columnCount - 1);
+                    AutoMergeColumns(sheet, i, config.StartColumnIndex, config.StartColumnIndex + columnCount - 1);
                 }
             }
             // 重置行索引
@@ -124,14 +142,13 @@ public class PoiHelper
             foreach (var data in config.DataList)
             {
                 row = GetRow(sheet, rowIndex++);
-                colIndex = 0;
                 foreach (var col in config.ExcelColumns)
                 {
                     var val = col.ValueGetter?.Invoke(data);
                     var style = col.ColumnStyle.IsNotEmptyStyle
                         ? styles.GetStyle(col.ColumnStyle)
                         : ((val != null && (val is DateOnly || val is DateTime)) ? styles.DateStyle : null);
-                    SetCellValue(row, colIndex++, val, false, style);
+                    SetCellValue(row, col.ColumnIndex, val, false, style);
                 }
             }
         }
@@ -148,7 +165,12 @@ public class PoiHelper
         if (config.ForceFormulaRecalculation) sheet.ForceFormulaRecalculation = true;
 
         // 自动设置边框
-        if (config.AddConditionalBorderStyle) AddConditionalBorderStyle(sheet);
+
+        if (config.AddConditionalBorderStyle)
+        {
+            var region = new CellRangeAddress(0, sheet.LastRowNum, config.StartColumnIndex,config.EndColumnIndex);
+            AddConditionalBorderStyle(sheet, range:region);
+        }
         #endregion
 
         return sheet;
@@ -176,12 +198,11 @@ public class PoiHelper
         var sheet = wb.GetSheet(config.SheetName) ?? throw new MessageException($"没有找到名为【{config.SheetName}】的Sheet页");
         if (!config.ExcelColumns.Any()) return;
         var row = GetRow(sheet, config.TitleRowIndex + config.ExcelColumns.Max(t => t.RowTitles.Length) - 1);
-        int colIndex = 0;
         foreach (var col in config.ExcelColumns)
         {
-            if (GetCellValueString(GetCell(row, colIndex++)) != col.Title)
+            if (GetCellValueString(GetCell(row, col.ColumnIndex)) != col.Title.Split('#').Last())
             {
-                throw new Exception($"【{config.SheetName}】模板错误，【{colIndex}】列标题应为【{col.Title}】，请重新下载模板。");
+                throw new Exception($"【{config.SheetName}】模板错误，【{col.ColumnIndex}】列标题应为【{col.Title}】，请重新下载模板。");
             }
         }
     }
@@ -266,23 +287,21 @@ public class PoiHelper
     /// <param name="styles"></param>
     public static void ResetColumnStyle(IWorkbook wb, ExcelConfig config, StyleFactory styles)
     {
-        for (var i = 0; i < config.ExcelSheets.Count; i++)
+        foreach (var sheetConfig in config.ExcelSheets)
         {
-            var sheetConfig = config.ExcelSheets[i];
             var sheet = wb.GetSheet(sheetConfig.SheetName);
+            if (sheet == null) continue;
 
-            var colIndex = 0;
             foreach (var col in sheetConfig.ExcelColumns)
             {
-                if (col.ColumnStyle.IsNotEmptyStyle)
+                if (col.ColumnStyle.IsEmptyStyle) continue;
+
+                var cellStyle = styles.GetStyle(col.ColumnStyle);
+                for (var r = sheetConfig.DataRowIndex; r <= sheet.LastRowNum; r++)
                 {
-                    for (var r = sheetConfig.DataRowIndex; r <= sheet.LastRowNum; r++)
-                    {
-                        var cell = sheet.GetRow(r)?.GetCell(colIndex);
-                        if (cell != null) cell.CellStyle = styles.GetStyle(col.ColumnStyle);
-                    }
+                    var cell = sheet.GetRow(r)?.GetCell(col.ColumnIndex);
+                    if (cell != null) cell.CellStyle = cellStyle;
                 }
-                colIndex++;
             }
         }
     }

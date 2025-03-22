@@ -17,24 +17,23 @@ public class ExcelSheet
             throw new ArgumentNullException(nameof(sheetName));
         }
         SheetName = sheetName;
-        ExcelColumns = columns ?? [];
 
-        ValidateConfig();
-
+        // 配置列，设置多行标题，设置列索引
+        ExcelColumns = ConfigColumns([.. (columns ?? [])]);
     }
 
-    internal void ValidateConfig()
+    internal List<ExcelColumn> ConfigColumns(List<ExcelColumn> columns)
     {
-        var columns = ExcelColumns.ToList();
         // 检查是否有相同的标题
         var chk = columns.GroupBy(k => k.Title).Where(g => g.Count() > 1).Select(g => g.Key).ToArray();
-        if (chk.Any())
+        if (chk.Length > 0)
         {
             throw new MessageException($"【{SheetName}】以下列字段标题重复: {string.Join(", ", chk)}");
         }
         // 多行标题的，把不副#的补上#号
         var titleRowCount = columns.Max(t => t.RowTitles.Length);
-        foreach (var col in ExcelColumns)
+        var colIndex = StartColumnIndex;
+        foreach (var col in columns)
         {
             if (col.RowTitles.Length == 1)
             {
@@ -44,7 +43,9 @@ public class ExcelSheet
             {
                 throw new MessageException($"【{SheetName}】列【{col.Title}】的标题行数不足");
             }
+            col.ColumnIndex = colIndex++;
         }
+        return [.. columns];
     }
     #endregion
 
@@ -63,6 +64,25 @@ public class ExcelSheet
     /// 数据集合
     /// </summary>
     public IEnumerable<object> DataList { get; set; } = [];
+
+    /// <summary>
+    /// 数据开始的列索引
+    /// </summary>
+    public int StartColumnIndex { get; private set; } = 0;
+    public int EndColumnIndex => StartColumnIndex + ExcelColumns.Count() - 1;
+
+    /// <summary>
+    /// 设置数据开始的列索引
+    /// </summary>
+    /// <param name="colIndex"></param>
+    public void SetStartColumnIndex(int colIndex)
+    {
+        StartColumnIndex = colIndex;
+        foreach (var col in ExcelColumns)
+        {
+            col.ColumnIndex = colIndex++;
+        }
+    }
     #endregion
 
     #region 数据列配置,标题样式
@@ -152,34 +172,6 @@ public class ExcelSheet
     public int DataRowIndex
     {
         get { return TitleRowIndex + ExcelColumns.Max(t => t.RowTitles.Length); }
-    }
-
-
-    /// <summary>
-    /// 获取列标题
-    /// </summary>
-    public List<string[]> GetColumnTitles()
-    {
-        var maxRowCount = ExcelColumns.Max(col => col.RowTitles.Length);
-        var columnTitles = new List<string[]>(maxRowCount);
-
-        // 初始化二维数组
-        for (int i = 0; i < maxRowCount; i++)
-        {
-            columnTitles.Add(new string[ExcelColumns.Count()]);
-        }
-
-        int colIndex = 0;
-        foreach (var col in ExcelColumns)
-        {
-            var rowTitles = col.RowTitles;
-            for (int rowIndex = 0; rowIndex < maxRowCount; rowIndex++)
-            {
-                columnTitles[rowIndex][colIndex] = rowIndex < rowTitles.Length ? rowTitles[rowIndex] : rowTitles.Last();
-            }
-            colIndex++;
-        }
-        return columnTitles;
     }
     #endregion
 }
