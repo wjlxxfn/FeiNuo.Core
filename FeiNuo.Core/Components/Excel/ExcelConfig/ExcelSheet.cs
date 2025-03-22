@@ -6,6 +6,10 @@
 public class ExcelSheet
 {
     #region 构造函数
+    public ExcelSheet(string sheetName, IEnumerable<object> dataList, IEnumerable<ExcelColumn> columns) : this(sheetName, columns)
+    {
+        DataList = dataList ?? [];
+    }
     public ExcelSheet(string sheetName, IEnumerable<ExcelColumn>? columns = null)
     {
         if (string.IsNullOrWhiteSpace(sheetName))
@@ -14,11 +18,33 @@ public class ExcelSheet
         }
         SheetName = sheetName;
         ExcelColumns = columns ?? [];
+
+        ValidateConfig();
+
     }
 
-    public ExcelSheet(string sheetName, IEnumerable<object> dataList, IEnumerable<ExcelColumn> columns) : this(sheetName, columns)
+    internal void ValidateConfig()
     {
-        DataList = dataList ?? [];
+        var columns = ExcelColumns.ToList();
+        // 检查是否有相同的标题
+        var chk = columns.GroupBy(k => k.Title).Where(g => g.Count() > 1).Select(g => g.Key).ToArray();
+        if (chk.Any())
+        {
+            throw new MessageException($"【{SheetName}】以下列字段标题重复: {string.Join(", ", chk)}");
+        }
+        // 多行标题的，把不副#的补上#号
+        var titleRowCount = columns.Max(t => t.RowTitles.Length);
+        foreach (var col in ExcelColumns)
+        {
+            if (col.RowTitles.Length == 1)
+            {
+                col.Title = string.Join("#", Enumerable.Repeat(col.Title, titleRowCount));
+            }
+            else if (col.RowTitles.Length != titleRowCount)
+            {
+                throw new MessageException($"【{SheetName}】列【{col.Title}】的标题行数不足");
+            }
+        }
     }
     #endregion
 
@@ -126,6 +152,34 @@ public class ExcelSheet
     public int DataRowIndex
     {
         get { return TitleRowIndex + ExcelColumns.Max(t => t.RowTitles.Length); }
+    }
+
+
+    /// <summary>
+    /// 获取列标题
+    /// </summary>
+    public List<string[]> GetColumnTitles()
+    {
+        var maxRowCount = ExcelColumns.Max(col => col.RowTitles.Length);
+        var columnTitles = new List<string[]>(maxRowCount);
+
+        // 初始化二维数组
+        for (int i = 0; i < maxRowCount; i++)
+        {
+            columnTitles.Add(new string[ExcelColumns.Count()]);
+        }
+
+        int colIndex = 0;
+        foreach (var col in ExcelColumns)
+        {
+            var rowTitles = col.RowTitles;
+            for (int rowIndex = 0; rowIndex < maxRowCount; rowIndex++)
+            {
+                columnTitles[rowIndex][colIndex] = rowIndex < rowTitles.Length ? rowTitles[rowIndex] : rowTitles.Last();
+            }
+            colIndex++;
+        }
+        return columnTitles;
     }
     #endregion
 }

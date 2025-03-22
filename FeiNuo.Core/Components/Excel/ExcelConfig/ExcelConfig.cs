@@ -82,19 +82,6 @@ public class ExcelConfig
         {
             throw new Exception("Excel版本和后缀不匹配");
         }
-        foreach (var sheet in ExcelSheets)
-        {
-            var columns = sheet.ExcelColumns;
-            // 有相同的title报错
-            var chk = columns.GroupBy(k => k.Title).Select(a => new { Title = a.Key, Count = a.Count() }).Where(a => a.Count > 1)
-                .Select(a => a.Title).Distinct().ToArray();
-            if (chk.Length != 0) throw new MessageException($"【{sheet.SheetName}】以下列字段标题重复:" + string.Join(".", chk));
-            var titleRows = columns.Select(a => a.RowTitles.Length).Distinct().Where(a => a > 1);
-            if (titleRows.Count() > 1)
-            {
-                throw new MessageException($"【{sheet.SheetName}】标题行有多行时必须保证每列都有相同的行数");
-            }
-        }
     }
 
     /// <summary>

@@ -76,100 +76,41 @@ public class PoiHelper
         #endregion
 
         #region 生成列标题行
-        var hiddenCols = new List<int>();// 需要隐藏
         if (columnCount > 0)
         {
             var titleStyle = styles.GetStyle(config.ColumnTitleStyle);
-            var titleRowCount = config.ExcelColumns.Select(a => a.RowTitles.Length).Max();
+            var titleRowCount = config.ExcelColumns.Max(a => a.RowTitles.Length);
             int titleRowStartIndex = rowIndex, titleRowEndIndex = rowIndex + titleRowCount - 1;
             colIndex = 0;
             foreach (var col in config.ExcelColumns)
             {
+                rowIndex = titleRowStartIndex;
+                foreach (var rt in col.RowTitles)
+                {
+                    cell = GetCell(sheet, rowIndex++, colIndex);
+                    cell.CellStyle = titleStyle;
+                    cell.SetCellValue(rt);
+                }
+
                 // 设置默认格式
                 if (col.ColumnStyle.IsNotEmptyStyle)
                 {
                     sheet.SetDefaultColumnStyle(colIndex, styles.GetStyle(col.ColumnStyle));
                 }
-
-                var rowTitles = col.RowTitles.ToList();
-                #region 保证每列都有相同的行数，不足的用最后的行标题填充
-                if (rowTitles.Count < titleRowCount)
-                {
-                    var last = rowTitles.Last();
-                    var addCount = titleRowCount - rowTitles.Count;
-                    for (var i = 0; i < addCount; i++)
-                    {
-                        rowTitles.Add(last);
-                    }
-                }
-                #endregion
-
-                string? lastTitle = null;
-                rowIndex = titleRowStartIndex;
-                var mergeStartRow = titleRowStartIndex;
-                // 写入标题
-                foreach (var curTitle in rowTitles)
-                {
-                    cell = GetCell(sheet, rowIndex, colIndex);
-                    cell.CellStyle = titleStyle;
-                    cell.SetCellValue(curTitle);
-
-                    if (titleRowCount > 1)
-                    {
-                        // 多行合并,连续相同的标题合并
-                        lastTitle ??= curTitle;
-                        // 标题不同或者到了最后一行都可能需要合并  性别#性别#别  性别#别#别
-                        if (curTitle != lastTitle || titleRowEndIndex == rowIndex)
-                        {
-                            // 合并结束位置:如果当前行标题和前一行不一致，则取前一行的行号。
-                            // 如果已经到了最后一行且还和前一行的标题一致，则取最后一行的行号
-                            var mergeEnd = (titleRowEndIndex == rowIndex && curTitle == lastTitle) ? titleRowEndIndex : (rowIndex - 1);
-                            if (mergeEnd > mergeStartRow)
-                            {
-                                sheet.AddMergedRegion(new CellRangeAddress(mergeStartRow, mergeEnd, colIndex, colIndex));
-                            }
-                            lastTitle = curTitle;
-                            mergeStartRow = rowIndex;
-                        }
-                    }
-                    rowIndex++;
-                }
-
                 // 配置列宽，隐藏
                 if (col.Width.HasValue) sheet.SetColumnWidth(colIndex, col.Width.Value * 256);
                 if (col.Hidden) sheet.SetColumnHidden(colIndex, true);
 
                 colIndex++;
             }
-            // 相邻列相同的合并列
+            //合并标题行
+            for (var i = 0; i < columnCount; i++) AutoMergeRows(sheet, i, titleRowStartIndex, titleRowEndIndex);
+            // 合并标题列
             if (titleRowCount > 1)
             {
-                int titleColEndIndex = columnCount - 1;
-                for (int i = 0; i < titleRowCount; i++) // 循环每一行，合并行中的列
+                for (var i = 0; i < titleRowCount; i++)
                 {
-                    rowIndex = titleRowStartIndex + i;
-                    var mergeStartCol = 0;
-                    string? lastTitle = null;
-                    for (var j = 0; j < columnCount; j++)
-                    {
-                        colIndex = j;
-                        cell = GetCell(sheet, rowIndex, colIndex);
-                        var curTitle = cell.StringCellValue;
-                        lastTitle ??= curTitle;
-
-                        if (curTitle != lastTitle || cell.IsMergedCell || colIndex == titleColEndIndex)
-                        {
-                            // 合并结束位置:和行合并类似，如果到了最后一行且是需要合并的，索引就在最后一行，否则取当前行的前一行
-                            var mergeEnd = (colIndex == titleColEndIndex && curTitle == lastTitle && !cell.IsMergedCell) ? titleColEndIndex : (colIndex - 1);
-                            if (mergeEnd > mergeStartCol)
-                            {
-                                sheet.AddMergedRegion(new CellRangeAddress(rowIndex, rowIndex, mergeStartCol, mergeEnd));
-                            }
-                            lastTitle = curTitle;
-                            // 当前单元格已经合并的时候不能做起始合并，需要从下一列开始
-                            mergeStartCol = cell.IsMergedCell ? (colIndex + 1) : colIndex;
-                        }
-                    }
+                    AutoMergeColumns(sheet, i, 0, columnCount - 1);
                 }
             }
             // 重置行索引
@@ -212,6 +153,8 @@ public class PoiHelper
 
         return sheet;
     }
+
+
 
     /// <summary>
     /// 根据模板配置，检查excel是否指定模板
