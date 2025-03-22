@@ -69,7 +69,18 @@ public class ExcelSheet
     /// 数据开始的列索引
     /// </summary>
     public int StartColumnIndex { get; private set; } = 0;
-    public int EndColumnIndex => StartColumnIndex + ExcelColumns.Count() - 1;
+    /// <summary>
+    /// 最后一列的列索引
+    /// </summary>
+    public int EndColumnIndex => StartColumnIndex + ColumnCount - 1;
+    /// <summary>
+    /// 列数
+    /// </summary>
+    public int ColumnCount => ExcelColumns.Count();
+    /// <summary>
+    /// 列标题行数
+    /// </summary>
+    public int ColumnRowCount => ExcelColumns.Max(t => t.RowTitles.Length);
 
     /// <summary>
     /// 设置数据开始的列索引
@@ -83,6 +94,11 @@ public class ExcelSheet
             col.ColumnIndex = colIndex++;
         }
     }
+
+    /// <summary>
+    /// 设置数据开始的行索引
+    /// </summary>
+    public int StartRowIndex { get; set; } = 0;
     #endregion
 
     #region 数据列配置,标题样式
@@ -161,7 +177,7 @@ public class ExcelSheet
     {
         get
         {
-            return (!string.IsNullOrWhiteSpace(Description) ? 1 : 0)
+            return StartRowIndex + (!string.IsNullOrWhiteSpace(Description) ? 1 : 0)
                 + (!string.IsNullOrWhiteSpace(MainTitle) ? 1 : 0);
         }
     }
@@ -171,7 +187,7 @@ public class ExcelSheet
     /// </summary>
     public int DataRowIndex
     {
-        get { return TitleRowIndex + ExcelColumns.Max(t => t.RowTitles.Length); }
+        get { return TitleRowIndex + ColumnRowCount; }
     }
     #endregion
 }

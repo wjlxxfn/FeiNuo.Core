@@ -55,8 +55,8 @@ public class PoiHelper
         var sheet = wb.GetSheet(config.SheetName);
         sheet ??= wb.CreateSheet(config.SheetName);
 
-        var columnCount = config.ExcelColumns.Count();
-        int rowIndex = 0;
+        var columnCount = config.ColumnCount;
+        int rowIndex = config.StartRowIndex;
         IRow row; ICell cell;
 
         #region 生成描述行
@@ -168,7 +168,7 @@ public class PoiHelper
 
         if (config.AddConditionalBorderStyle)
         {
-            var region = new CellRangeAddress(0, sheet.LastRowNum, config.StartColumnIndex,config.EndColumnIndex);
+            var region = new CellRangeAddress(config.StartRowIndex, sheet.LastRowNum, config.StartColumnIndex,config.EndColumnIndex);
             AddConditionalBorderStyle(sheet, range:region);
         }
         #endregion
@@ -197,7 +197,7 @@ public class PoiHelper
         if (!config.ValidateImportTemplate) return;
         var sheet = wb.GetSheet(config.SheetName) ?? throw new MessageException($"没有找到名为【{config.SheetName}】的Sheet页");
         if (!config.ExcelColumns.Any()) return;
-        var row = GetRow(sheet, config.TitleRowIndex + config.ExcelColumns.Max(t => t.RowTitles.Length) - 1);
+        var row = GetRow(sheet, config.TitleRowIndex + config.ColumnRowCount - 1);
         foreach (var col in config.ExcelColumns)
         {
             if (GetCellValueString(GetCell(row, col.ColumnIndex)) != col.Title.Split('#').Last())
