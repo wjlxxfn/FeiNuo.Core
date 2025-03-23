@@ -55,9 +55,8 @@ public interface IImportService
     /// 执行导入: 默认实现逻辑，保存文件，效验模板        
     /// </summary>
     public Task HandleImportAsync(Stream stream, ImportConfig cfg, Dictionary<string, string> paramMap, LoginUser user);
-    
-}
 
+}
 
 /// <summary>
 /// 下载excel的辅助类

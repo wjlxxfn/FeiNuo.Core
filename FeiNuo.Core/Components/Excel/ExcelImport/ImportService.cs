@@ -19,7 +19,7 @@ public abstract class BaseImportService<T> : BaseService<T>, IImportService wher
     /// </summary>
     public virtual Task<ExcelConfig> GetExcelTemplateAsync(Dictionary<string, string> paramMap, LoginUser user)
     {
-        return Task.FromResult(new ExcelConfig("基础数据.xlsx"));
+        return Task.FromResult(new ExcelConfig("导入模板.xlsx"));
     }
 
     /// <summary>

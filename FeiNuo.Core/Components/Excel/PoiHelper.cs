@@ -168,8 +168,8 @@ public class PoiHelper
 
         if (config.AddConditionalBorderStyle)
         {
-            var region = new CellRangeAddress(config.StartRowIndex, sheet.LastRowNum, config.StartColumnIndex,config.EndColumnIndex);
-            AddConditionalBorderStyle(sheet, range:region);
+            var region = new CellRangeAddress(config.StartRowIndex, sheet.LastRowNum, config.StartColumnIndex, config.EndColumnIndex);
+            AddConditionalBorderStyle(sheet, range: region);
         }
         #endregion
 
@@ -200,7 +200,7 @@ public class PoiHelper
         var row = GetRow(sheet, config.TitleRowIndex + config.ColumnRowCount - 1);
         foreach (var col in config.ExcelColumns)
         {
-            if (GetCellValueString(GetCell(row, col.ColumnIndex)) != col.Title.Split('#').Last())
+            if (GetStringValue(GetCell(row, col.ColumnIndex)) != col.RowTitles.Last())
             {
                 throw new Exception($"【{config.SheetName}】模板错误，【{col.ColumnIndex}】列标题应为【{col.Title}】，请重新下载模板。");
             }
@@ -216,68 +216,71 @@ public class PoiHelper
         // 计算公式
         sheet.ForceFormulaRecalculation = true;
 
-        string errMsg = "", rowMsg, keyValue;
         var keyMap = new Dictionary<string, int>();
-
-        IRow row; T? data;
         var lstData = new List<T>();
+        var errMsg = new StringBuilder();
+
         for (var rowIndex = config.DataRowIndex; rowIndex <= sheet.LastRowNum; rowIndex++)
         {
-            rowMsg = ""; keyValue = "";
-
-            data = Activator.CreateInstance<T>();
-            if (data == null) throw new Exception($"无法实例化对象{typeof(T)}");
-
-            row = GetRow(sheet, rowIndex);
-            // 空行不处理
+            var row = GetRow(sheet, rowIndex);
             if (IsBlankRow(row)) continue;
 
-            var colIndex = 0;
+            var data = Activator.CreateInstance<T>() ?? throw new Exception($"无法实例化对象{typeof(T)}");
+            var rowMsg = new StringBuilder();
+            var keyValue = new StringBuilder();
             foreach (var col in config.ExcelColumns)
             {
-                var val = GetCellValue(GetCell(row, colIndex++));
+                var cell = GetCell(row, col.ColumnIndex);
+                var val = GetCellValue(cell);
+
                 try
                 {
                     var msg = col.ValueSetter(data, val);
                     if (msg == "_UniqueKey_")
                     {
-                        keyValue += (val ?? "null") + "|";
+                        keyValue.Append((val ?? "null") + "|");
                     }
                     else if (!string.IsNullOrWhiteSpace(msg))
                     {
-                        rowMsg += $"列【{col.RowTitles.Last()}】{msg}；";
+                        rowMsg.Append($"列【{col.RowTitles.Last()}】{msg}；");
                     }
                 }
                 catch (Exception ex)
                 {
-                    rowMsg += $"列【{col.RowTitles.Last()}】{ex.Message}；";
+                    rowMsg.Append($"列【{col.RowTitles.Last()}】{ex.Message}；");
                 }
-
             }
 
-            if (rowMsg != "")
+            if (rowMsg.Length > 0)
             {
-                errMsg += $"第【{rowIndex}】行：" + rowMsg + "<br/>";
+                errMsg.AppendLine($"第【{rowIndex}】行：{rowMsg}");
             }
-            else if (null != data)
+            else
             {
-                if (keyValue != "")
+                var key = keyValue.ToString();
+                if (!string.IsNullOrEmpty(key))
                 {
-                    if (keyMap.TryGetValue(keyValue, out int value))
+                    if (keyMap.TryGetValue(key, out int existingRow))
                     {
-                        errMsg += $"第【{rowIndex}】行：与{value}行重复,重复键值：{keyValue}； <br/>";
+                        errMsg.AppendLine($"第【{rowIndex}】行：与{existingRow}行重复,重复键值：{key}；");
                     }
-                    else keyMap.Add(keyValue, rowIndex);
+                    else
+                    {
+                        keyMap[key] = rowIndex;
+                    }
                 }
                 lstData.Add(data);
             }
         }
-        if (errMsg != "")
+
+        if (errMsg.Length > 0)
         {
-            throw new MessageException($"获取Excel数据出错:<br/>" + errMsg);
+            throw new MessageException($"获取Excel数据出错:<br/>{errMsg}");
         }
+
         return lstData;
     }
+
 
     /// <summary>
     /// Poi.SetDefaultColumnStyle后，如果使用POI赋值会把默认样式覆盖，调用该方法重新设置样式
@@ -442,29 +445,35 @@ public class PoiHelper
     #endregion
 
     #region 单元格取值
-    public static string GetCellValueString(ICell cell)
+    /// <summary>
+    /// 获取单元格的值，空值返回空字符串
+    /// </summary>
+    /// <param name="cell"></param>
+    /// <param name="defaultValue"></param>
+    /// <returns></returns>
+    public static string GetStringValue(ICell cell, string defaultValue = "")
     {
         if (null == cell || cell.CellType == CellType.Blank)
         {
-            return "";
+            return defaultValue;
         }
         if (cell.CellType == CellType.String)
         {
-            return cell.StringCellValue;
+            return cell.StringCellValue.Trim();
         }
         if (cell.CellType == CellType.Formula)
         {
-            if (cell.CachedFormulaResultType == CellType.String) return cell.StringCellValue;
+            if (cell.CachedFormulaResultType == CellType.String) return cell.StringCellValue.Trim();
             if (cell.CachedFormulaResultType == CellType.Numeric) return cell.NumericCellValue.ToString();
         }
         return cell.ToString()!.Trim();
     }
     /// <summary>
-    /// 获取日期，空值返回DateTime.MinValue
+    /// 获取单元格的日期值，空值返回DateTime.MinValue
     /// </summary>
     /// <param name="cell"></param>
     /// <returns></returns>
-    public static DateTime? GetCellValueDate(ICell cell)
+    public static DateTime GetDateValue(ICell cell)
     {
         if (null == cell || cell.CellType == CellType.Blank)
         {
@@ -472,7 +481,7 @@ public class PoiHelper
         }
         if (cell.CellType == CellType.Numeric)
         {
-            return cell.DateCellValue;
+            return cell.DateCellValue ?? DateTime.MinValue;
         }
         else if (cell.CellType == CellType.String && DateTime.TryParse(cell.StringCellValue.Trim('\''), out var dt))
         {
@@ -480,10 +489,38 @@ public class PoiHelper
         }
         else if (cell.CellType == CellType.Formula && DateUtil.IsCellDateFormatted(cell))
         {
-            return cell.DateCellValue;
+            return cell.DateCellValue ?? DateTime.MinValue;
         }
         throw new MessageException("获取时间出错，行号：" + cell.Row.RowNum);
     }
+    /// <summary>
+    /// 获取单元格的Decimal值，空值返回0
+    /// </summary>
+    /// <param name="cell"></param>
+    /// <param name="defaultValue"></param>
+    /// <returns></returns>
+    public static decimal GetDecimalValue(ICell cell, decimal defaultValue = 0m)
+    {
+        if (null == cell || cell.CellType == CellType.Blank)
+        {
+            return defaultValue;
+        }
+        if (cell.CellType == CellType.Numeric)
+        {
+            return Convert.ToDecimal(cell.NumericCellValue);
+        }
+        if (cell.CellType == CellType.Formula)
+        {
+            if (cell.CachedFormulaResultType == CellType.Numeric) return Convert.ToDecimal(cell.NumericCellValue);
+            if (cell.CachedFormulaResultType == CellType.String && decimal.TryParse(cell.StringCellValue, out var d)) return d;
+        }
+        if (decimal.TryParse(cell.ToString(), out var result))
+        {
+            return result;
+        }
+        return defaultValue;
+    }
+
     //TODO 改成getstringvalue,getdecimalValue,getDateValue等
     /// <summary>
     /// 获取单元格的值
@@ -498,7 +535,7 @@ public class PoiHelper
 
     /// <summary>
     /// 获取单元格的值
-    /// </summary>
+    /// </summary>               
     public static IConvertible? GetCellValue(ICell cell)
     {
         if (null == cell || cell.CellType == CellType.Blank)
