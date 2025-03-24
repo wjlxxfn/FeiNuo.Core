@@ -128,7 +128,7 @@ public class PoiHelper
             {
                 for (var i = 0; i < titleRowCount; i++)
                 {
-                    AutoMergeColumns(sheet, i, config.StartColumnIndex, config.StartColumnIndex + columnCount - 1);
+                    AutoMergeColumns(sheet, i + config.TitleRowIndex, config.StartColumnIndex, config.StartColumnIndex + columnCount - 1);
                 }
             }
             // 重置行索引
