@@ -22,7 +22,7 @@ public class ExcelSheet
         ExcelColumns = ConfigColumns([.. (columns ?? [])]);
     }
 
-    internal List<ExcelColumn> ConfigColumns(List<ExcelColumn> columns)
+    private List<ExcelColumn> ConfigColumns(List<ExcelColumn> columns)
     {
         // 检查是否有相同的标题
         var chk = columns.GroupBy(k => k.Title).Where(g => g.Count() > 1).Select(g => g.Key).ToArray();
@@ -30,7 +30,7 @@ public class ExcelSheet
         {
             throw new MessageException($"【{SheetName}】以下列字段标题重复: {string.Join(", ", chk)}");
         }
-        // 多行标题的，把不副#的补上#号
+        // 多行标题的，把不带#的补上#号
         var titleRowCount = columns.Max(t => t.RowTitles.Length);
         var colIndex = StartColumnIndex;
         foreach (var col in columns)
@@ -41,11 +41,11 @@ public class ExcelSheet
             }
             else if (col.RowTitles.Length != titleRowCount)
             {
-                throw new MessageException($"【{SheetName}】列【{col.Title}】的标题行数不足");
+                throw new MessageException($"存在标题行数不一致的列");
             }
             col.ColumnIndex = colIndex++;
         }
-        return [.. columns];
+        return columns;
     }
     #endregion
 
@@ -98,7 +98,15 @@ public class ExcelSheet
     /// <summary>
     /// 设置数据开始的行索引
     /// </summary>
-    public int StartRowIndex { get; set; } = 0;
+    public int StartRowIndex { get; private set; } = 0;
+
+    /// <summary>
+    /// 设置数据开始的行索引
+    /// </summary>
+    public void SetStartRowIndex(int rowIndex)
+    {
+        StartRowIndex = rowIndex;
+    }
     #endregion
 
     #region 数据列配置,标题样式
