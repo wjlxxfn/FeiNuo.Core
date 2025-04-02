@@ -38,6 +38,11 @@ public interface ILoginUserService
     {
         return form.Password == user.Password;
     }
+
+    virtual Task<bool> ValidatePasswordAsync(LoginForm form, LoginUser user)
+    {
+        return Task.FromResult(ValidatePassword(form, user));
+    }
 }
 
 
