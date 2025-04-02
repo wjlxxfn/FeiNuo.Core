@@ -6,27 +6,67 @@
 public class UpdateDto : BaseDto
 {
     /// <summary>
-    /// 业务ID
+    /// Id
     /// </summary>
-    public int Id { get; set; }
+    public int? Id { get; set; }
 
     /// <summary>
-    /// 更新状态
+    /// Id
     /// </summary>
-    public StatusEnum? Status { get; set; }
+    public string? Sid { get; set; }
 
     /// <summary>
-    /// 更新状态
+    /// 名称
+    /// </summary>
+    public string? Name { get; set; }
+
+    /// <summary>
+    /// 编号
+    /// </summary>
+    public string? BillNo { get; set; }
+
+    /// <summary>
+    /// 键
+    /// </summary>
+    public string? Key { get; set; }
+
+    /// <summary>
+    /// 值
+    /// </summary>
+    public string? Value { get; set; }
+
+    /// <summary>
+    /// 标签
+    /// </summary>
+    public string? Label { get; set; }
+
+    /// <summary>
+    /// 状态
+    /// </summary>
+    public int? Status { get; set; }
+
+    /// <summary>
+    /// 状态
     /// </summary>
     public int? State { get; set; }
 
     /// <summary>
-    /// 更新内容
+    ///  是否启用
+    /// </summary>
+    public bool? Enabled { get; set; }
+
+    /// <summary>
+    /// 是否禁用
+    /// </summary>
+    public bool? Disabled { get; set; }
+
+    /// <summary>
+    /// 数据
     /// </summary>
     public string? Data { get; set; }
 
     /// <summary>
-    /// 更新内容
+    /// 内容
     /// </summary>
     public string? Content { get; set; }
 
@@ -36,12 +76,22 @@ public class UpdateDto : BaseDto
     public string? ExtData { get; set; }
 
     /// <summary>
-    /// 更新数量
+    /// 数量
     /// </summary>
     public decimal? Quantity { get; set; }
 
     /// <summary>
-    /// 更新金额
+    /// 税额
+    /// </summary>
+    public decimal? Tax { get; set; }
+
+    /// <summary>
+    /// 单价
+    /// </summary>
+    public decimal? Price { get; set; }
+
+    /// <summary>
+    /// 金额
     /// </summary>
     public decimal? Amount { get; set; }
 
@@ -51,23 +101,40 @@ public class UpdateDto : BaseDto
     public int? Type { get; set; }
 
     /// <summary>
-    /// 更新数量
+    /// 数量
     /// </summary>
     public int? Count { get; set; }
 
     /// <summary>
-    /// 更新类型
+    /// 操作类型
     /// </summary>
     public string? ActionType { get; set; }
 
     /// <summary>
-    /// 更新值
+    /// 操作值
     /// </summary>
     public string? ActionValue { get; set; }
 
     /// <summary>
-    /// 更新日期
+    /// 备注
+    /// </summary>
+    public string? Remark { get; set; }
+
+    /// <summary>
+    /// 描述
+    /// </summary>
+    public string? Description { get; set; }
+
+    /// <summary>
+    /// 日期
     /// </summary>
     public DateTime? Date { get; set; }
 
+    /// <summary>
+    /// 操作日期
+    /// </summary>
+    public DateTime? ActionTime { get; set; }
+
 }
+public class SimpleDto : UpdateDto { }
+public class CommonDto : UpdateDto { }
