@@ -37,7 +37,7 @@ internal class CaptchaGenerator
         {
             //linux下没有对应的字体文件，把字体文件放到项目里
             var dir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Fonts");
-            var dirFonts = Directory.GetFiles(dir, "*.ttf", SearchOption.AllDirectories);
+            var dirFonts = Directory.Exists(dir) ? Directory.GetFiles(dir, "*.ttf", SearchOption.AllDirectories) : [];
             if (dirFonts.Length > 0)
             {
                 var index = rand.Next(dirFonts.Length - 1);
@@ -47,6 +47,7 @@ internal class CaptchaGenerator
             {
                 var embedFonts = $"FeiNuo.Core.Components.Captcha.Fonts.actionj.ttf";
                 var fontStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(embedFonts)!;
+                fontFamily = new FontCollection().Add(fontStream);
             }
         }
         #endregion
