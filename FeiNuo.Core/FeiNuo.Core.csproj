@@ -15,6 +15,12 @@
 		<PackageReleaseNotes>初始化</PackageReleaseNotes>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 	</PropertyGroup>
+	<ItemGroup>
+	  <None Remove="Components\Captcha\Fonts\actionj.ttf" />
+	</ItemGroup>
+	<ItemGroup>
+	  <EmbeddedResource Include="Components\Captcha\Fonts\actionj.ttf" />
+	</ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />

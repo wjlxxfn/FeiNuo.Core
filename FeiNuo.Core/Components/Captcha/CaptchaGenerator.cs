@@ -3,6 +3,7 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
+using System.Reflection;
 
 namespace FeiNuo.Core.Captcha;
 
@@ -32,16 +33,21 @@ internal class CaptchaGenerator
             var index = rand.Next(SystemFonts.Families.Count() - 1);
             fontFamily = SystemFonts.Families.ElementAt(index);
         }
-        else  //linux下没有对应的字体文件，把字体文件放到项目里
+        else
         {
+            //linux下没有对应的字体文件，把字体文件放到项目里
             var dir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Fonts");
             var dirFonts = Directory.GetFiles(dir, "*.ttf", SearchOption.AllDirectories);
-            if (dirFonts.Length == 0)
+            if (dirFonts.Length > 0)
             {
-                throw new MessageException("找不到字体文件。");
+                var index = rand.Next(dirFonts.Length - 1);
+                fontFamily = new FontCollection().Add(dirFonts[index]);
             }
-            var index = rand.Next(dirFonts.Length - 1);
-            fontFamily = new FontCollection().Add(dirFonts[index]);
+            else
+            {
+                var embedFonts = $"FeiNuo.Core.Components.Captcha.Fonts.actionj.ttf";
+                var fontStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(embedFonts)!;
+            }
         }
         #endregion
 
