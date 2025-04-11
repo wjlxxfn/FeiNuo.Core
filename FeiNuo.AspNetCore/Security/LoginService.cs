@@ -32,7 +32,7 @@ public class LoginService : ILoginService
         {
             throw new MessageException($"用户名【{form.Username}】不存在！");
         }
-        if (!await userService.ValidatePasswordAsync(form, user))
+        if (!await userService.ValidatePassword(form, user))
         {
             throw new MessageException($"用户名或密码错误！", MessageTypeEnum.Error);
         }

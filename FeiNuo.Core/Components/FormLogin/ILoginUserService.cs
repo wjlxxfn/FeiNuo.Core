@@ -34,17 +34,11 @@ public interface ILoginUserService
     /// <param name="form">用户填写的登录表单数据</param>
     /// <param name="user">数据库中的用户信息</param>
     /// <returns>验证结果</returns>
-    virtual bool ValidatePassword(LoginForm form, LoginUser user)
+    virtual Task<bool> ValidatePassword(LoginForm form, LoginUser user)
     {
-        return form.Password == user.Password;
-    }
-
-    virtual Task<bool> ValidatePasswordAsync(LoginForm form, LoginUser user)
-    {
-        return Task.FromResult(ValidatePassword(form, user));
+        return Task.FromResult(form.Password == user.Password);
     }
 }
-
 
 
 public class SimpleLoginUserService : ILoginUserService
