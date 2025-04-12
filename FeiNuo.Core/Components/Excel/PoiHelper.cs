@@ -102,6 +102,13 @@ public class PoiHelper
             foreach (var col in config.ExcelColumns)
             {
                 rowIndex = titleRowStartIndex;
+
+                // 设置默认格式
+                if (col.ColumnStyle.IsNotEmptyStyle)
+                {
+                    sheet.SetDefaultColumnStyle(col.ColumnIndex, styles.GetStyle(col.ColumnStyle));
+                }
+
                 foreach (var rt in col.RowTitles)
                 {
                     cell = GetCell(sheet, rowIndex++, col.ColumnIndex);
@@ -109,11 +116,6 @@ public class PoiHelper
                     cell.SetCellValue(rt);
                 }
 
-                // 设置默认格式
-                if (col.ColumnStyle.IsNotEmptyStyle)
-                {
-                    sheet.SetDefaultColumnStyle(col.ColumnIndex, styles.GetStyle(col.ColumnStyle));
-                }
                 // 配置列宽，隐藏
                 if (col.Width.HasValue) sheet.SetColumnWidth(col.ColumnIndex, col.Width.Value * 256);
                 if (col.Hidden) sheet.SetColumnHidden(col.ColumnIndex, true);
