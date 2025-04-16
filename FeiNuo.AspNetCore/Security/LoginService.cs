@@ -57,7 +57,7 @@ public class LoginService : ILoginService
             {
                 throw new MessageException("验证码不存在或已失效！", MessageTypeEnum.Error);
             }
-            if (!code.Equals(form.Captcha.ToLower(), StringComparison.CurrentCultureIgnoreCase))
+            if (!code.Equals(form.Captcha.ToLower(), StringComparison.OrdinalIgnoreCase))
             {
                 throw new MessageException($"验证码错误！", MessageTypeEnum.Error);
             }

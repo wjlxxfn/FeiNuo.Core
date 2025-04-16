@@ -8,9 +8,9 @@ namespace FeiNuo.Core;
 public enum OperateType
 {
     /// <summary>
-    /// 未知类型
+    /// 默认类型
     /// </summary>
-    [Description("未知类型")]
+    [Description("默认类型")]
     Default = 0,
 
     /// <summary>

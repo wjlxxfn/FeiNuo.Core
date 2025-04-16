@@ -17,22 +17,23 @@ internal class SimpleLogService : ILogService
         _logger.LogWarning("未注入日志服务，使用默认的日志组件ILogger输出Info类型的日志.");
     }
 
-    public async Task SaveLog(OperateLog log)
+    public Task SaveLog(OperateLog log)
     {
-        await Task.Run(() =>
+        _ = Task.Run(() =>
         {
             var Result = log.Success ? "成功" : "失败";
             _logger.LogInformation("【操作日志】【{RequestMethod}】{RequestPath} , {LogTitle}: 执行{Result} ,耗时{ExecuteTime} ms, 用户：{Operator} \n详情：{@LogDetail}",
                 log.RequestMethod, log.RequestPath, log.LogTitle, Result, log.ExecuteTime, log.OperateBy, log);
         });
+        return Task.CompletedTask;
     }
 
-    public async Task SaveLog(OperateType operateType, string logTitle, string logDetail, RequestClient? request = null)
+    public async Task SaveLog(OperateType operateType, string logTitle, string logDetail, RequestClient? client = null)
     {
         var log = new OperateLog(operateType, logTitle, logDetail);
-        if (request != null)
+        if (client != null)
         {
-            log.MergeClientInfo(request);
+            log.RequestClient = client;
         }
         await SaveLog(log);
     }

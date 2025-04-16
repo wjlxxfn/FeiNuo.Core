@@ -46,6 +46,11 @@ public class Pager
     /// </summary>
     [JsonIgnore]
     public static Pager Unpaged => new() { PageSize = 0 };
+
+    /// <summary>
+    /// 是否不分页
+    /// </summary>
+    public bool IsUnPaged => PageSize <= 0;
 }
 #endregion
 

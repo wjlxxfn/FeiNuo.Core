@@ -21,7 +21,6 @@ public static class OperateLogExtensions
         log.RequestParam = request.QueryString.ToString();
 
         // Client
-        var client = ClientUtils.GetClientInfo(context);
-        log.MergeClientInfo(client);
+        log.RequestClient = ClientUtils.GetClientInfo(context);
     }
 }

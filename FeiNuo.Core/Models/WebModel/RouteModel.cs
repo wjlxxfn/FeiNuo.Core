@@ -119,8 +119,8 @@ public class MenuVO
     {
         get
         {
-            return Path.StartsWith("http://", StringComparison.CurrentCultureIgnoreCase)
-                || Path.StartsWith("https://", StringComparison.CurrentCultureIgnoreCase);
+            return Path.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
+                || Path.StartsWith("https://", StringComparison.OrdinalIgnoreCase);
         }
     }
 

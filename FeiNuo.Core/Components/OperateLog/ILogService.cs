@@ -15,7 +15,11 @@ public interface ILogService
     /// <summary>
     /// 保存日志
     /// </summary>
-    public Task SaveLog(OperateType operateType, string logTitle, string logDetail, RequestClient? request = null);
+    public async Task SaveLog(OperateType operateType, string logTitle, string logDetail, RequestClient? request = null)
+    {
+        var log = new OperateLog(operateType, logTitle, logDetail);
+        await SaveLog(log);
+    }
 
     /// <summary>
     /// 保存日志

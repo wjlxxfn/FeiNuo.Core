@@ -26,6 +26,12 @@ public class SelectOption
     public bool Disabled { get; set; }
 
     /// <summary>
+    /// 同Disabled
+    /// </summary>
+    [Description("是否禁用=Disabled")]
+    public bool Disable => Disabled;
+
+    /// <summary>
     /// 颜色
     /// </summary>
     [Description("颜色")]

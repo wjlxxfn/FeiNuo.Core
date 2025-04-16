@@ -53,29 +53,9 @@ public class OperateLog
     public string RequestParam { get; set; } = string.Empty;
 
     /// <summary>
-    /// 客户端IP
+    ///  请求客户端
     /// </summary>
-    public string ClientIp { get; set; } = string.Empty;
-
-    /// <summary>
-    /// 客户端操作系统
-    /// </summary>
-    public string ClientOs { get; set; } = string.Empty;
-
-    /// <summary>
-    /// 客户端浏览器
-    /// </summary>
-    public string ClientBrowser { get; set; } = string.Empty;
-
-    /// <summary>
-    /// 客户端设备
-    /// </summary>
-    public string ClientDevice { get; set; } = string.Empty;
-
-    /// <summary>
-    /// 是否移动端
-    /// </summary>
-    public bool IsMobile { get; set; }
+    public RequestClient RequestClient { get; set; } = new RequestClient();
 
     /// <summary>
     /// 是否执行成功
@@ -96,18 +76,4 @@ public class OperateLog
     /// 操作时间
     /// </summary>
     public DateTime OperateTime { get; set; } = DateTime.Now;
-
-    /// <summary>
-    /// 添加Reqest相关参数
-    /// </summary>
-    public void MergeClientInfo(RequestClient? client)
-    {
-        if (null == client) return;
-
-        ClientIp = client.ClientIp;
-        ClientOs = client.ClientOs;
-        ClientBrowser = client.ClientBrowser;
-        ClientDevice = client.ClientDevice;
-        IsMobile = client.IsMobile;
-    }
 }
