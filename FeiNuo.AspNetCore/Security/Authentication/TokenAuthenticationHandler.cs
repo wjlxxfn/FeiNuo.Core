@@ -82,7 +82,7 @@ public class TokenAuthenticationHandler : AuthenticationHandler<AuthenticationSc
         };
 
         // 记录操作日志
-        var log = new OperateLog(OperateType.Security, "安全拦截", "没有操作权限") { Success = false };
+        var log = new OperateLog(OperateType.Security, "安全拦截", "没有操作权限");
         log.MergeContextParam(Context);
         await logService.SaveLog(log);
 

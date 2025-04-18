@@ -1,4 +1,5 @@
-﻿using FeiNuo.Core.Utilities;
+﻿using FeiNuo.Core.Login;
+using FeiNuo.Core.Utilities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.DependencyInjection;
@@ -51,6 +52,13 @@ public class LogAttribute : ActionFilterAttribute
 
         var log = new OperateLog(_operType, _logTitle);
         log.MergeContextParam(resultContext.HttpContext);
+        if (log.RequestPath.StartsWith("/login") && log.RequestMethod == "POST")
+        {
+            if (context.ActionArguments.TryGetValue("form", out object? form) && form is LoginForm loginForm)
+            {
+                log.OperateBy = loginForm.Username;
+            }
+        }
         if (_saveParam && context.ActionArguments.Count > 0)
         {
             if (context.ActionArguments.Count == 1)
@@ -59,6 +67,10 @@ public class LogAttribute : ActionFilterAttribute
                 if (p != null && (p is string || p.GetType().IsPrimitive))
                 {
                     log.RequestParam = p.ToString() ?? "";
+                }
+                else if (p != null)
+                {
+                    log.RequestParam = JsonUtils.Serialize(p);
                 }
             }
             else

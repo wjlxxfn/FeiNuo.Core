@@ -1,9 +1,7 @@
 ﻿using FeiNuo.Core.Captcha;
 using FeiNuo.Core.Login;
-using FeiNuo.Core.Utilities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Diagnostics;
 
 namespace FeiNuo.AspNetCore.Controllers;
 
@@ -24,75 +22,27 @@ public class LoginController : BaseController
     /// </summary>
     /// <returns>认证token</returns>
     [AllowAnonymous]
+    [Log("用户登录", OperateType.Login, true, true)]
     [HttpPost("login")]
-    public async Task<string> HandleLogin([FromBody] LoginForm loginForm)
+    public async Task<string> HandleLogin([FromBody] LoginForm form)
     {
-        var log = new OperateLog(OperateType.Login, "用户登录", "");
-        var stopwatch = Stopwatch.StartNew();
-        try
-        {
-            var token = await loginService.HandleLogin(loginForm);
-            // 记录日志
-            log.LogContent = token;
-            log.OperateBy = loginForm.Username;
-            log.RequestParam = JsonUtils.Serialize(loginForm);
-            log.MergeContextParam(HttpContext);
-
-            return token;
-        }
-        catch (Exception ex)
-        {
-            log.Success = false;
-            log.LogContent = ex.Message;
-            throw;
-        }
-        finally
-        {
-            stopwatch.Stop();
-            log.ExecuteTime = stopwatch.ElapsedMilliseconds;
-            await logService.SaveLog(log);
-        }
+        return await loginService.HandleLogin(form);
     }
 
     /// <summary>
     /// 退出登录
     /// </summary>
     [AllowAnonymous]
+    [Log("退出登录", OperateType.Logout, true, true)]
     [HttpPost("logout")]
     public async void HandleLogout()
     {
-        var log = new OperateLog(OperateType.Logout, "退出登录", "");
-        var stopwatch = Stopwatch.StartNew();
-        try
+        var token = await GetAccessToken();
+        if (string.IsNullOrWhiteSpace(token) || User == null)
         {
-
-            var token = await GetAccessToken();
-            if (string.IsNullOrWhiteSpace(token) || User == null)
-            {
-                log.LogContent = "没有登录token";
-                log.Success = false;
-                return;
-            }
-            await loginService.HandleLogout(token, CurrentUser);
-
-            // 记录日志
-            log.RequestParam = token;
-            log.OperateBy = CurrentUser.Username;
-            log.MergeContextParam(HttpContext);
-
+            return;
         }
-        catch (Exception ex)
-        {
-            log.Success = false;
-            log.LogContent = ex.Message;
-            throw;
-        }
-        finally
-        {
-            stopwatch.Stop();
-            log.ExecuteTime = stopwatch.ElapsedMilliseconds;
-            await logService.SaveLog(log);
-        }
+        await loginService.HandleLogout(token, CurrentUser);
     }
 
     /// <summary>
