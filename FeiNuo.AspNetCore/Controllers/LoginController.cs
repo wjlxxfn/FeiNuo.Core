@@ -22,7 +22,7 @@ public class LoginController : BaseController
     /// </summary>
     /// <returns>认证token</returns>
     [AllowAnonymous]
-    [Log("用户登录", OperateType.Login, true, true)]
+    [SaveLog("用户登录", OperateType.Login, true, true)]
     [HttpPost("login")]
     public async Task<string> HandleLogin([FromBody] LoginForm form)
     {
@@ -33,7 +33,7 @@ public class LoginController : BaseController
     /// 退出登录
     /// </summary>
     [AllowAnonymous]
-    [Log("退出登录", OperateType.Logout, true, true)]
+    [SaveLog("退出登录", OperateType.Logout, true, true)]
     [HttpPost("logout")]
     public async void HandleLogout()
     {

@@ -7,17 +7,27 @@ using System.Diagnostics;
 
 namespace FeiNuo.AspNetCore;
 
+[Obsolete("使用 SaveLogAttribute 替代")]
+[AttributeUsage(AttributeTargets.Method)]
+public class LogAttribute : SaveLogAttribute
+{
+    public LogAttribute(string logTitle, OperateType operType, bool saveParam = true, bool saveResult = false)
+        : base(logTitle, operType, saveParam, saveResult)
+    {
+    }
+}
+
 /// <summary>
 /// 操作日志记录属性
 /// </summary>
 [AttributeUsage(AttributeTargets.Method)]
-public class LogAttribute : ActionFilterAttribute
+public class SaveLogAttribute : ActionFilterAttribute
 {
     private readonly string _logTitle;
     private readonly OperateType _operType;
     private readonly bool _saveParam;
     private readonly bool _saveResult;
-    public LogAttribute(string logTitle, OperateType operType, bool saveParam = true, bool saveResult = false)
+    public SaveLogAttribute(string logTitle, OperateType operType, bool saveParam = true, bool saveResult = false)
     {
         _logTitle = logTitle;
         _operType = operType;
