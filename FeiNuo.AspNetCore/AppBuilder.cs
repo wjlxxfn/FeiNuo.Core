@@ -71,7 +71,7 @@ public static class ServiceCollectionExtensions
     }
     #endregion
 
-    #region 注入控制器：实现异常处理，自定义验证失败后的返回内容，JSON配置
+    #region 注入Controller：实现异常处理，自定义验证失败后的返回内容，JSON配置
     /// <summary>
     /// 注入控制器：services.AddControllers
     /// </summary>
@@ -94,10 +94,15 @@ public static class ServiceCollectionExtensions
             // 数据校验不通过返回400，修改下返回格式
             options.InvalidModelStateResponseFactory = (context) =>
             {
+                if (context.HttpContext.Request.Method == HttpMethod.Patch.Method)
+                {
+                    return null;
+                }
+
                 var errors = context.ModelState.Values
-                    .Select(a => string.Join(",", a.Errors.Select(t => t.ErrorMessage)))
-                    .Where(a => !string.IsNullOrEmpty(a))
-                    .ToArray();
+                .Select(a => string.Join(",", a.Errors.Select(t => t.ErrorMessage)))
+                .Where(a => !string.IsNullOrEmpty(a))
+                .ToArray();
                 var msgVo = new MessageResult("数据效验不通过：" + string.Join("，", errors), MessageTypeEnum.Error);
                 // 400 
                 return new BadRequestObjectResult(msgVo);
