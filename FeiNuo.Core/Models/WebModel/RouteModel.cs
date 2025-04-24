@@ -64,16 +64,40 @@ public class MetaVO
     public string? Icon { get; set; }
 
     /// <summary>
-    /// 是否隐藏：不显示在菜单中
+    /// 是否隐藏：不显示在菜单中,默认false
     /// </summary>
-    [Description("是否隐藏：不显示在菜单中")]
-    public bool Hidden { get; set; }
+    [Description("是否隐藏：不显示在菜单中,默认false")]
+    public bool? Hidden { get; set; }
 
     /// <summary>
-    /// 是否禁止缓存页面
+    /// 是否固定在页签上,默认false
     /// </summary>
-    [Description("是否禁止缓存页面")]
-    public bool NoCache { get; set; }
+    [Description("是否固定在页签上,默认false")]
+    public bool? Affix { get; set; }
+
+    /// <summary>
+    /// 是否显示在面包屑导航中,默认true
+    /// </summary>
+    [Description("是否显示在面包屑导航中")]
+    public bool? Breadcrumb { get; set; }
+
+    /// <summary>
+    /// 是否缓存页面,默认true
+    /// </summary>
+    [Description("是否缓存页面,默认true")]
+    public bool? keepAlive { get; set; }
+
+    /// <summary>
+    /// 角色,多个用逗号分隔
+    /// </summary>
+    [Description("角色,多个用逗号分隔")]
+    public string? Roles { get; set; }
+
+    /// <summary>
+    /// 权限,多个用逗号分隔
+    /// </summary>
+    [Description("权限,多个用逗号分隔")]
+    public string? Permissions { get; set; }
 
     /// <summary>
     /// 默认构造函数
@@ -83,12 +107,11 @@ public class MetaVO
     /// <summary>
     /// 构造函数
     /// </summary>
-    public MetaVO(string title, string? icon, bool hidden = false, bool noCache = false)
+    public MetaVO(string title, string? icon, bool hidden = false)
     {
         Title = title;
-        Hidden = hidden;
         Icon = icon;
-        NoCache = noCache;
+        Hidden = hidden;
     }
 }
 

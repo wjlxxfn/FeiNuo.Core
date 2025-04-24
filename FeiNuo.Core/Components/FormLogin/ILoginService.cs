@@ -29,7 +29,12 @@ public interface ILoginService
             { "username", user.Username },
             { "roles", user.Roles },
             { "permissions", user.Permissions },
+            { "data", user.UserData??"" },
         };
+        if (!string.IsNullOrWhiteSpace(user.Nickname))
+        {
+            map.Add("nickname", user.Nickname);
+        }
         return Task.FromResult(map);
     }
 
