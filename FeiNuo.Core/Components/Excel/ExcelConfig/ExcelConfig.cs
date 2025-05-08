@@ -26,7 +26,7 @@ public class ExcelConfig
     /// <summary>
     /// 默认样式：水平自动，垂直居中
     /// </summary>
-    public ExcelStyle DefaultStyle { get; } = new() { HorizontalAlignment = 1, VerticalAlignment = 1, BorderStyle = 1 };
+    public ExcelStyle DefaultStyle { get; } = new() { HorizontalAlignment = 1, VerticalAlignment = 1, };/*不能设置border，不然模板里整列格式都是带边框的 BorderStyle = 1*/
     #endregion
 
     #region 构造函数

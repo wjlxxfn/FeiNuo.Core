@@ -20,7 +20,7 @@ public class ImportConfig
     #endregion
 
     #region 基础数据
-    public bool ShowBasicData { get; set; }
+    public bool ShowBasicData { get; set; } = false;
     public string BasicDataName { get; set; } = "基础数据.xlsx";
     #endregion
 
