@@ -169,7 +169,7 @@ public class ExcelSheet
     /// <summary>
     /// 主标题样式：水平居中，字体加粗，加背景色
     /// </summary>
-    public ExcelStyle MainTitleStyle = new() { HorizontalAlignment = 2, FontBold = true, BackgroundColor = 26, };
+    public ExcelStyle MainTitleStyle { get; set; } = new() { HorizontalAlignment = 2, FontBold = true, BackgroundColor = 26, };
 
     /// <summary>
     /// 主标题合并单元格的数量，默认为列的数量，可通过该参数调整

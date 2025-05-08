@@ -625,7 +625,7 @@ public class PoiHelper
     /// <summary>
     /// 创建单元格样式
     /// </summary>
-    internal static ICellStyle CreateCellStyle(ExcelStyle config, IWorkbook workbook, ICellStyle? source = null)
+    internal static ICellStyle CreateCellStyle(IWorkbook workbook, ExcelStyle config, ICellStyle? source = null)
     {
         var style = workbook.CreateCellStyle();
         if (null != source) style.CloneStyleFrom(source);
@@ -882,7 +882,7 @@ public class StyleFactory
     {
         this.workbook = workbook;
         // 创建默认格式
-        DefaultStyle = PoiHelper.CreateCellStyle(defaultStyle ?? new ExcelStyle(), workbook);
+        DefaultStyle = PoiHelper.CreateCellStyle(workbook, defaultStyle ?? new ExcelStyle());
     }
 
     /// <summary>
@@ -899,7 +899,7 @@ public class StyleFactory
         var key = config.StyleKey;
         if (!CACHED_STYLES.TryGetValue(key, out var style))
         {
-            style = PoiHelper.CreateCellStyle(config, workbook, DefaultStyle);
+            style = PoiHelper.CreateCellStyle(workbook, config, DefaultStyle);
             CACHED_STYLES.Add(key, style);
         }
         return style;
@@ -910,7 +910,7 @@ public class StyleFactory
     /// </summary>
     public ICellStyle NewStyle(ExcelStyle config)
     {
-        return PoiHelper.CreateCellStyle(config, workbook, DefaultStyle);
+        return PoiHelper.CreateCellStyle(workbook, config, DefaultStyle);
     }
 
     #region 预定义常用的样式

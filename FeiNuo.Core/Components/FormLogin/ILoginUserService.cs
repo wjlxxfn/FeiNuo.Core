@@ -12,7 +12,7 @@ public interface ILoginUserService
     /// <summary>
     /// 获取用户信息，根据前端需要返回
     /// </summary>
-    virtual Task<Dictionary<string, object>> GetLoginUserInfo(LoginUser user)
+    Task<Dictionary<string, object>> GetLoginUserInfo(LoginUser user)
     {
         var map = new Dictionary<string, object>
         {
@@ -34,7 +34,7 @@ public interface ILoginUserService
     /// <param name="form">用户填写的登录表单数据</param>
     /// <param name="user">数据库中的用户信息</param>
     /// <returns>验证结果</returns>
-    virtual Task<bool> ValidatePassword(LoginForm form, LoginUser user)
+    Task<bool> ValidatePassword(LoginForm form, LoginUser user)
     {
         return Task.FromResult(form.Password == user.Password);
     }

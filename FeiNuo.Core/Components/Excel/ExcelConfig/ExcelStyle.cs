@@ -6,7 +6,7 @@
 public class ExcelStyle
 {
     /// <summary>
-    /// 边框
+    /// 边框: 0:None, 1:Thin, 2:Medium, 3:Dashed, 4:Dotted, 5:Thick, 6:Double, 7:Hair
     /// </summary>
     public int? BorderStyle { get; set; }
 
@@ -71,19 +71,19 @@ public class ExcelStyle
     /// <summary>
     /// 是否有设置样式，非默认样式
     /// </summary>
-    public bool IsNotEmptyStyle { get { return !IsEmptyStyle; } }
+    public bool IsNotEmptyStyle
+    {
+        get
+        {
+            return BorderStyle.HasValue || HorizontalAlignment.HasValue || VerticalAlignment.HasValue
+                || BackgroundColor.HasValue || (!string.IsNullOrWhiteSpace(DataFormat)) || WrapText.HasValue
+                || (!string.IsNullOrWhiteSpace(FontName)) || FontColor.HasValue || FontSize.HasValue || FontBold.HasValue;
+        }
+    }
 
     /// <summary>
     /// 是否默认的样式，没有设置任何格式
     /// </summary>
-    public bool IsEmptyStyle
-    {
-        get
-        {
-            return !(BorderStyle.HasValue || HorizontalAlignment.HasValue || VerticalAlignment.HasValue
-                || BackgroundColor.HasValue || (!string.IsNullOrWhiteSpace(DataFormat)) || WrapText.HasValue
-                || (!string.IsNullOrWhiteSpace(FontName)) || FontColor.HasValue || FontSize.HasValue || FontBold.HasValue
-                );
-        }
-    }
+    public bool IsEmptyStyle => !IsNotEmptyStyle;
+
 }
