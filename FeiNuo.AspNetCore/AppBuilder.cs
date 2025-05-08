@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.IdentityModel.JsonWebTokens;
 using System.ComponentModel;
 
 namespace FeiNuo.AspNetCore;
@@ -154,6 +155,8 @@ public static class ServiceCollectionExtensions
         services.TryAddScoped<ILoginService, LoginService>();
 
         var scheme = JwtBearerDefaults.AuthenticationScheme;
+        // 调整role对应的claimType,这里需要清空默认的映射，否则不会使用自定义的RoleClaimType
+        JsonWebTokenHandler.DefaultInboundClaimTypeMap.Clear();
         services.AddAuthentication(scheme).AddScheme<AuthenticationSchemeOptions, TokenAuthenticationHandler>(scheme, null);
 
         return services;
