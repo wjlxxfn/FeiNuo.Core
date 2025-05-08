@@ -235,6 +235,7 @@
   1. ExcelConfig，ExcelSheet,ExcelColumn,ExcelStyle类将常用Excel属性剥离出来,单独定义 
   1. PoiHelper类封装POI实现，提供Excel常用操作
   1. ExcelStyle类封装常用excel格式
+  1. Excel导入可以封装公共的RestController: FeiNuo.AspNetCore.Controllers.ExcelImportController
 
 ```
     // 导出excel示例
@@ -257,8 +258,45 @@
 ```
 
 ```
- // 导入excel示例
+ // 导入excel服务类示例
+ public class RoleService : BaseImportService<Role>
+ {
+    // 必须唯一
+    public override string GetImportKey() { return "RoleImport"; } 
+    public override ImportConfig GetImportConfig(Dictionary<string, string> paramMap, LoginUser user)
+    {
+        return new ImportConfig()
+        {
+            ShowBasicData = true,
+            ImportTemplate = new ExcelConfig("角色导入模板.xlsx", [
+                new ExcelColumnString<RoleDto>("角色编码",(r, s) => r.RoleCode = s!, 10, true, true),
+                new ExcelColumnString<RoleDto>("角色名称",(r, s) => r.RoleName = s!, 15, true, true),
+                new ExcelColumnString<RoleDto>("备注",(r, s) => r.Remark = s, 25, styleConfig:v => v.WrapText = true) ,
+            ])
+        };
+    }
 
+    // 下载基础数据，和导出使用一样
+    public override async Task<ExcelConfig> GetImportBasicData(Dictionary<string, string> paramMap, LoginUser user)
+    {
+        var roles = await ctx.Roles.AsNoTracking().ToListAsync();
+        return new ExcelConfig("基础数据.xlsx", roles, [
+            new ExcelColumn<Role>("角色编码", r => r.RoleCode),
+            new ExcelColumn<Role>("角色名称", r => r.RoleName),
+        ]);
+    }
+
+    // 执行导入
+    public override async Task HandleImport(List<Role> lstData, Dictionary<string, string> paramMap, LoginUser user)
+    {
+        foreach (var role in lstData)
+        {
+            // validate
+        }
+        ctx.Roles.AddRange(lstData);
+        await ctx.SaveChangesAsync();
+    }
+ }
 ```
 
 ### 2、验证码功能封装
