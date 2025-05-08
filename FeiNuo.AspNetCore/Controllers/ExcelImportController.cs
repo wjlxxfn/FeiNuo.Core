@@ -35,10 +35,10 @@ public class ExcelImportController : BaseController
     /// </summary>
     [HttpGet("template")]
     [EndpointSummary("下载导入模板")]
-    public async Task<IActionResult> DownloadTemplate([FromQuery] string importKey)
+    public IActionResult DownloadTemplate([FromQuery] string importKey)
     {
         var service = GetExcelImportService(importKey);
-        var file = await service.DownloadTemplateAsync(GetRequestParam(), CurrentUser);
+        var file = service.DownloadTemplate(GetRequestParam(), CurrentUser);
         return File(file.Bytes, file.ContentType, file.FileName);
     }
 
@@ -50,7 +50,7 @@ public class ExcelImportController : BaseController
     public async Task<IActionResult> DownloadBasicData([FromQuery] string importKey)
     {
         var service = GetExcelImportService(importKey);
-        var file = await service.DownloadBasicDataAsync(GetRequestParam(), CurrentUser);
+        var file = await service.DownloadBasicData(GetRequestParam(), CurrentUser);
         return File(file.Bytes, file.ContentType, file.FileName);
     }
 
@@ -83,7 +83,7 @@ public class ExcelImportController : BaseController
         {
             if (!cfg.AuthRoles.Any(User.IsInRole))
             {
-                return Unauthorized();
+                return Forbid();
             }
         }
 
@@ -100,7 +100,7 @@ public class ExcelImportController : BaseController
         }
 
         // 执行导入
-        await service.HandleImportAsync(stream, cfg, param, user);
+        await service.HandleImport(stream, cfg, param, user);
 
         return NoContent();
     }

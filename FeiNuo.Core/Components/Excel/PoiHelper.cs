@@ -3,6 +3,7 @@ using NPOI.SS.Formula.Eval;
 using NPOI.SS.UserModel;
 using NPOI.SS.Util;
 using NPOI.XSSF.UserModel;
+using System.Data;
 using System.Text;
 
 namespace FeiNuo.Core;
@@ -178,8 +179,6 @@ public class PoiHelper
         return sheet;
     }
 
-
-
     /// <summary>
     /// 根据模板配置，检查excel是否指定模板
     /// </summary>
@@ -283,6 +282,45 @@ public class PoiHelper
         return lstData;
     }
 
+    public static DataSet GetDataSetFromExcel(IWorkbook wb)
+    {
+        var ds = new DataSet();
+        for (int i = 0; i < wb.NumberOfSheets; i++)
+        {
+            var sheet = wb.GetSheetAt(i);
+            var dt = GetDataTableFromSheet(sheet);
+            ds.Tables.Add(dt);
+        }
+        return ds;
+    }
+
+    public static DataTable GetDataTableFromSheet(ISheet sheet, int headerRowIndex = 0)
+    {
+        var dt = new DataTable(sheet.SheetName);
+        var rowCount = sheet.LastRowNum + 1;
+        for (int j = headerRowIndex; j < rowCount; j++)
+        {
+            var row = sheet.GetRow(j);
+            if (row == null) continue;
+            if (j == 0)
+            {
+                foreach (var cell in row.Cells)
+                {
+                    dt.Columns.Add(GetStringValue(cell));
+                }
+            }
+            else
+            {
+                var dr = dt.NewRow();
+                foreach (var cell in row.Cells)
+                {
+                    dr[cell.ColumnIndex] = GetCellValue(cell) ?? DBNull.Value;
+                }
+                dt.Rows.Add(dr);
+            }
+        }
+        return dt;
+    }
 
     /// <summary>
     /// Poi.SetDefaultColumnStyle后，如果使用POI赋值会把默认样式覆盖，调用该方法重新设置样式

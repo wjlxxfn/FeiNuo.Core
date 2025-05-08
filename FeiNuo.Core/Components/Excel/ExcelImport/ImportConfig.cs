@@ -5,30 +5,13 @@
 /// </summary>
 public class ImportConfig
 {
-    #region 构造方法
-    public ImportConfig(string templateName = "导入模板.xlsx", string? basicDataName = null, string? importRemark = null)
-    {
-        TemplateName = templateName;
-        BasicDataName = basicDataName ?? "";
-        ImportRemark = importRemark ?? "";
-    }
-    #endregion
-
-    #region 导入配置
-    /// <summary>
-    /// 导入所需的角色
-    /// </summary>
-    public string[] AuthRoles { get; set; } = [];
-    #endregion
-
     #region 导入模板
-    public string TemplateName { get; private set; } = "导入模板.xlsx";
-    public bool ShowTemplate { get { return !string.IsNullOrWhiteSpace(TemplateName); } }
-    #endregion
-
-    #region 基础数据
-    public string BasicDataName { get; set; } = "基础数据.xlsx";
-    public bool ShowBasicData { get { return !string.IsNullOrWhiteSpace(BasicDataName); } }
+    /// <summary>
+    /// 导入模板
+    /// </summary>
+    public ExcelConfig? ImportTemplate { get; set; }
+    public bool ShowTemplate => ImportTemplate != null;
+    public string TemplateName => ImportTemplate?.FileName ?? string.Empty;
     #endregion
 
     #region 导入说明
@@ -36,7 +19,17 @@ public class ImportConfig
     public bool ShowRemark { get { return !string.IsNullOrWhiteSpace(ImportRemark); } }
     #endregion
 
-    #region 保存文件
+    #region 基础数据
+    public bool ShowBasicData { get; set; }
+    public string BasicDataName { get; set; } = "基础数据.xlsx";
+    #endregion
+
+    #region 其他配置
+    /// <summary>
+    /// 导入所需的角色
+    /// </summary>
+    public string[] AuthRoles { get; set; } = [];
+
     /// <summary>
     /// 导入前是否保存excel文件
     /// </summary>
@@ -48,9 +41,4 @@ public class ImportConfig
     /// </summary>
     public string SavePath { get; set; } = "Attachment/ExcelImport";
     #endregion
-
-    /// <summary>
-    /// 传参用：默认为空，在上传excel时，系统给赋值，避免在执行逻辑时在查一次模板
-    /// </summary>
-    public ExcelConfig? ImportTemplate { get; internal set; }
 }
