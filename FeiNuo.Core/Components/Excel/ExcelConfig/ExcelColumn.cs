@@ -53,15 +53,35 @@ public class ExcelColumn
     public int ColumnIndex { get; internal set; }
 }
 
+#region ExcelColumn确定类型的子类
+public class ExcelColumnString : ExcelColumn
+{
+    public ExcelColumnString(string title, int? width = 15) : base(title, width, c => c.DataFormat = "@") { }
+}
+public class ExcelColumnDate : ExcelColumn
+{
+    public ExcelColumnDate(string title, int? width = 15) : base(title, width, c => c.DataFormat = "yyyy-mm-dd") { }
+}
+public class ExcelColumnTime : ExcelColumn
+{
+    public ExcelColumnTime(string title, int? width = 10) : base(title, width, c => c.DataFormat = "hh:mm") { }
+}
+public class ExcelColumnDateTime : ExcelColumn
+{
+    public ExcelColumnDateTime(string title, int? width = 18) : base(title, width, c => c.DataFormat = "yyyy-mm-dd hh:mm") { }
+}
+public class ExcelColumnPercent : ExcelColumn
+{
+    public ExcelColumnPercent(string title, int? width = 15) : base(title, width, c => c.DataFormat = "0.00%") { }
+}
+#endregion
+
+
 /// <summary>
 /// 指定数据类型的列配置,主要导出数据用，需设置valueGetter
 /// </summary>
 public class ExcelColumn<T> : ExcelColumn where T : class
 {
-    public ExcelColumn(string title, int? width = null, Action<ExcelStyle>? styleConfig = null) : base(title, width, styleConfig)
-    {
-    }
-
     public ExcelColumn(string title, Func<T, object?> valueGetter, int? width = null, Action<ExcelStyle>? styleConfig = null) : base(title, width, styleConfig)
     {
         ValueGetter = o => valueGetter((T)o);
@@ -73,20 +93,13 @@ public class ExcelColumn<T> : ExcelColumn where T : class
 /// </summary>
 /// <typeparam name="T">数据的实体类型</typeparam>
 /// <typeparam name="D">Excel的数据类型</typeparam>
-public class ExcelColumn<T, D> : ExcelColumn<T> where T : class
+public class ExcelColumn<T, D> : ExcelColumn where T : class
 {
-    public ExcelColumn(string title, int? width = null, Action<ExcelStyle>? styleConfig = null) : base(title, width, styleConfig)
-    {
-    }
-
-    public ExcelColumn(string title, Func<T, object?> valueGetter, int? width = null, Action<ExcelStyle>? styleConfig = null) : base(title, valueGetter, width, styleConfig)
-    {
-        ValueGetter = o => valueGetter((T)o);
-    }
-
-    public ExcelColumn(string title, Action<T, D?> valueSetter, bool required = false, int? width = null, Action<ExcelStyle>? styleConfig = null) : this(title, width, styleConfig)
+    public ExcelColumn(string title, Action<T, D?> valueSetter, int? width = null, bool required = false, bool uniqueKey = false, Func<D, string>? validator = null, Action<ExcelStyle>? styleConfig = null) : base(title, width, styleConfig)
     {
         Required = required;
+        UniqueKey = uniqueKey;
+        Validator = validator;
         ValueSetter = (o, v) =>
         {
             try
@@ -108,11 +121,7 @@ public class ExcelColumn<T, D> : ExcelColumn<T> where T : class
                 var msg = InternalValidator?.Invoke(val) ?? "";
                 if (!string.IsNullOrWhiteSpace(msg)) return msg;
 
-                if (LimitValues.Any() && !LimitValues.Contains(val))
-                {
-                    return $"可选值:{string.Join(",", LimitValues)}";
-                }
-
+                // 自定义效验
                 msg = Validator?.Invoke(val) ?? "";
                 if (!string.IsNullOrWhiteSpace(msg)) return msg;
 
@@ -145,49 +154,26 @@ public class ExcelColumn<T, D> : ExcelColumn<T> where T : class
     public Func<D, string>? Validator { get; set; }
 
     /// <summary>
-    /// 导入用：可选值
-    /// </summary>
-    public IEnumerable<D> LimitValues { get; set; } = [];
-
-    /// <summary>
     /// 导入用：子类配置的内容效验规则
     /// </summary>
     protected Func<D, string>? InternalValidator { get; set; }
 }
 
-
-
 public class ExcelColumnString<T> : ExcelColumn<T, string> where T : class, new()
 {
     private const string FORMAT = "@";
-    public ExcelColumnString(string title, int? width = null) : base(title, width, c => c.DataFormat = FORMAT)
-    {
-    }
-
-    public ExcelColumnString(string title, Action<T, string?> valueSetter, bool required = false, int? width = null) : base(title, valueSetter, required, width, c => c.DataFormat = FORMAT)
-    {
-    }
-
-    public ExcelColumnString(string title, Func<T, object?> valueGetter, int? width = null) : base(title, valueGetter, width, c => c.DataFormat = FORMAT)
-    {
-    }
-}
-
-public class ExcelColumnDate<T> : ExcelColumn<T, DateOnly?> where T : class, new()
-{
-    private const int WIDTH = 13;
-    private const string FORMAT = "yyyy-mm-dd";
-    public ExcelColumnDate(string title, int? width = WIDTH) : base(title, width, c => c.DataFormat = FORMAT)
-    {
-    }
-
-    public ExcelColumnDate(string title, Func<T, object?> valueGetter, int? width = WIDTH) : base(title, valueGetter, width)
+    public ExcelColumnString(string title, Action<T, string?> valueSetter, int? width = null, bool required = false, bool uniqueKey = false, Func<string, string>? validator = null, Action<ExcelStyle>? styleConfig = null)
+        : base(title, valueSetter, width, required, uniqueKey, validator, styleConfig)
     {
         ColumnStyle.DataFormat = FORMAT;
-        ColumnStyle.HorizontalAlignment = 2;
     }
-
-    public ExcelColumnDate(string title, Action<T, DateOnly?> valueSetter, bool required = false, int? width = WIDTH) : base(title, valueSetter, required, width)
+}
+public class ExcelColumnDate<T> : ExcelColumn<T, DateOnly?> where T : class, new()
+{
+    private const int WIDTH = 15;
+    private const string FORMAT = "yyyy-mm-dd";
+    public ExcelColumnDate(string title, Action<T, DateOnly?> valueSetter, int? width = WIDTH, bool required = false, bool uniqueKey = false, Func<DateOnly?, string>? validator = null, Action<ExcelStyle>? styleConfig = null)
+        : base(title, valueSetter, width, required, uniqueKey, validator, styleConfig)
     {
         ColumnStyle.DataFormat = FORMAT;
         ColumnStyle.HorizontalAlignment = 2;
@@ -195,20 +181,10 @@ public class ExcelColumnDate<T> : ExcelColumn<T, DateOnly?> where T : class, new
 }
 public class ExcelColumnDateTime<T> : ExcelColumn<T, DateTime?> where T : class, new()
 {
-    private const int WIDTH = 17;
+    private const int WIDTH = 18;
     private const string FORMAT = "yyyy-mm-dd hh:mm";
-
-    public ExcelColumnDateTime(string title, int? width = WIDTH) : base(title, width, c => c.DataFormat = FORMAT)
-    {
-    }
-
-    public ExcelColumnDateTime(string title, Func<T, object?> valueGetter, int? width = WIDTH) : base(title, valueGetter, width)
-    {
-        ColumnStyle.DataFormat = FORMAT;
-        ColumnStyle.HorizontalAlignment = 2;
-    }
-
-    public ExcelColumnDateTime(string title, Action<T, DateTime?> valueSetter, bool required = false, int? width = WIDTH) : base(title, valueSetter, required, width)
+    public ExcelColumnDateTime(string title, Action<T, DateTime?> valueSetter, int? width = WIDTH, bool required = false, bool uniqueKey = false, Func<DateTime?, string>? validator = null, Action<ExcelStyle>? styleConfig = null)
+        : base(title, valueSetter, width, required, uniqueKey, validator, styleConfig)
     {
         ColumnStyle.DataFormat = FORMAT;
         ColumnStyle.HorizontalAlignment = 2;
@@ -218,18 +194,8 @@ public class ExcelColumnTime<T> : ExcelColumn<T, DateTime?> where T : class, new
 {
     private const int WIDTH = 10;
     private const string FORMAT = "hh:mm";
-
-    public ExcelColumnTime(string title, int? width = WIDTH) : base(title, width, c => c.DataFormat = FORMAT)
-    {
-    }
-
-    public ExcelColumnTime(string title, Func<T, object?> valueGetter, int? width = WIDTH) : base(title, valueGetter, width)
-    {
-        ColumnStyle.DataFormat = FORMAT;
-        ColumnStyle.HorizontalAlignment = 2;
-    }
-
-    public ExcelColumnTime(string title, Action<T, DateTime?> valueSetter, bool required = false, int? width = WIDTH) : base(title, valueSetter, required, width)
+    public ExcelColumnTime(string title, Action<T, DateTime?> valueSetter, int? width = WIDTH, bool required = false, bool uniqueKey = false, Func<DateTime?, string>? validator = null, Action<ExcelStyle>? styleConfig = null)
+        : base(title, valueSetter, width, required, uniqueKey, validator, styleConfig)
     {
         ColumnStyle.DataFormat = FORMAT;
         ColumnStyle.HorizontalAlignment = 2;
@@ -238,48 +204,31 @@ public class ExcelColumnTime<T> : ExcelColumn<T, DateTime?> where T : class, new
 
 public class ExcelColumnInteger<T> : ExcelColumn<T, int?> where T : class, new()
 {
-    private const int WIDTH = 8;
-
-    public ExcelColumnInteger(string title, int? width = WIDTH) : base(title, width)
-    {
-    }
-
-    public ExcelColumnInteger(string title, Func<T, object?> valueGetter, int? width = WIDTH) : base(title, valueGetter, width)
-    {
-    }
-
-    public ExcelColumnInteger(string title, Action<T, int?> valueSetter, bool required = false, int? width = WIDTH) : base(title, valueSetter, required, width)
+    private const int WIDTH = 10;
+    public ExcelColumnInteger(string title, Action<T, int?> valueSetter, int? width = WIDTH, bool required = false, bool uniqueKey = false, Func<int?, string>? validator = null, Action<ExcelStyle>? styleConfig = null)
+        : base(title, valueSetter, width, required, uniqueKey, validator, styleConfig)
     {
         InternalValidator = v =>
         {
-            if (MinValue.HasValue && v < MinValue) return $"必须大于等于：{MinValue.Value:0.######}";
-            if (MaxValue.HasValue && v > MaxValue) return $"必须小于等于：{MaxValue.Value:0.######}";
+            if (MinValue.HasValue && v < MinValue) return $"大于等于：{MinValue.Value:0.######}";
+            if (MaxValue.HasValue && v > MaxValue) return $"小于等于：{MaxValue.Value:0.######}";
             return "";
         };
     }
-
     public int? MinValue { get; set; }
     public int? MaxValue { get; set; }
 }
 
 public class ExcelColumnDecimal<T> : ExcelColumn<T, decimal?> where T : class, new()
 {
-    private const int WIDTH = 8;
-
-    public ExcelColumnDecimal(string title, int? width = WIDTH) : base(title, width)
-    {
-    }
-
-    public ExcelColumnDecimal(string title, Func<T, object?> valueGetter, int? width = WIDTH) : base(title, valueGetter, width)
-    {
-    }
-
-    public ExcelColumnDecimal(string title, Action<T, decimal?> valueSetter, bool required = false, int? width = WIDTH) : base(title, valueSetter, required, width)
+    private const int WIDTH = 10;
+    public ExcelColumnDecimal(string title, Action<T, decimal?> valueSetter, int? width = WIDTH, bool required = false, bool uniqueKey = false, Func<decimal?, string>? validator = null, Action<ExcelStyle>? styleConfig = null)
+        : base(title, valueSetter, width, required, uniqueKey, validator, styleConfig)
     {
         InternalValidator = v =>
         {
-            if (MinValue.HasValue && v < MinValue) return $"必须大于等于：{MinValue.Value:0.######}";
-            if (MaxValue.HasValue && v > MaxValue) return $"必须小于等于：{MaxValue.Value:0.######}";
+            if (MinValue.HasValue && v < MinValue) return $"大于等于：{MinValue.Value:0.######}";
+            if (MaxValue.HasValue && v > MaxValue) return $"小于等于：{MaxValue.Value:0.######}";
             return "";
         };
     }
@@ -290,28 +239,18 @@ public class ExcelColumnDecimal<T> : ExcelColumn<T, decimal?> where T : class, n
 
 public class ExcelColumnPersent<T> : ExcelColumnDecimal<T> where T : class, new()
 {
-    private const int WIDTH = 8;
+    private const int WIDTH = 10;
     private const string FORMAT = "0.00%";
-
-    public ExcelColumnPersent(string title, int? width = WIDTH) : base(title, width)
-    {
-        ColumnStyle.DataFormat = FORMAT;
-    }
-
-    public ExcelColumnPersent(string title, Func<T, object?> valueGetter, int? width = WIDTH) : base(title, valueGetter, width)
-    {
-        ColumnStyle.DataFormat = FORMAT;
-    }
-
-    public ExcelColumnPersent(string title, Action<T, decimal?> valueSetter, bool required = false, int? width = 8) : base(title, valueSetter, required, width)
+    public ExcelColumnPersent(string title, Action<T, decimal?> valueSetter, int? width = WIDTH, bool required = false, bool uniqueKey = false, Func<decimal?, string>? validator = null, Action<ExcelStyle>? styleConfig = null)
+        : base(title, valueSetter, width, required, uniqueKey, validator, styleConfig)
     {
         ColumnStyle.DataFormat = FORMAT;
         MinValue = 0; MaxValue = 1;
 
         InternalValidator = v =>
         {
-            if (MinValue.HasValue && v < MinValue) return $"必须大于等于：{MinValue.Value:0.######}";
-            if (MaxValue.HasValue && v > MaxValue) return $"必须小于等于：{MaxValue.Value:0.######}";
+            if (MinValue.HasValue && v < MinValue) return $"大于等于：{MinValue.Value:0.######}";
+            if (MaxValue.HasValue && v > MaxValue) return $"小于等于：{MaxValue.Value:0.######}";
             return "";
         };
     }

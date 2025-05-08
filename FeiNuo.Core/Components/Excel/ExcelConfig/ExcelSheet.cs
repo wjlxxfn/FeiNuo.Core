@@ -1,4 +1,6 @@
-﻿namespace FeiNuo.Core;
+﻿using System.Data;
+
+namespace FeiNuo.Core;
 
 /// <summary>
 /// 工作表配置
@@ -6,10 +8,6 @@
 public class ExcelSheet
 {
     #region 构造函数
-    public ExcelSheet(string sheetName, IEnumerable<object> dataList, IEnumerable<ExcelColumn> columns) : this(sheetName, columns)
-    {
-        DataList = dataList ?? [];
-    }
     public ExcelSheet(string sheetName, IEnumerable<ExcelColumn>? columns = null)
     {
         if (string.IsNullOrWhiteSpace(sheetName))
@@ -19,7 +17,41 @@ public class ExcelSheet
         SheetName = sheetName;
 
         // 配置列，设置多行标题，设置列索引
-        ExcelColumns = ConfigColumns([.. (columns ?? [])]);
+        if (columns != null && columns.Any())
+        {
+            ExcelColumns = ConfigColumns([.. columns]);
+        }
+    }
+    public ExcelSheet(string sheetName, IEnumerable<object> dataList, IEnumerable<ExcelColumn> columns) : this(sheetName, columns)
+    {
+        DataList = dataList;
+    }
+    public ExcelSheet(string sheetName, IEnumerable<object> dataList) : this(sheetName)
+    {
+        if (!dataList.Any()) return;
+        DataList = dataList;
+
+        var first = DataList.First();
+        var columns = first.GetType().GetProperties().Select(a => new ExcelColumn(a.Name)).ToList();
+        ExcelColumns = ConfigColumns(columns);
+    }
+    public ExcelSheet(string sheetName, DataTable dt) : this(sheetName)
+    {
+        if (dt.Rows.Count == 0) return;
+
+        var lstData = new List<object?[]>();
+        foreach (DataRow dr in dt.Rows)
+        {
+            lstData.Add(dr.ItemArray);
+        }
+        DataList = lstData;
+
+        var columns = new List<ExcelColumn>();
+        foreach (DataColumn col in dt.Columns)
+        {
+            columns.Add(new ExcelColumn(col.ColumnName));
+        }
+        ExcelColumns = ConfigColumns(columns);
     }
 
     private List<ExcelColumn> ConfigColumns(List<ExcelColumn> columns)
@@ -35,13 +67,16 @@ public class ExcelSheet
         var colIndex = StartColumnIndex;
         foreach (var col in columns)
         {
-            if (col.RowTitles.Length == 1)
+            if (titleRowCount > 1)
             {
-                col.Title = string.Join("#", Enumerable.Repeat(col.Title, titleRowCount));
-            }
-            else if (col.RowTitles.Length != titleRowCount)
-            {
-                throw new MessageException($"存在标题行数不一致的列");
+                if (col.RowTitles.Length == 1)
+                {
+                    col.Title = string.Join("#", Enumerable.Repeat(col.Title, titleRowCount));
+                }
+                else if (col.RowTitles.Length != titleRowCount)
+                {
+                    throw new MessageException($"存在标题行数不一致的列");
+                }
             }
             col.ColumnIndex = colIndex++;
         }
@@ -58,7 +93,7 @@ public class ExcelSheet
     /// <summary>
     /// 列配置
     /// </summary>
-    public IEnumerable<ExcelColumn> ExcelColumns { get; set; }
+    public IEnumerable<ExcelColumn> ExcelColumns { get; set; } = [];
 
     /// <summary>
     /// 数据集合
@@ -113,7 +148,7 @@ public class ExcelSheet
     /// <summary>
     /// 列标题样式：水平居中，字体加粗，加背景色
     /// </summary>
-    public ExcelStyle ColumnTitleStyle = new() { HorizontalAlignment = 2, BackgroundColor = 26 };
+    public ExcelStyle ColumnTitleStyle { get; } = new() { HorizontalAlignment = 2, BackgroundColor = 26 };
 
     /// <summary>
     /// 在上传Excel数据时，是否效验模板：根据sheet名，标题名必须一致才能继续导入
@@ -147,7 +182,7 @@ public class ExcelSheet
     /// <summary>
     /// 说明的样式：水平居左，自动换行
     /// </summary>
-    public ExcelStyle DescriptionStyle = new() { HorizontalAlignment = 1, WrapText = true, };
+    public ExcelStyle DescriptionStyle { get; } = new() { HorizontalAlignment = 1, WrapText = true, };
 
     /// <summary>
     /// 说明行的高度:默认66
@@ -169,7 +204,7 @@ public class ExcelSheet
     /// <summary>
     /// 主标题样式：水平居中，字体加粗，加背景色
     /// </summary>
-    public ExcelStyle MainTitleStyle { get; set; } = new() { HorizontalAlignment = 2, FontBold = true, BackgroundColor = 26, };
+    public ExcelStyle MainTitleStyle { get; } = new() { HorizontalAlignment = 2, FontBold = true, BackgroundColor = 26, };
 
     /// <summary>
     /// 主标题合并单元格的数量，默认为列的数量，可通过该参数调整
