@@ -805,7 +805,7 @@ public class PoiHelper
     /// <param name="endRow"></param>
     public static void AutoMergeRows(ISheet sheet, int colIndex, int startRow = 0, int endRow = 0)
     {
-        if (sheet == null) throw new ArgumentNullException(nameof(sheet));
+        ArgumentNullException.ThrowIfNull(sheet);
         if (endRow == 0) endRow = sheet.LastRowNum;
 
         for (int i = startRow; i <= endRow; i++)
@@ -857,7 +857,7 @@ public class PoiHelper
     /// <exception cref="ArgumentNullException"></exception>
     public static void AutoMergeColumns(ISheet sheet, int rowIndex, int startCol = 0, int endCol = 0)
     {
-        if (sheet == null) throw new ArgumentNullException(nameof(sheet));
+        ArgumentNullException.ThrowIfNull(sheet);
 
         IRow row = sheet.GetRow(rowIndex);
         if (row == null) return;

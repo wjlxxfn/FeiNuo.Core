@@ -130,6 +130,8 @@ public static class ServiceCollectionExtensions
         // 注入登录服务
         services.TryAddScoped<ILoginService, LoginService>();
 
+        // 调整role对应的claimType,这里需要清空默认的映射，否则不会使用自定义的RoleClaimType
+        JsonWebTokenHandler.DefaultInboundClaimTypeMap.Clear();
         var cfg = configuration.GetSection(SecurityOptions.ConfigKey).Get<SecurityOptions>() ?? new();
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
         {
@@ -155,8 +157,6 @@ public static class ServiceCollectionExtensions
         services.TryAddScoped<ILoginService, LoginService>();
 
         var scheme = JwtBearerDefaults.AuthenticationScheme;
-        // 调整role对应的claimType,这里需要清空默认的映射，否则不会使用自定义的RoleClaimType
-        JsonWebTokenHandler.DefaultInboundClaimTypeMap.Clear();
         services.AddAuthentication(scheme).AddScheme<AuthenticationSchemeOptions, TokenAuthenticationHandler>(scheme, null);
 
         return services;

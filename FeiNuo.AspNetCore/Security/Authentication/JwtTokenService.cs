@@ -39,7 +39,7 @@ public class JwtTokenService : ITokenService
             Audience = cfg.Jwt.Audience,
             Subject = new ClaimsIdentity(user.UserClaims),
             Expires = DateTime.UtcNow.AddSeconds(cfg.TokenExpiration),
-            SigningCredentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256)
+            SigningCredentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256),
         };
 
         var token = tokenHandler.CreateToken(tokenDescriptor);
