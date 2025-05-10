@@ -84,5 +84,16 @@ public abstract class AbstractQuery<T> : BaseQuery, IQueryExpression<T> where T 
             AddExpression(endDatePredicate(end));
         }
     }
+    protected void AddDateExpression(Func<DateOnly, Expression<Func<T, bool>>> startDatePredicate, Func<DateOnly, Expression<Func<T, bool>>> endDatePredicate)
+    {
+        if (StartDate.HasValue)
+        {
+            AddExpression(startDatePredicate(StartDate.Value));
+        }
+        if (EndDate.HasValue)
+        {
+            AddExpression(endDatePredicate(EndDate.Value));
+        }
+    }
     #endregion
 }
