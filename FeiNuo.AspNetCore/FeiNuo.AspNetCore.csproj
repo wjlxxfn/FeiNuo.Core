@@ -3,7 +3,7 @@
 		<TargetFramework>net8.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
-		<Version>1.1.9</Version>
+		<Version>1.1.10</Version>
 		<Authors>FeiNuo</Authors>
 		<Description>这是一个开发WebApi的通用辅助类库，基于Net8开发</Description>
 		<Copyright>MIT</Copyright>
