@@ -39,6 +39,17 @@ public class ExcelConfig
         //如果没有后缀的话加上后缀
         FileName = fileName + (string.IsNullOrWhiteSpace(Path.GetExtension(fileName)) ? (IsExcel2007 ? ".xlsx" : ".xls") : "");
         if (defaultStyle != null) DefaultStyle = defaultStyle;
+        // 添加默认Sheet
+        AddExcelSheet(new ExcelSheet("Sheet1"));
+    }
+
+    /// <summary>
+    /// 清空所有工作表
+    /// </summary>
+    public ExcelConfig ClearSheets()
+    {
+        ExcelSheets.Clear();
+        return this;
     }
 
     /// <summary>

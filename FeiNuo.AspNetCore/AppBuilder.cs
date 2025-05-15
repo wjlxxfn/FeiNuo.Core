@@ -97,7 +97,7 @@ public static class ServiceCollectionExtensions
             {
                 if (context.HttpContext.Request.Method == HttpMethod.Patch.Method)
                 {
-                    return null;
+                    return null!;
                 }
 
                 var errors = context.ModelState.Values
