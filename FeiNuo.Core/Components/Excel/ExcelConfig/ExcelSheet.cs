@@ -25,11 +25,13 @@ public class ExcelSheet
     public ExcelSheet(string sheetName, IEnumerable<object> dataList, IEnumerable<ExcelColumn> columns) : this(sheetName, columns)
     {
         DataList = dataList;
+        AddConditionalBorderStyle = true;
     }
     public ExcelSheet(string sheetName, IEnumerable<object> dataList) : this(sheetName)
     {
         if (!dataList.Any()) return;
         DataList = dataList;
+        AddConditionalBorderStyle = true;
 
         var first = DataList.First();
         var columns = first.GetType().GetProperties().Select(a => new ExcelColumn(a.Name)).ToList();
@@ -45,6 +47,7 @@ public class ExcelSheet
             lstData.Add(dr.ItemArray);
         }
         DataList = lstData;
+        AddConditionalBorderStyle = true;
 
         var columns = new List<ExcelColumn>();
         foreach (DataColumn col in dt.Columns)
@@ -170,7 +173,7 @@ public class ExcelSheet
     /// <summary>
     /// 使用条件格式对所有数据区别添加边框：边框为BorderStyle.Thin
     /// </summary>
-    public bool AddConditionalBorderStyle { get; set; } = true;
+    public bool AddConditionalBorderStyle { get; set; } = false;
     #endregion
 
     #region 整体说明行，在最前面，可配置样式，行高，合并列的个数
