@@ -190,12 +190,12 @@ public partial class PoiHelper
         else if (cell.CellType == CellType.Formula)
         {
             if (DateUtil.IsCellDateFormatted(cell)) return cell.DateCellValue;
-            else throw new Exception($"日期获取错误，CellType:{cell.CellType}，CellValue:{cell.ToString()}");
+            else throw new Exception($"日期获取错误，CellType:{cell.CellType}，CellValue:{cell}");
         }
         else
         {
             if (DateTime.TryParse(cell.StringCellValue.Trim('\''), out var dt)) return dt;
-            else throw new Exception($"日期获取错误，CellType:{cell.CellType}，CellValue:{cell.ToString()}");
+            else throw new Exception($"日期获取错误，CellType:{cell.CellType}，CellValue:{cell}");
         }
     }
 
@@ -230,7 +230,7 @@ public partial class PoiHelper
         {
             return result;
         }
-        else throw new Exception($"数值获取错误，CellType:{cell.CellType}，CellValue:{cell.ToString()}");
+        else throw new Exception($"数值获取错误，CellType:{cell.CellType}，CellValue:{cell}");
     }
 
     /// <summary>
@@ -565,6 +565,14 @@ public partial class PoiHelper
 
             startCol = mergeEndCol + 1;
         }
+    }
+
+    /// <summary>
+    /// 隐藏列
+    /// </summary>
+    public static void SetColumnHidden(ISheet sheet, int colIndex, bool hidden = true)
+    {
+        sheet.SetColumnHidden(colIndex, hidden);
     }
 
     /// <summary>

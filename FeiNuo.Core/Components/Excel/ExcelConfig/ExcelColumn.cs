@@ -50,7 +50,7 @@ public class ExcelColumn
     /// <summary>
     /// 列索引，在加入到ExcelSheet时自动设置
     /// </summary>
-    public int ColumnIndex { get; internal set; }
+    internal int ColumnIndex { get; set; }
 }
 
 #region ExcelColumn确定类型的子类
