@@ -6,22 +6,22 @@
 public class ExcelStyle
 {
     /// <summary>
-    /// 边框: 0:None, 1:Thin, 2:Medium, 3:Dashed, 4:Dotted, 5:Thick, 6:Double, 7:Hair
+    /// 边框:POI.BorderStyle 0:None, 1:Thin, 2:Medium, 3:Dashed, 4:Dotted, 5:Thick, 6:Double, 7:Hair
     /// </summary>
     public int? BorderStyle { get; set; }
 
     /// <summary>
-    /// 水平位置:  1:居左, 2:居中, 3:居右
+    /// 水平位置: POI.HorizontalAlignment 1:居左, 2:居中, 3:居右
     /// </summary>
     public int? HorizontalAlignment { get; set; }
 
     /// <summary>
-    /// 垂直位置:  0:居上, 1:居中, 2:居下
+    /// 垂直位置: POI.VerticalAlignment  0:居上, 1:居中, 2:居下
     /// </summary>
     public int? VerticalAlignment { get; set; }
 
     /// <summary>
-    /// 背景颜色
+    /// 背景颜色:POI.HSSFColor
     /// </summary>
     public short? BackgroundColor { get; set; }
 
@@ -56,6 +56,14 @@ public class ExcelStyle
     public bool? FontBold { get; set; }
 
     #region 链式调用方法
+    /// <summary>
+    /// 创建新的样式
+    /// </summary>
+    public static ExcelStyle NewStyle()
+    {
+        return new ExcelStyle();
+    }
+
     /// <summary>
     /// 边框: 0:None, 1:Thin, 2:Medium, 3:Dashed, 4:Dotted, 5:Thick, 6:Double, 7:Hair
     /// </summary>

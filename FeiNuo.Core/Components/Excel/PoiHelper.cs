@@ -924,7 +924,10 @@ public class PoiHelper
         var row = GetRow(sheet, rowIndex);
         row.Height = (short)(height * 20);
     }
-
+    public static void SetRowHeight(IRow row, int height)
+    {
+        row.Height = (short)(height * 20);
+    }
     /// <summary>
     /// 生成IWorkbook,并转成字节数组
     /// </summary>
