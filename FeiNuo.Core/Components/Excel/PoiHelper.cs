@@ -381,17 +381,19 @@ public class PoiHelper
     /// <summary>
     /// 获取单元格式，不存在的创建新单元格
     /// </summary>
-    public static ICell GetCell(ISheet sheet, int rowIndex, int colIndex)
+    public static ICell GetCell(ISheet sheet, int rowIndex, int colIndex, ICellStyle? style = null)
     {
-        return GetCell(GetRow(sheet, rowIndex), colIndex);
+        return GetCell(GetRow(sheet, rowIndex), colIndex, style);
     }
 
     /// <summary>
     /// 获取单元格式，不存在的创建新单元格
     /// </summary>
-    public static ICell GetCell(IRow row, int colIndex)
+    public static ICell GetCell(IRow row, int colIndex, ICellStyle? style = null)
     {
-        return CellUtil.GetCell(row, colIndex);
+        var cell = CellUtil.GetCell(row, colIndex);
+        if (style != null) cell.CellStyle = style;
+        return cell;
     }
 
     /// <summary>
@@ -419,9 +421,13 @@ public class PoiHelper
     }
     public static void SetCellValues(IRow row, int startColIndex, params object?[] values)
     {
-        SetCellValues(row, startColIndex, null, values);
+        if (values == null || values.Length == 0) return;
+        foreach (var val in values)
+        {
+            SetCellValue(row, startColIndex++, val, false);
+        }
     }
-    public static void SetCellValues(IRow row, int startColIndex, ICellStyle? style = null, params object?[] values)
+    public static void SetCellValues(IRow row, int startColIndex, ICellStyle style, params object?[] values)
     {
         if (values == null || values.Length == 0) return;
         foreach (var val in values)
@@ -429,14 +435,14 @@ public class PoiHelper
             SetCellValue(row, startColIndex++, val, false, style);
         }
     }
-    public static void SetCellValue(IRow row, int colIndex, object? value, bool isFormular = false, ICellStyle? style = null)
-    {
-        var cell = GetCell(row, colIndex);
-        SetCellValue(cell, value, isFormular, style);
-    }
+
     public static void SetCellValue(ISheet sheet, int rowIndex, int colIndex, object? value, bool isFormular = false, ICellStyle? style = null)
     {
         var row = GetRow(sheet, rowIndex);
+        SetCellValue(row, colIndex, value, isFormular, style);
+    }
+    public static void SetCellValue(IRow row, int colIndex, object? value, bool isFormular = false, ICellStyle? style = null)
+    {
         var cell = GetCell(row, colIndex);
         SetCellValue(cell, value, isFormular, style);
     }
@@ -454,25 +460,17 @@ public class PoiHelper
             return;
         }
 
-        var type = value.GetType();
-
-        if (type.Equals(typeof(decimal)) || type.Equals(typeof(double)) || type.Equals(typeof(float)))
+        if (value is int || value is short || value is long || value is decimal || value is double || value is float)
         {
             cell.SetCellValue(Convert.ToDouble(value));
         }
-        else if (type.Equals(typeof(int)) || type.Equals(typeof(short)) || type.Equals(typeof(long)))
+        else if (value is DateOnly dto)
         {
-            cell.SetCellValue(Convert.ToInt64(value));
+            cell.SetCellValue(dto);
         }
-        else if (type.Equals(typeof(DateOnly)))
+        else if (value is DateTime dt)
         {
-            cell.CellStyle = style;
-            cell.SetCellValue((DateOnly)value);
-        }
-        else if (type.Equals(typeof(DateTime)))
-        {
-            var dt = Convert.ToDateTime(value);
-            if (dt != DateTime.MinValue && dt.Date != DateTime.Parse("1900-01-01"))
+            if (dt != DateTime.MinValue && dt.Date.ToString("yyyy-MM-dd") != "1900-01-01")
             {
                 cell.SetCellValue(dt);
             }
@@ -489,61 +487,76 @@ public class PoiHelper
     /// 获取单元格的值，空值返回空字符串
     /// </summary>
     /// <param name="cell"></param>
-    /// <param name="defaultValue"></param>
-    /// <returns></returns>
-    public static string GetStringValue(ICell cell, string defaultValue = "")
+    public static string? GetStringValue(ICell cell)
     {
         if (null == cell || cell.CellType == CellType.Blank)
         {
-            return defaultValue;
+            return null;
         }
         if (cell.CellType == CellType.String)
         {
-            return cell.StringCellValue.Trim();
+            return cell.StringCellValue;
         }
         if (cell.CellType == CellType.Formula)
         {
-            if (cell.CachedFormulaResultType == CellType.String) return cell.StringCellValue.Trim();
+            if (cell.CachedFormulaResultType == CellType.String) return cell.StringCellValue;
             if (cell.CachedFormulaResultType == CellType.Numeric) return cell.NumericCellValue.ToString();
         }
-        return cell.ToString()!.Trim();
+        return cell.ToString();
     }
+
     /// <summary>
-    /// 获取单元格的日期值，空值返回DateTime.MinValue
-    /// </summary>
-    /// <param name="cell"></param>
-    /// <returns></returns>
-    public static DateTime GetDateValue(ICell cell)
-    {
-        if (null == cell || cell.CellType == CellType.Blank)
-        {
-            return DateTime.MinValue;
-        }
-        if (cell.CellType == CellType.Numeric)
-        {
-            return cell.DateCellValue ?? DateTime.MinValue;
-        }
-        else if (cell.CellType == CellType.String && DateTime.TryParse(cell.StringCellValue.Trim('\''), out var dt))
-        {
-            return dt;
-        }
-        else if (cell.CellType == CellType.Formula && DateUtil.IsCellDateFormatted(cell))
-        {
-            return cell.DateCellValue ?? DateTime.MinValue;
-        }
-        throw new MessageException("获取时间出错，行号：" + cell.Row.RowNum);
-    }
-    /// <summary>
-    /// 获取单元格的Decimal值，空值返回0
+    /// 获取单元格的值，空值返回空字符串
     /// </summary>
     /// <param name="cell"></param>
     /// <param name="defaultValue"></param>
-    /// <returns></returns>
-    public static decimal GetDecimalValue(ICell cell, decimal defaultValue = 0m)
+    public static string GetStringValue(ICell cell, string defaultValue)
+    {
+        return GetStringValue(cell) ?? defaultValue;
+    }
+
+    /// <summary>
+    /// 获取单元格的日期值
+    /// </summary>
+    public static DateTime? GetDateValue(ICell cell)
     {
         if (null == cell || cell.CellType == CellType.Blank)
         {
-            return defaultValue;
+            return null;
+        }
+        if (cell.CellType == CellType.Numeric)
+        {
+            return cell.DateCellValue;
+        }
+        else if (cell.CellType == CellType.Formula)
+        {
+            if (DateUtil.IsCellDateFormatted(cell)) return cell.DateCellValue;
+            else throw new Exception($"日期获取错误，CellType:{cell.CellType}，CellValue:{cell.ToString()}");
+        }
+        else
+        {
+            if (DateTime.TryParse(cell.StringCellValue.Trim('\''), out var dt)) return dt;
+            else throw new Exception($"日期获取错误，CellType:{cell.CellType}，CellValue:{cell.ToString()}");
+        }
+    }
+
+    /// <summary>
+    /// 获取单元格的日期值
+    /// </summary>
+    public static DateTime GetDateValue(ICell cell, DateTime defaultValue)
+    {
+        return GetDateValue(cell) ?? defaultValue;
+    }
+
+    /// <summary>
+    /// 获取单元格的Decimal值
+    /// </summary>
+    /// <param name="cell"></param>
+    public static decimal? GetDecimalValue(ICell cell)
+    {
+        if (null == cell || cell.CellType == CellType.Blank)
+        {
+            return null;
         }
         if (cell.CellType == CellType.Numeric)
         {
@@ -558,10 +571,20 @@ public class PoiHelper
         {
             return result;
         }
-        return defaultValue;
+        else throw new Exception($"数值获取错误，CellType:{cell.CellType}，CellValue:{cell.ToString()}");
     }
 
-    //TODO 改成getstringvalue,getdecimalValue,getDateValue等
+    /// <summary>
+    /// 获取单元格的Decimal值
+    /// </summary>
+    /// <param name="cell"></param>
+    /// <param name="defaultValue"></param>
+    /// <returns></returns>
+    public static decimal GetDecimalValue(ICell cell, decimal defaultValue)
+    {
+        return GetDecimalValue(cell) ?? defaultValue;
+    }
+
     /// <summary>
     /// 获取单元格的值
     /// </summary>
@@ -736,25 +759,6 @@ public class PoiHelper
     }
 
     /// <summary>
-    /// 生成IWorkbook,并转成字节数组
-    /// </summary>
-    public static byte[] GetExcelBytes(ExcelConfig config)
-    {
-        var wb = CreateWorkbook(config, out _);
-        return GetExcelBytes(wb);
-    }
-
-    /// <summary>
-    /// 转成字节数组
-    /// </summary>
-    public static byte[] GetExcelBytes(IWorkbook workboox, bool leaveOpen = false)
-    {
-        using var ms = new MemoryStream();
-        workboox.Write(ms, leaveOpen);
-        return ms.ToArray();
-    }
-
-    /// <summary>
     /// 将Excel的列索引转换为列名，列索引从0开始，列名从A开始。如第0列为A，第1列为B...
     /// </summary>
     /// <param name="columnIndex">列索引</param>
@@ -904,5 +908,40 @@ public class PoiHelper
         }
     }
 
+    /// <summary>
+    /// 设置列宽
+    /// </summary>
+    public static void SetColumnWidth(ISheet sheet, int colIndex, int width)
+    {
+        sheet.SetColumnWidth(colIndex, width * 256d);
+    }
+
+    /// <summary>
+    /// 设置行高
+    /// </summary>
+    public static void SetRowHeight(ISheet sheet, int rowIndex, int height)
+    {
+        var row = GetRow(sheet, rowIndex);
+        row.Height = (short)(height * 20);
+    }
+
+    /// <summary>
+    /// 生成IWorkbook,并转成字节数组
+    /// </summary>
+    public static byte[] GetExcelBytes(ExcelConfig config)
+    {
+        var wb = CreateWorkbook(config, out _);
+        return GetExcelBytes(wb);
+    }
+
+    /// <summary>
+    /// 转成字节数组
+    /// </summary>
+    public static byte[] GetExcelBytes(IWorkbook workboox, bool leaveOpen = false)
+    {
+        using var ms = new MemoryStream();
+        workboox.Write(ms, leaveOpen);
+        return ms.ToArray();
+    }
     #endregion
 }
