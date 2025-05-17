@@ -11,6 +11,52 @@ public class ExcelStyle
     public int? BorderStyle { get; set; }
 
     /// <summary>
+    /// 水平位置:  1:居左, 2:居中, 3:居右
+    /// </summary>
+    public int? HorizontalAlignment { get; set; }
+
+    /// <summary>
+    /// 垂直位置:  0:居上, 1:居中, 2:居下
+    /// </summary>
+    public int? VerticalAlignment { get; set; }
+
+    /// <summary>
+    /// 背景颜色
+    /// </summary>
+    public short? BackgroundColor { get; set; }
+
+    /// <summary>
+    /// 格式化字符串
+    /// </summary>
+    public string? DataFormat { get; set; }
+
+    /// <summary>
+    /// 是否换行
+    /// </summary>
+    public bool? WrapText { get; set; }
+
+    /// <summary>
+    /// 字体名称
+    /// </summary>
+    public string? FontName { get; set; }
+
+    /// <summary>
+    /// 字体颜色
+    /// </summary>
+    public short? FontColor { get; set; }
+
+    /// <summary>
+    /// 字体大小
+    /// </summary>
+    public short? FontSize { get; set; }
+
+    /// <summary>
+    /// 是否粗体
+    /// </summary>
+    public bool? FontBold { get; set; }
+
+    #region 链式调用方法
+    /// <summary>
     /// 边框: 0:None, 1:Thin, 2:Medium, 3:Dashed, 4:Dotted, 5:Thick, 6:Double, 7:Hair
     /// </summary>
     public ExcelStyle Border(int border = 1)
@@ -22,49 +68,30 @@ public class ExcelStyle
     /// <summary>
     /// 水平位置:  1:居左, 2:居中, 3:居右
     /// </summary>
-    public int? HorizontalAlignment { get; set; }
-
-    /// <summary>
-    /// 水平位置:  1:居左, 2:居中, 3:居右
-    /// </summary>
-    public ExcelStyle HAlign(int halign = 2)
+    public ExcelStyle HAlign(int hAlign = 2)
     {
-        HorizontalAlignment = halign;
+        HorizontalAlignment = hAlign;
         return this;
     }
 
     /// <summary>
     /// 垂直位置:  0:居上, 1:居中, 2:居下
     /// </summary>
-    public int? VerticalAlignment { get; set; }
-
-    /// <summary>
-    /// 垂直位置:  0:居上, 1:居中, 2:居下
-    /// </summary>
-    public ExcelStyle VAlign(int valign = 1)
+    public ExcelStyle VAlign(int vAlign = 1)
     {
-        VerticalAlignment = valign;
+        VerticalAlignment = vAlign;
         return this;
     }
 
     /// <summary>
-    /// 背景颜色
+    /// 水平位置:  1:居左, 2:居中, 3:居右; 垂直位置:  0:居上, 1:居中, 2:居下
     /// </summary>
-    public short? BackgroundColor { get; set; }
-
-    /// <summary>
-    /// 背景颜色
-    /// </summary>
-    public ExcelStyle BgColor(short bgColor)
+    public ExcelStyle Align(int hAlign = 2, int vAlign = 1)
     {
-        BackgroundColor = bgColor;
+        HorizontalAlignment = hAlign;
+        VerticalAlignment = vAlign;
         return this;
     }
-
-    /// <summary>
-    /// 格式化字符串
-    /// </summary>
-    public string? DataFormat { get; set; }
 
     /// <summary>
     /// 格式化字符串
@@ -78,11 +105,6 @@ public class ExcelStyle
     /// <summary>
     /// 是否换行
     /// </summary>
-    public bool? WrapText { get; set; }
-
-    /// <summary>
-    /// 是否换行
-    /// </summary>
     public ExcelStyle Wrap(bool wrap = true)
     {
         WrapText = wrap;
@@ -90,9 +112,13 @@ public class ExcelStyle
     }
 
     /// <summary>
-    /// 字体名称
+    /// 背景颜色
     /// </summary>
-    public string? FontName { get; set; }
+    public ExcelStyle BgColor(short bgColor)
+    {
+        BackgroundColor = bgColor;
+        return this;
+    }
 
     /// <summary>
     /// 字体名称
@@ -106,21 +132,11 @@ public class ExcelStyle
     /// <summary>
     /// 字体颜色
     /// </summary>
-    public short? FontColor { get; set; }
-
-    /// <summary>
-    /// 字体颜色
-    /// </summary>
     public ExcelStyle FontC(short fontColor)
     {
         FontColor = fontColor;
         return this;
     }
-
-    /// <summary>
-    /// 字体大小
-    /// </summary>
-    public short? FontSize { get; set; }
 
     /// <summary>
     /// 字体大小
@@ -131,18 +147,6 @@ public class ExcelStyle
         return this;
     }
 
-    public ExcelStyle Font(string? fontName, short? fontSize, short? fontColor, bool? bold)
-    {
-        FontSize = fontSize;
-        return this;
-    }
-
-
-    /// <summary>
-    /// 是否粗体
-    /// </summary>
-    public bool? FontBold { get; set; }
-
     /// <summary>
     /// 是否粗体
     /// </summary>
@@ -151,6 +155,16 @@ public class ExcelStyle
         FontBold = bold;
         return this;
     }
+
+    /// <summary>
+    /// 字体名称、大小、颜色、粗体
+    /// </summary>
+    public ExcelStyle Font(string? fontName, short? fontSize, short? fontColor, bool? bold)
+    {
+        FontSize = fontSize;
+        return this;
+    }
+    #endregion
 
     /// <summary>
     /// 根据各项配置值生成唯一的键值

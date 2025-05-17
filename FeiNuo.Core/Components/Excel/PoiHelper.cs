@@ -66,7 +66,7 @@ public class PoiHelper
             row = GetRow(sheet, rowIndex);
             row.HeightInPoints = (short)(config.DescriptionRowHeight < 0 ? 20 : config.DescriptionRowHeight);
             cell = GetCell(row, config.StartColumnIndex);
-            cell.CellStyle = styles.GetStyle(config.DescriptionStyle);
+            cell.CellStyle = styles.CreateStyle(config.DescriptionStyle);
             cell.SetCellValue(config.Description);
 
             var mergeCount = config.DescriptionColSpan ?? columnCount;
@@ -83,7 +83,7 @@ public class PoiHelper
         {
             row = GetRow(sheet, rowIndex);
             cell = GetCell(row, config.StartColumnIndex);
-            cell.CellStyle = styles.GetStyle(config.MainTitleStyle);
+            cell.CellStyle = styles.CreateStyle(config.MainTitleStyle);
             cell.SetCellValue(config.MainTitle);
             var mergeCount = config.MainTitleColSpan ?? columnCount;
             if (mergeCount > 0)
@@ -97,7 +97,7 @@ public class PoiHelper
         #region 生成列标题行
         if (columnCount > 0)
         {
-            var titleStyle = styles.GetStyle(config.ColumnTitleStyle);
+            var titleStyle = styles.CreateStyle(config.ColumnTitleStyle);
             var titleRowCount = config.ExcelColumns.Max(a => a.RowTitles.Length);
             int titleRowStartIndex = rowIndex, titleRowEndIndex = rowIndex + titleRowCount - 1;
             foreach (var col in config.ExcelColumns)
@@ -107,7 +107,7 @@ public class PoiHelper
                 // 设置默认格式
                 if (col.ColumnStyle.IsNotEmptyStyle)
                 {
-                    sheet.SetDefaultColumnStyle(col.ColumnIndex, styles.GetStyle(col.ColumnStyle));
+                    sheet.SetDefaultColumnStyle(col.ColumnIndex, styles.CreateStyle(col.ColumnStyle));
                 }
 
                 foreach (var rt in col.RowTitles)
@@ -149,7 +149,7 @@ public class PoiHelper
                 {
                     var val = col.ValueGetter?.Invoke(data);
                     var style = col.ColumnStyle.IsNotEmptyStyle
-                        ? styles.GetStyle(col.ColumnStyle)
+                        ? styles.CreateStyle(col.ColumnStyle)
                         : ((val != null && (val is DateOnly || val is DateTime)) ? styles.DateStyle : null);
                     SetCellValue(row, col.ColumnIndex, val, false, style);
                 }
@@ -339,7 +339,7 @@ public class PoiHelper
             {
                 if (col.ColumnStyle.IsEmptyStyle) continue;
 
-                var cellStyle = styles.GetStyle(col.ColumnStyle);
+                var cellStyle = styles.CreateStyle(col.ColumnStyle);
                 for (var r = sheetConfig.DataRowIndex; r <= sheet.LastRowNum; r++)
                 {
                     var cell = sheet.GetRow(r)?.GetCell(col.ColumnIndex);

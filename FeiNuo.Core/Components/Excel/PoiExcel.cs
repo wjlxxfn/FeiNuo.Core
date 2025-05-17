@@ -57,10 +57,10 @@ public class PoiExcel
     private void InitInternalStyles()
     {
         DefaultStyle = _styleFactory.DefaultStyle;
-        TitleStyle = _styleFactory.GetStyle(new ExcelStyle() { HorizontalAlignment = 2, BackgroundColor = (short)26 });
+        TitleStyle = _styleFactory.CreateStyle(new ExcelStyle() { HorizontalAlignment = 2, BackgroundColor = (short)26 });
         DateStyle = _styleFactory.DateStyle;
         NumberStyle = _styleFactory.NumbericStyle;
-        TextStyle = _styleFactory.GetStyle(new ExcelStyle() { DataFormat = "@" });
+        TextStyle = _styleFactory.CreateStyle(new ExcelStyle() { DataFormat = "@" });
     }
     #endregion
 
@@ -170,7 +170,7 @@ public class PoiExcel
     /// <returns></returns>
     public ICellStyle CreateStyle(ExcelStyle style)
     {
-        return _styleFactory.GetStyle(style);
+        return _styleFactory.CreateStyle(style);
     }
 
     /// <summary>
