@@ -67,25 +67,27 @@ public class PoiExcel
     /// <para>如果多行标题是一样的，需要上下合并的时候可以省略#,但只有所有行都一样才行。也就是每列标题中的#号要么没有，要么#号数量必须一致</para>
     /// <para>如：[A#B,A#C,D,E#F],会生成两行标题：A,A,D,E ； B,C,D,F,第一行AA会合并，第三列DD会合并</para>
     /// </summary>
-    public void AddTitleRow(int rowIndex, string titles)
+    public IRow AddTitleRow(int rowIndex, string titles)
     {
-        AddTitleRow(rowIndex, titles.Split(','));
+        return AddTitleRow(rowIndex, titles.Split(','));
     }
+
     /// <summary>
     /// 添加标题行：支持多行标题，用#分隔
     /// <para>如果多行标题是一样的，需要上下合并的时候可以省略#,但只有所有行都一样才行。也就是每列标题中的#号要么没有，要么#号数量必须一致</para>
     /// <para>如：[A#B,A#C,D,E#F],会生成两行标题：A,A,D,E ； B,C,D,F,第一行AA会合并，第三列DD会合并</para>
     /// </summary>
-    public void AddTitleRow(int rowIndex, params string[] titles)
+    public IRow AddTitleRow(int rowIndex, params string[] titles)
     {
-        AddTitleRow(rowIndex, 0, titles);
+        return AddTitleRow(rowIndex, 0, titles);
     }
+
     /// <summary>
     /// 添加标题行：支持多行标题，用#分隔
     /// <para>如果多行标题是一样的，需要上下合并的时候可以省略#,但只有所有行都一样才行。也就是每列标题中的#号要么没有，要么#号数量必须一致</para>
     /// <para>如：[A#B,A#C,D,E#F],会生成两行标题：A,A,D,E ； B,C,D,F,第一行AA会合并，第三列DD会合并</para>
     /// </summary>
-    public void AddTitleRow(int rowIndex, int startColIndex, params string[] titles)
+    public IRow AddTitleRow(int rowIndex, int startColIndex, params string[] titles)
     {
         var splitTitles = titles.Select(a => a.Trim().Split('#')).ToArray();
 
@@ -122,6 +124,8 @@ public class PoiExcel
                 PoiHelper.AutoMergeColumns(_sheet, rowIndex + i, startColIndex, endColIndex);
             }
         }
+
+        return PoiHelper.GetRow(_sheet, endRowIndex);
     }
     #endregion
 
@@ -129,20 +133,21 @@ public class PoiExcel
     /// <summary>
     /// 添加主标题，如想调整样式，直接修改MainTitleStyle即可
     /// </summary>
-    public void AddMainTitle(int rowIndex, string title, int colSpan = 12, int height = 25)
+    public IRow AddMainTitle(int rowIndex, string title, int colSpan = 12, int height = 25)
     {
-        AddMainTitle(rowIndex, 0, title, colSpan, height);
+        return AddMainTitle(rowIndex, 0, title, colSpan, height);
     }
 
     /// <summary>
     /// 添加主标题，如想调整样式，直接修改MainTitleStyle即可
     /// </summary>
-    public void AddMainTitle(int rowIndex, int startCol, string title, int colSpan = 12, int height = 25)
+    public IRow AddMainTitle(int rowIndex, int startCol, string title, int colSpan = 12, int height = 25)
     {
         var row = PoiHelper.GetRow(_sheet, rowIndex);
         PoiHelper.SetRowHeight(row, height);
         PoiHelper.AddMergedRegion(_sheet, rowIndex, rowIndex, startCol, startCol + colSpan - 1, MainTitleStyle);
         PoiHelper.GetCell(row, startCol).SetCellValue(title);
+        return row;
     }
     #endregion
 
@@ -150,20 +155,21 @@ public class PoiExcel
     /// <summary>
     /// 添加备注说明，如想调整样式，直接修改RemarkStyle即可
     /// </summary>
-    public void AddRemarkRow(int rowIndex, string title, int colSpan = 12, int height = 60)
+    public IRow AddRemarkRow(int rowIndex, string title, int colSpan = 12, int height = 60)
     {
-        AddRemarkRow(rowIndex, 0, title, colSpan, height);
+        return AddRemarkRow(rowIndex, 0, title, colSpan, height);
     }
 
     /// <summary>
     /// 添加备注说明，如想调整样式，直接修改RemarkStyle即可
     /// </summary>
-    public void AddRemarkRow(int rowIndex, int startCol, string title, int colSpan = 12, int height = 60)
+    public IRow AddRemarkRow(int rowIndex, int startCol, string title, int colSpan = 12, int height = 60)
     {
         var row = PoiHelper.GetRow(_sheet, rowIndex);
         PoiHelper.SetRowHeight(row, height);
         PoiHelper.AddMergedRegion(_sheet, rowIndex, rowIndex, startCol, startCol + colSpan - 1, RemarkStyle);
         PoiHelper.GetCell(row, startCol).SetCellValue(title);
+        return row;
     }
     #endregion
 
@@ -171,33 +177,29 @@ public class PoiExcel
     /// <summary>
     /// 添加数据行
     /// </summary>
-    public void AddDataRow(int rowIndex, params object[] values)
+    public IRow AddDataRow(int rowIndex, params object?[] values)
     {
-        AddDataRow(rowIndex, 0, values);
+        return AddDataRow(rowIndex, 0, values);
     }
     /// <summary>
     /// 添加数据行
     /// </summary>
-    public void AddDataRow(int rowIndex, int colIndex, params object[] values)
+    public IRow AddDataRow(int rowIndex, int startColIndex, params object?[] values)
     {
-        SetCellValues(rowIndex, colIndex, values);
+        return SetCellValues(rowIndex, startColIndex, DefaultStyle, values);
     }
 
-    public void SetCellValues(int rowIndex, int startColIndex, params object[] values)
-    {
-        SetCellValues(rowIndex, startColIndex, DefaultStyle, values);
-    }
-
-    public void SetCellValues(int rowIndex, int startColIndex, ICellStyle style, params object[] values)
+    public IRow SetCellValues(int rowIndex, int startColIndex, ICellStyle style, params object?[] values)
     {
         var row = PoiHelper.GetRow(_sheet, rowIndex);
         for (var i = 0; i < values.Length; i++)
         {
             PoiHelper.SetCellValue(row, startColIndex + i, values[i], false, style);
         }
+        return row;
     }
 
-    public void SetCellValue(int rowIndex, int colIndex, object value, ICellStyle? style = null)
+    public void SetCellValue(int rowIndex, int colIndex, object? value, ICellStyle? style = null)
     {
         var cell = PoiHelper.GetCell(_sheet, rowIndex, colIndex);
         if (style == null && value != null)
@@ -350,4 +352,11 @@ public class PoiExcel
     /// </summary>
     public ICellStyle WrapStyle => _style.WrapStyle;
     #endregion
+
+    #region 暴漏POI对象，以便外部使用
+    public IWorkbook Workbook => _workbook;
+    public ISheet Sheet => _sheet;
+    #endregion
+
+
 }
