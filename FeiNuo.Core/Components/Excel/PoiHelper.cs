@@ -18,12 +18,25 @@ public partial class PoiHelper
         return xlsx ? new XSSFWorkbook() : new HSSFWorkbook();
     }
 
+    public static IWorkbook CreateWorkbook(out StyleFactory styleFactory)
+    {
+        var wb = CreateWorkbook();
+        styleFactory = new StyleFactory(wb);
+        return wb;
+    }
+
     /// <summary>
     /// 创建工作簿
     /// </summary>
     public static IWorkbook CreateWorkbook(Stream stream)
     {
         return WorkbookFactory.Create(stream);
+    }
+    public static IWorkbook CreateWorkbook(Stream stream, out StyleFactory styleFactory)
+    {
+        var wb = CreateWorkbook(stream);
+        styleFactory = new StyleFactory(wb);
+        return wb;
     }
 
     /// <summary>

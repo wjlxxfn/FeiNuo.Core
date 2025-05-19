@@ -2,26 +2,26 @@
 {
     public class ExcelExporter
     {
-        public byte[] ExportData<T>(IEnumerable<T> dataList)
-        {
-            var poi = new PoiExcel();
-            if (dataList.Any())
-            {
-                int rowIndex = 0;
-                var first = dataList.First();
-                if (first != null)
-                {
-                    var propertyInfos = first.GetType().GetProperties();
-                    poi.AddTitleRow(rowIndex++, [.. propertyInfos.Select(a => a.Name)]);
-                    foreach (var data in dataList)
-                    {
-                        var values = propertyInfos.Select(a => a.GetValue(data)).ToArray();
-                        poi.AddDataRow(rowIndex++, values);
-                    }
-                }
-            }
-            return poi.GetExcelBytes();
-        }
+        //public byte[] ExportData<T>(IEnumerable<T> dataList)
+        //{
+        //    var poi = new PoiExcel();
+        //    if (dataList.Any())
+        //    {
+        //        int rowIndex = 0;
+        //        var first = dataList.First();
+        //        if (first != null)
+        //        {
+        //            var propertyInfos = first.GetType().GetProperties();
+        //            poi.AddTitleRow(rowIndex++, [.. propertyInfos.Select(a => a.Name)]);
+        //            foreach (var data in dataList)
+        //            {
+        //                var values = propertyInfos.Select(a => a.GetValue(data)).ToArray();
+        //                poi.AddDataRow(rowIndex++, values);
+        //            }
+        //        }
+        //    }
+        //    return poi.GetExcelBytes();
+        //}
 
         //public byte[] ExportData<T>(Dictionary<string, IEnumerable<object>> dataMap)
         //{

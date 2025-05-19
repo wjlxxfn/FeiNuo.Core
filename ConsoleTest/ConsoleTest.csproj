@@ -7,4 +7,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\FeiNuo.AspNetCore\FeiNuo.AspNetCore.csproj" />
+    <ProjectReference Include="..\FeiNuo.Core\FeiNuo.Core.csproj" />
+  </ItemGroup>
+
 </Project>
