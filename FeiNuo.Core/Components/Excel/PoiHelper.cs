@@ -125,7 +125,10 @@ public partial class PoiHelper
         }
         else if (value is DateOnly dto)
         {
-            cell.SetCellValue(dto);
+            if (dto != DateOnly.MinValue && dto.ToString("yyyy-MM-dd") != "1900-01-01")
+            {
+                cell.SetCellValue(dto);
+            }
         }
         else if (value is DateTime dt)
         {
@@ -152,6 +155,7 @@ public partial class PoiHelper
         {
             return null;
         }
+
         if (cell.CellType == CellType.String)
         {
             return cell.StringCellValue;
@@ -183,20 +187,22 @@ public partial class PoiHelper
         {
             return null;
         }
-        if (cell.CellType == CellType.Numeric)
+
+        var cellType = cell.CellType == CellType.Formula ? cell.CachedFormulaResultType : cell.CellType;
+        if (cellType == CellType.Numeric)
         {
             return cell.DateCellValue;
         }
-        else if (cell.CellType == CellType.Formula)
+        else if (cellType == CellType.String)
         {
-            if (DateUtil.IsCellDateFormatted(cell)) return cell.DateCellValue;
-            else throw new Exception($"日期获取错误，CellType:{cell.CellType}，CellValue:{cell}");
+            if (DateTime.TryParse(cell.StringCellValue, out var val)) return val;
+            else throw new Exception("日期错误: " + Cts(cell));
         }
-        else
+        else if (DateTime.TryParse(cell.ToString(), out var val))
         {
-            if (DateTime.TryParse(cell.StringCellValue.Trim('\''), out var dt)) return dt;
-            else throw new Exception($"日期获取错误，CellType:{cell.CellType}，CellValue:{cell}");
+            return val;
         }
+        else throw new Exception("日期错误: " + Cts(cell));
     }
 
     /// <summary>
@@ -217,20 +223,22 @@ public partial class PoiHelper
         {
             return null;
         }
-        if (cell.CellType == CellType.Numeric)
+
+        var cellType = cell.CellType == CellType.Formula ? cell.CachedFormulaResultType : cell.CellType;
+        if (cellType == CellType.Numeric)
         {
             return Convert.ToDecimal(cell.NumericCellValue);
         }
-        if (cell.CellType == CellType.Formula)
+        else if (cellType == CellType.String)
         {
-            if (cell.CachedFormulaResultType == CellType.Numeric) return Convert.ToDecimal(cell.NumericCellValue);
-            if (cell.CachedFormulaResultType == CellType.String && decimal.TryParse(cell.StringCellValue, out var d)) return d;
+            if (decimal.TryParse(cell.StringCellValue, out var val)) return val;
+            else throw new Exception("数值错误: " + Cts(cell));
         }
-        if (decimal.TryParse(cell.ToString(), out var result))
+        else if (decimal.TryParse(cell.ToString(), out var val))
         {
-            return result;
+            return val;
         }
-        else throw new Exception($"数值获取错误，CellType:{cell.CellType}，CellValue:{cell}");
+        else throw new Exception("数值错误: " + Cts(cell));
     }
 
     /// <summary>
@@ -244,6 +252,11 @@ public partial class PoiHelper
         return GetDecimalValue(cell) ?? defaultValue;
     }
 
+    private static string Cts(ICell cell)
+    {
+        return $"单元格={cell.Address}, 值={cell}";
+    }
+
     /// <summary>
     /// 获取单元格的值
     /// </summary>
@@ -251,7 +264,6 @@ public partial class PoiHelper
     {
         var value = GetCellValue(cell);
         if (null == value) return (T?)value;
-
         return (T)Convert.ChangeType(value, typeof(T));
     }
 
@@ -284,10 +296,8 @@ public partial class PoiHelper
                 }
             case CellType.String:
                 return cell.StringCellValue.Trim();
-            case CellType.Unknown:
-                throw new Exception("CellType Unknown!");
             default:
-                return null;
+                throw new Exception($"格式错误: " + Cts(cell));
         }
     }
     #endregion
@@ -295,18 +305,20 @@ public partial class PoiHelper
     #region 其他辅助方法
     /// <summary>
     /// 按坐标合并单元格
+    /// <para>如果没有传入格式，则合并后的单元格以第一个单元格的格式为准</para>
     /// </summary>
     public static void AddMergedRegion(ISheet sheet, int startRow, int endRow, int startCol, int endCol, ICellStyle? style = null)
     {
-        if (style != null)
+        if (style == null)
         {
-            for (int i = startRow; i <= endRow; i++)
+            style = GetCell(sheet, startRow, startCol).CellStyle;
+        }
+        for (int i = startRow; i <= endRow; i++)
+        {
+            var row = GetRow(sheet, i);
+            for (int j = startCol; j <= endCol; j++)
             {
-                var row = GetRow(sheet, i);
-                for (int j = startCol; j <= endCol; j++)
-                {
-                    GetCell(row, j).CellStyle = style;
-                }
+                GetCell(row, j).CellStyle = style;
             }
         }
         var cellRange = new CellRangeAddress(startRow, endRow, startCol, endCol);
@@ -314,7 +326,8 @@ public partial class PoiHelper
     }
 
     /// <summary>
-    /// 通过条件格式给内容区域的所有单元格添加边框,需要在添加完数据后调用
+    /// 通过条件格式给内容区域的所有单元格添加边框
+    /// <para>如果没有执行范围,默认有数据的范围，但需要在添加完数据后调用</para>
     /// </summary>
     /// <param name="sheet">工作表</param>
     /// <param name="borderStyle">边框样式，默认Thin</param>
@@ -589,8 +602,12 @@ public partial class PoiHelper
     public static void SetRowHeight(ISheet sheet, int rowIndex, int height)
     {
         var row = GetRow(sheet, rowIndex);
-        row.Height = (short)(height * 20);
+        SetRowHeight(row, height);
     }
+
+    /// <summary>
+    /// 设置行高
+    /// </summary>
     public static void SetRowHeight(IRow row, int height)
     {
         row.Height = (short)(height * 20);
