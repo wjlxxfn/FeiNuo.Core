@@ -375,3 +375,146 @@ public class ExcelHelper
 
      */
 }
+
+
+/**
+ 
+ using System.Data;
+
+namespace FeiNuo.Core
+{
+    public class ExcelHelper
+    {
+        /// <summary>
+        /// 创建空白excel
+        /// </summary>
+        public static PoiExcel CreateExcel()
+        {
+            var wb = PoiHelper.CreateWorkbook();
+            var sheet = wb.CreateSheet("Sheet1");
+            return new PoiExcel(wb, sheet);
+        }
+
+
+        public static PoiExcel CreateExcel(KestrelServerOptionsSystemdExtensions=)
+        {
+            var wb = PoiHelper.CreateWorkbook();
+            return new PoiExcel(wb, wb.GetSheetAt(0));
+        }
+
+
+        #region 静态方法,直接填充数据
+        /// <summary>
+        /// 创建空的Excel对象，添加默认的Sheet1
+        /// </summary>
+        public static PoiExcel CreateExcel(string sheetName = "Sheet1", ExcelType excelType = ExcelType.Excel2007, Action<ExcelStyle>? defaultStyleConfig = null)
+        {
+            return new PoiExcel(sheetName, excelType, defaultStyleConfig);
+        }
+        /// <summary>
+        /// 根据文件流创建Excel对象，当前Sheet默认设置为第一个Sheet
+        /// </summary>
+        public static PoiExcel CreateExcel(Stream stream, int activeSheetIndex = 0, Action<ExcelStyle>? defaultStyleConfig = null)
+        {
+            return new PoiExcel(stream, activeSheetIndex, defaultStyleConfig);
+        }
+
+        /// <summary>
+        /// 根据数据集合构造Excel对象
+        /// <para>标题取第一个数据对象的属性名,所以第一条数据不能是空</para>
+        /// <para>使用示例: new PoiExcel(users.Select(a=>new {用户名=a.Username,姓名=a.NickName}))</para>
+        /// </summary>
+        /// <param name="dataList">数据</param>
+        public static PoiExcel CreateExcel(IEnumerable<object> dataList)
+        {
+            var poi = new PoiExcel();
+            poi.AddDataList(dataList);
+            return poi;
+        }
+
+        /// <summary>
+        /// 根据数据集合构造Excel对象(多个Sheet,通过sheetName为键加入到Dictionary中)
+        /// <para>标题取第一个数据对象的属性名,所以第一条数据不能是空</para>
+        /// <para>使用示例： var dict = new Dictionary(); </para>
+        /// <para>           dict.Add("用户", users.Select(a => new { 用户名 = a.Username, 姓名 = a.NickName });</para>
+        /// <para>           new PoiExcel(dict);</para>
+        /// </summary>
+        /// <param name="dataMap">Key=SheetName,Value=dataList</param>
+        public static PoiExcel CreateExcel(Dictionary<string, IEnumerable<object>> dataMap)
+        {
+            var poi = new PoiExcel().RemoveSheet1();
+            foreach (var data in dataMap)
+            {
+                poi.CreateSheet(data.Key);
+                poi.AddDataList(data.Value);
+            }
+            return poi;
+        }
+
+        /// <summary>
+        /// 根据DataTable构建Excel，标题=ColumnName
+        /// </summary>
+        public static PoiExcel CreateExcel(DataTable dt)
+        {
+            var poi = new PoiExcel();
+            poi.AddDataTable(dt);
+            return poi;
+        }
+
+        /// <summary>
+        /// 根据DataTable构建Excel，SheetName=TableName,标题=ColumnName
+        /// </summary>
+        public static PoiExcel CreateExcel(DataSet ds)
+        {
+            var poi = new PoiExcel().RemoveSheet1();
+            foreach (DataTable dt in ds.Tables)
+            {
+                poi.CreateSheet(dt.TableName);
+                poi.AddDataTable(dt);
+            }
+            return poi;
+        }
+
+        /// <summary>
+        /// 根据数据集和列配置自动生成Excel
+        /// <para>注意：列配置的Style不生效，这里只使用DefaultStyle</para>
+        /// </summary>
+        public static PoiExcel CreateExcel<T>(IEnumerable<T> dataList, IEnumerable<ExcelColumn<T>> columns) where T : class
+        {
+            return new PoiExcel().AddDataList(dataList, columns);
+        }
+
+        /// <summary>
+        /// 通过列配置创建Excel对象，不添加数据，每列添加默认格式，主要用于下载导入模板 
+        /// </summary>
+        public static PoiExcel CreateExcel<T>(IEnumerable<ExcelColumn<T>> columns, int startRowIndex = 0, int startColIndex = 0) where T : class
+        {
+            var poi = new PoiExcel();
+            var titles = columns.Select(a => a.Title).ToArray();
+            var titleRowCount = titles.Select(a => a.Split('#').Length).Max();
+            poi.AddTitleRow(startRowIndex, startColIndex, titles);
+
+            var colIndex = startColIndex;
+            foreach (var column in columns)
+            {
+                if (column.Width.HasValue)
+                {
+                    poi.SetColumnWidth(colIndex, column.Width.Value);
+                }
+                if (column.Hidden)
+                {
+                    poi.SetColumnHidden(colIndex);
+                }
+                if (column.ColumnStyle.IsNotEmptyStyle)
+                {
+                    poi.SetDefaultColumnStyle(colIndex, poi.CreateStyle(column.ColumnStyle));
+                }
+                colIndex++;
+            }
+            return poi;
+        }
+        #endregion
+    }
+}
+
+ */
