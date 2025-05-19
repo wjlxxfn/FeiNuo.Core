@@ -7,6 +7,10 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+    <ItemGroup>
+		<PackageReference Include="NPOI" Version="2.7.2" PrivateAssets="All" />
+    </ItemGroup>
+	
   <ItemGroup>
     <ProjectReference Include="..\FeiNuo.AspNetCore\FeiNuo.AspNetCore.csproj" />
     <ProjectReference Include="..\FeiNuo.Core\FeiNuo.Core.csproj" />

@@ -3,6 +3,7 @@ using NPOI.SS.Formula.Eval;
 using NPOI.SS.UserModel;
 using NPOI.SS.Util;
 using NPOI.XSSF.UserModel;
+using System.Data;
 using System.Text;
 
 namespace FeiNuo.Core;
@@ -18,25 +19,12 @@ public partial class PoiHelper
         return xlsx ? new XSSFWorkbook() : new HSSFWorkbook();
     }
 
-    public static IWorkbook CreateWorkbook(out StyleFactory styleFactory)
-    {
-        var wb = CreateWorkbook();
-        styleFactory = new StyleFactory(wb);
-        return wb;
-    }
-
     /// <summary>
     /// 创建工作簿
     /// </summary>
     public static IWorkbook CreateWorkbook(Stream stream)
     {
         return WorkbookFactory.Create(stream);
-    }
-    public static IWorkbook CreateWorkbook(Stream stream, out StyleFactory styleFactory)
-    {
-        var wb = CreateWorkbook(stream);
-        styleFactory = new StyleFactory(wb);
-        return wb;
     }
 
     /// <summary>
@@ -610,6 +598,14 @@ public partial class PoiHelper
     }
 
     /// <summary>
+    /// 设置自动列宽
+    /// </summary>
+    public static void AutoSizeColumn(ISheet sheet, int colIndex)
+    {
+        sheet.AutoSizeColumn(colIndex);
+    }
+
+    /// <summary>
     /// 设置行高
     /// </summary>
     public static void SetRowHeight(ISheet sheet, int rowIndex, int height)
@@ -634,6 +630,134 @@ public partial class PoiHelper
         using var ms = new MemoryStream();
         workboox.Write(ms, leaveOpen);
         return ms.ToArray();
+    }
+    #endregion
+
+    #region 创建PoiExcel
+    /// <summary>
+    /// 创建空白excel，默认会创建一个Sheet1，如果不需要，创建后调用PoiExcel.RemoveSheet1()删除
+    /// </summary>
+    public static PoiExcel CreateExcel(ExcelStyle? defaultStyle = null)
+    {
+        return CreateExcel(out _, defaultStyle);
+    }
+
+    /// <summary>
+    /// 创建空白excel
+    /// </summary>
+    public static PoiExcel CreateExcel(out StyleFactory style, ExcelStyle? defaultStyle = null)
+    {
+        var wb = PoiHelper.CreateWorkbook();
+        var sheet = wb.CreateSheet("Sheet1");
+        style = new StyleFactory(wb, defaultStyle);
+        return new PoiExcel(wb, sheet, style);
+    }
+
+    /// <summary>
+    /// 根据文件流创建Excel对象，当前Sheet默认设置为第一个Sheet
+    /// </summary>
+    public static PoiExcel CreateExcel(Stream stream)
+    {
+        return CreateExcel(stream, out _);
+    }
+
+    /// <summary>
+    /// 根据文件流创建Excel对象，当前Sheet默认设置为第一个Sheet
+    /// </summary>
+    public static PoiExcel CreateExcel(Stream stream, out StyleFactory style)
+    {
+        var wb = PoiHelper.CreateWorkbook(stream);
+        var sheet = wb.NumberOfSheets >= 1 ? wb.GetSheetAt(0) : wb.CreateSheet("Sheet1");
+        style = new StyleFactory(wb);
+        return new PoiExcel(wb, sheet, style);
+    }
+
+    /// <summary>
+    /// 根据数据集合构造Excel对象
+    /// <para>标题取第一个数据对象的属性名：第一条数据不能是空</para>
+    /// <para>使用示例: new PoiExcel(users.Select(a=>new {用户名=a.Username,姓名=a.NickName}))</para>
+    /// </summary>
+    /// <param name="dataList">数据</param>
+    public static PoiExcel CreateExcel(IEnumerable<object> dataList)
+    {
+        return CreateExcel(dataList, out _);
+    }
+
+    /// <summary>
+    /// 根据数据集合构造Excel对象
+    /// <para>标题取第一个数据对象的属性名：第一条数据不能是空</para>
+    /// <para>使用示例: new PoiExcel(users.Select(a=>new {用户名=a.Username,姓名=a.NickName}))</para>
+    /// </summary>
+    public static PoiExcel CreateExcel(IEnumerable<object> dataList, out StyleFactory style)
+    {
+        var poi = CreateExcel(out style);
+        poi.AddDataList(dataList);
+        return poi;
+    }
+
+    /// <summary>
+    /// 根据数据集合构造Excel对象(多个Sheet,通过sheetName为键加入到Dictionary中)
+    /// <para>标题取第一个数据对象的属性名,所以第一条数据不能是空</para>
+    /// <para>使用示例： var dict = new Dictionary(); </para>
+    /// <para>           dict.Add("用户", users.Select(a => new { 用户名 = a.Username, 姓名 = a.NickName });</para>
+    /// <para>           new PoiExcel(dict);</para>
+    /// </summary>
+    /// <param name="dataMap">Key=SheetName,Value=dataList</param>
+    public static PoiExcel CreateExcel(Dictionary<string, IEnumerable<object>> dataMap)
+    {
+        var poi = CreateExcel().RemoveSheet1();
+        foreach (var data in dataMap)
+        {
+            poi.CreateSheet(data.Key);
+            poi.AddDataList(data.Value);
+        }
+        return poi;
+    }
+
+    /// <summary>
+    /// 根据DataTable构建Excel，标题=ColumnName
+    /// </summary>
+    public static PoiExcel CreateExcel(DataTable dt)
+    {
+        var poi = CreateExcel();
+        poi.AddDataTable(dt);
+        return poi;
+    }
+
+    /// <summary>
+    /// 根据DataTable构建Excel，SheetName=TableName,标题=ColumnName
+    /// </summary>
+    public static PoiExcel CreateExcel(DataSet ds)
+    {
+        var poi = CreateExcel().RemoveSheet1();
+        foreach (DataTable dt in ds.Tables)
+        {
+            poi.CreateSheet(dt.TableName);
+            poi.AddDataTable(dt);
+        }
+        return poi;
+    }
+
+    /// <summary>
+    /// 根据列配置自动生成Excel,通常是生成导入模板，内部设置各列的默认格式
+    /// </summary>
+    public static PoiExcel CreateExcel<T>(IEnumerable<ExcelColumn<T>> columns) where T : class
+    {
+        // 这里用空样式，不然默认样式带边框，列默认导致导出的模板全部是边框
+        //TODO 测试这里用默认样式
+        var poi = CreateExcel(ExcelStyle.EmptyStyle);
+        poi.AddTitleRow(columns, true);
+        return poi;
+    }
+
+    /// <summary>
+    /// 根据数据集和列配置自动生成Excel
+    /// </summary>
+    public static PoiExcel CreateExcel<T>(IEnumerable<T> dataList, IEnumerable<ExcelColumn<T>> columns) where T : class
+    {
+        var poi = CreateExcel();
+        poi.AddDataList(dataList, columns);
+        return poi;
     }
     #endregion
 }

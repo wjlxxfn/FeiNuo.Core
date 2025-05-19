@@ -10,14 +10,24 @@ public class StyleFactory
     private readonly IWorkbook workbook;
     private readonly Dictionary<string, ICellStyle> CACHED_STYLES = [];
 
+    /// <summary>
+    /// 空样式 = workbook.CreateCellStyle()
+    /// </summary>
+    public ICellStyle EmptyStyle { get; private set; }
+
+    /// <summary>
+    /// 默认样式，如果没有在构造函数中配置，则默认边框=Border.Thin,水平居左，垂直居中
+    /// </summary>
+    public ICellStyle DefaultStyle { get; private set; }
+
     public StyleFactory(IWorkbook workbook, ExcelStyle? defaultStyle = null)
     {
         this.workbook = workbook;
         // 空样式
-        EmptyStyle = workbook.CreateCellStyle();
+        EmptyStyle = workbook.NumCellStyles == 1 ? workbook.GetCellStyleAt(0) : workbook.CreateCellStyle();
         CACHED_STYLES.Add(new ExcelStyle().StyleKey, EmptyStyle);
-        // 默认格式
-        DefaultStyle = PoiHelper.CreateCellStyle(workbook, defaultStyle ?? new ExcelStyle().Border().Align(1, 1));
+        // 默认格式,默认有边框,水平居左，垂直居中
+        DefaultStyle = PoiHelper.CreateCellStyle(workbook, defaultStyle ?? ExcelStyle.NewStyle().Border().Align(1, 1));
     }
 
     /// <summary>
@@ -48,20 +58,7 @@ public class StyleFactory
     }
 
     #region 预定义常用的样式
-    /// <summary>
-    /// 空样式
-    /// </summary>
-    public ICellStyle EmptyStyle { get; private set; }
-
-    /// <summary>
-    /// 默认样式
-    /// <para>如果构造函数未指定，则DefaultStyle = 水平居左,垂直居中,边框Thin</para>
-    /// </summary>
-    public ICellStyle DefaultStyle { get; private set; }
-
-
-
-    private ICellStyle? _textStyle, _wrapStyle, _centerStyle, _dateStyle, _dateTimeStyle;
+    private ICellStyle? _textStyle, _wrapStyle, _centerStyle, _dateStyle, _dateTimeStyle, _numberStyle, _persentStyle;
 
     /// <summary>
     /// 文本格式：水平居左，垂直居中，格式 @
@@ -90,26 +87,62 @@ public class StyleFactory
     /// <summary>
     /// 居中样式: 水平居中，垂直居中
     /// </summary>
-    public ICellStyle CenterStyle => CreateStyle(ExcelStyle.NewStyle().Align(2, 1));
+    public ICellStyle CenterStyle
+    {
+        get
+        {
+            _centerStyle ??= CreateStyle(ExcelStyle.NewStyle().Align(2, 1));
+            return _centerStyle;
+        }
+    }
 
     /// <summary>
     /// 日期格式：水平居中，垂直居中，格式 yyyy-MM-dd
     /// </summary>
-    public ICellStyle DateStyle => CreateStyle(ExcelStyle.NewStyle().Format("yyyy-mm-dd"), CenterStyle);
+    public ICellStyle DateStyle
+    {
+        get
+        {
+            _dateStyle ??= CreateStyle(ExcelStyle.NewStyle().Format("yyyy-mm-dd"), CenterStyle);
+            return _dateStyle;
+        }
+    }
 
     /// <summary>
     /// 时间格式：水平居中，垂直居中，格式 yyyy-MM-dd HH:mm
     /// </summary>
-    public ICellStyle DateTimeStyle => CreateStyle(ExcelStyle.NewStyle().Format("yyyy-mm-dd hh:mm"), CenterStyle);
+    public ICellStyle DateTimeStyle
+    {
+        get
+        {
+            _dateTimeStyle ??= CreateStyle(ExcelStyle.NewStyle().Format("yyyy-mm-dd hh:mm"), CenterStyle);
+            return _dateTimeStyle;
+        }
+    }
 
     /// <summary>
     /// 数字格式：水平居中，垂直居中，格式 0.00
     /// </summary>
-    public ICellStyle NumberStyle => CreateStyle(ExcelStyle.NewStyle().Format("0.00"), CenterStyle);
+    public ICellStyle NumberStyle
+    {
+        get
+        {
+            _numberStyle ??= CreateStyle(ExcelStyle.NewStyle().Format("0.00"), CenterStyle);
+            return _numberStyle;
+        }
+    }
+
 
     /// <summary>
     /// 百分比：水平居中，垂直居中，格式 0.00%
     /// </summary>
-    public ICellStyle PersentStyle => CreateStyle(ExcelStyle.NewStyle().Format("0.00%"), CenterStyle);
+    public ICellStyle PersentStyle
+    {
+        get
+        {
+            _persentStyle ??= CreateStyle(ExcelStyle.NewStyle().Format("0.00%"), CenterStyle);
+            return _persentStyle;
+        }
+    }
     #endregion
 }

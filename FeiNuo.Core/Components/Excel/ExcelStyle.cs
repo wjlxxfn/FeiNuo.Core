@@ -205,4 +205,8 @@ public class ExcelStyle
     /// </summary>
     public bool IsEmptyStyle => !IsNotEmptyStyle;
 
+    /// <summary>
+    /// 默认空样式
+    /// </summary>
+    public static ExcelStyle EmptyStyle => new();
 }

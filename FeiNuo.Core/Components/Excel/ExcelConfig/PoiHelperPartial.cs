@@ -20,6 +20,7 @@ namespace FeiNuo.Core
             var wb = CreateWorkbook(config.IsExcel2007);
             styles = new StyleFactory(wb, config.DefaultStyle);
 
+
             // 创建工作表
             foreach (var sheet in config.ExcelSheets)
             {
