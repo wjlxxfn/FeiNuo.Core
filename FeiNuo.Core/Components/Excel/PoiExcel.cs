@@ -430,7 +430,7 @@ public class PoiExcel
         return this;
     }
 
-    public PoiExcel AddDataList<T>(IEnumerable<T> dataList, IEnumerable<ExcelColumn<T>> columns, int startRow = 0) where T : class
+    public PoiExcel AddDataList<T>(IEnumerable<T> dataList, IEnumerable<ExcelColumn<T>> columns, int startRow = 0, int startCol = 0) where T : class
     {
         var rowIndex = startRow;
 
@@ -443,19 +443,21 @@ public class PoiExcel
         foreach (var data in dataList)
         {
             var values = columns.Select(a => a.ValueGetter(data)).ToArray();
-            AddDataRow(rowIndex++, values);
+            AddDataRow(rowIndex++, startCol, values);
         }
         // 列配置
+        var colIndex = startCol;
         foreach (var column in columns)
         {
             if (column.Width.HasValue)
             {
-                SetColumnWidth(column.ColumnIndex, column.Width.Value);
+                SetColumnWidth(colIndex, column.Width.Value);
             }
             if (column.Hidden)
             {
-                SetColumnHidden(column.ColumnIndex);
+                SetColumnHidden(colIndex);
             }
+            colIndex++;
         }
         return this;
     }
