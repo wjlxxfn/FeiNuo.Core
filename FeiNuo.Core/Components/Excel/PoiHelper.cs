@@ -742,7 +742,7 @@ public partial class PoiHelper
     {
         // 这里用空样式，不然默认样式带边框，列默认导致导出的模板全部是边框
         var poi = CreateExcel(ExcelStyle.EmptyStyle);
-        poi.AddTitleRow(columns, true);
+        poi.AddTitleRow(0, 0, columns, true);
         return poi;
     }
 
@@ -754,6 +754,224 @@ public partial class PoiHelper
         var poi = CreateExcel();
         poi.AddDataList(dataList, columns);
         return poi;
+    }
+
+    public static PoiExcel CreateExcel(ExcelConfig config)
+    {
+        return CreateExcel(config, out _);
+    }
+    /// <summary>
+    /// 创建工作簿
+    /// </summary>
+    public static PoiExcel CreateExcel(ExcelConfig config, out StyleFactory styles)
+    {
+        var excel = CreateExcel(out styles, ExcelStyle.EmptyStyle).RemoveSheet1();
+        // 创建工作表
+        foreach (var sheet in config.ExcelSheets)
+        {
+            CreateWorkSheet(excel, sheet, styles);
+        }
+        return excel;
+    }
+
+    /// <summary>
+    /// 创建工作表:添加备注描述，主标题，列标题
+    /// </summary>
+    private static void CreateWorkSheet(PoiExcel excel, ExcelSheet config, StyleFactory styles)
+    {
+        var sheet = excel.CreateSheet(config.SheetName, config.ForceFormulaRecalculation);
+
+        var rowIndex = config.StartRowIndex;
+        var columnCount = config.ColumnCount;
+        #region 生成描述行
+        if (!string.IsNullOrWhiteSpace(config.Description))
+        {
+            if (config.DescriptionStyle?.IsNotEmptyStyle ?? false)
+            {
+                excel.RemarkStyle = config.DescriptionStyle;
+            }
+            excel.AddRemarkRow(rowIndex, config.StartColumnIndex, config.Description, config.DescriptionColSpan ?? columnCount, config.DescriptionRowHeight);
+            rowIndex++;
+        }
+        #endregion
+
+        #region 生成主标题行
+        if (!string.IsNullOrWhiteSpace(config.MainTitle))
+        {
+            if (config.MainTitleStyle?.IsNotEmptyStyle ?? false)
+            {
+                excel.MainTitleStyle = config.MainTitleStyle;
+            }
+            excel.AddMainTitle(rowIndex, config.StartColumnIndex, config.MainTitle, config.MainTitleColSpan ?? columnCount);
+            rowIndex++;
+        }
+        #endregion
+
+        #region 生成标题和数据
+        if (config.ColumnTitleStyle?.IsNotEmptyStyle ?? false)
+        {
+            excel.TitleStyle = config.ColumnTitleStyle;
+        }
+        excel.AddDataList(config.DataList, config.ExcelColumns, rowIndex, config.StartColumnIndex);
+        #endregion
+
+        #region 工作表整体配置
+        if (config.DefaultColumnWidth.HasValue)
+        {
+            sheet.DefaultColumnWidth = config.DefaultColumnWidth.Value;
+        }
+        // 自动设置边框
+        if (config.AddConditionalBorderStyle)
+        {
+            var region = new CellRangeAddress(config.StartRowIndex, sheet.LastRowNum, config.StartColumnIndex, config.EndColumnIndex);
+            AddConditionalBorderStyle(sheet, range: region);
+        }
+        #endregion
+    }
+    #endregion
+
+    #region ExcelConfig转换
+    /// <summary>
+    /// 根据模板配置，检查excel是否指定模板
+    /// </summary>
+    public static void ValidateExcelTemplate(IWorkbook wb, ExcelConfig config)
+    {
+        foreach (var sheet in config.ExcelSheets)
+        {
+            ValidateExcelTemplate(wb, sheet);
+        }
+    }
+
+    /// <summary>
+    /// 根据模板配置，检查excel是否指定模板
+    /// </summary>
+    public static void ValidateExcelTemplate(IWorkbook wb, ExcelSheet config)
+    {
+        if (!config.ValidateImportTemplate) return;
+        var sheet = wb.GetSheet(config.SheetName) ?? throw new MessageException($"模板错误：没有找到名为【{config.SheetName}】的Sheet页");
+        if (!config.ExcelColumns.Any()) return;
+        var row = GetRow(sheet, config.TitleRowIndex + config.ColumnRowCount - 1);
+        foreach (var col in config.ExcelColumns)
+        {
+            if (GetStringValue(GetCell(row, col.ColumnIndex)) != col.RowTitles.Last())
+            {
+                throw new Exception($"【{config.SheetName}】模板错误，【{col.ColumnIndex}】列标题应为【{col.Title}】，请重新下载模板。");
+            }
+        }
+    }
+
+    /// <summary>
+    /// 从Excel中读取数据，并赋值到ExcelSheet的DataList
+    /// </summary>
+    public static List<T> GetDataFromExcel<T>(IWorkbook wb, ExcelSheet config) where T : class, new()
+    {
+        var sheet = wb.GetSheet(config.SheetName) ?? throw new Exception($"找不到Sheet【{config.SheetName}】");
+        // 计算公式
+        sheet.ForceFormulaRecalculation = true;
+
+        var keyMap = new Dictionary<string, int>();
+        var lstData = new List<T>();
+        var errMsg = new StringBuilder();
+
+        for (var rowIndex = config.DataRowIndex; rowIndex <= sheet.LastRowNum; rowIndex++)
+        {
+            var row = GetRow(sheet, rowIndex);
+            if (IsBlankRow(row)) continue;
+
+            var data = Activator.CreateInstance<T>() ?? throw new Exception($"无法实例化对象{typeof(T)}");
+            var rowMsg = new StringBuilder();
+            var keyValue = new StringBuilder();
+            foreach (var col in config.ExcelColumns)
+            {
+                var cell = GetCell(row, col.ColumnIndex);
+                var val = GetCellValue(cell);
+
+                try
+                {
+                    var msg = col.ValueSetter(data, val);
+                    if (msg == "_UniqueKey_")
+                    {
+                        keyValue.Append((val ?? "null") + "|");
+                    }
+                    else if (!string.IsNullOrWhiteSpace(msg))
+                    {
+                        rowMsg.Append($"列【{col.RowTitles.Last()}】{msg}；");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    rowMsg.Append($"列【{col.RowTitles.Last()}】{ex.Message}；");
+                }
+            }
+
+            if (rowMsg.Length > 0)
+            {
+                errMsg.AppendLine($"第【{rowIndex}】行：{rowMsg}");
+            }
+            else
+            {
+                var key = keyValue.ToString();
+                if (!string.IsNullOrEmpty(key))
+                {
+                    if (keyMap.TryGetValue(key, out int existingRow))
+                    {
+                        errMsg.AppendLine($"第【{rowIndex}】行：与{existingRow}行重复,重复键值：{key}；");
+                    }
+                    else
+                    {
+                        keyMap[key] = rowIndex;
+                    }
+                }
+                lstData.Add(data);
+            }
+        }
+
+        if (errMsg.Length > 0)
+        {
+            throw new MessageException($"获取Excel数据出错:<br/>{errMsg}");
+        }
+
+        return lstData;
+    }
+
+    public static DataSet GetDataSetFromExcel(IWorkbook wb)
+    {
+        var ds = new DataSet();
+        for (int i = 0; i < wb.NumberOfSheets; i++)
+        {
+            var sheet = wb.GetSheetAt(i);
+            var dt = GetDataTableFromSheet(sheet);
+            ds.Tables.Add(dt);
+        }
+        return ds;
+    }
+
+    public static DataTable GetDataTableFromSheet(ISheet sheet, int headerRowIndex = 0)
+    {
+        var dt = new DataTable(sheet.SheetName);
+        var rowCount = sheet.LastRowNum + 1;
+        for (int j = headerRowIndex; j < rowCount; j++)
+        {
+            var row = sheet.GetRow(j);
+            if (row == null) continue;
+            if (j == 0)
+            {
+                foreach (var cell in row.Cells)
+                {
+                    dt.Columns.Add(GetStringValue(cell));
+                }
+            }
+            else
+            {
+                var dr = dt.NewRow();
+                foreach (var cell in row.Cells)
+                {
+                    dr[cell.ColumnIndex] = GetCellValue(cell) ?? DBNull.Value;
+                }
+                dt.Rows.Add(dr);
+            }
+        }
+        return dt;
     }
     #endregion
 }

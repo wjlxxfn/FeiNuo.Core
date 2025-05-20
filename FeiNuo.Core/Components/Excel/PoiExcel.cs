@@ -205,17 +205,17 @@ public class PoiExcel
     /// <summary>
     /// 标题行样式: 水平居中，垂直居中，背景色26, 可在添加标题行前调整
     /// </summary>
-    public static ExcelStyle TitleStyle => ExcelStyle.NewStyle().Align(2, 1).BgColor(26);
+    public ExcelStyle TitleStyle { get; set; } = ExcelStyle.NewStyle().Border().Align(2, 1).BgColor(26);
 
     /// <summary>
     /// 主标题样式：水平居中，垂直居中，背景色26，字体13, 可在添加标题行前调整
     /// </summary>
-    public static ExcelStyle MainTitleStyle => ExcelStyle.NewStyle().Align(2, 1).BgColor(26).FontS(13);
+    public ExcelStyle MainTitleStyle { get; set; } = ExcelStyle.NewStyle().Border().Align(2, 1).BgColor(26).FontS(13);
 
     /// <summary>
     /// 备注说明样式：水平居左，垂直居中，自动换行, 可在添加标题行前调整
     /// </summary>
-    public static ExcelStyle RemarkStyle => ExcelStyle.NewStyle().Align(1, 1).Wrap();
+    public ExcelStyle RemarkStyle { get; set; } = ExcelStyle.NewStyle().Border().Align(1, 1).Wrap();
     #endregion
 
     #region 添加标题行
@@ -245,11 +245,6 @@ public class PoiExcel
     /// <para>如：[A#B,A#C,D,E#F],会生成两行标题：A,A,D,E ； B,C,D,F,第一行AA会合并，第三列DD会合并</para>
     /// </summary>
     /// <returns>返回标题行数</returns>
-    public PoiExcel AddTitleRow(int rowIndex, int colIndex, params string[] titles)
-    {
-        AddTitleRows(rowIndex, colIndex, titles);
-        return this;
-    }
 
     /// <summary>
     /// 添加标题行：支持多行标题，用#分隔
@@ -257,7 +252,7 @@ public class PoiExcel
     /// <para>如：[A#B,A#C,D,E#F],会生成两行标题：A,A,D,E ； B,C,D,F,第一行AA会合并，第三列DD会合并</para>
     /// </summary>
     /// <returns>返回标题行数</returns>
-    public PoiExcel AddTitleRows(int rowIndex, int colIndex, params string[] titles)
+    public PoiExcel AddTitleRow(int rowIndex, int colIndex, params string[] titles)
     {
         var splitTitles = titles.Select(a => a.Trim().Split('#')).ToArray();
         titleRowCount = splitTitles.Max(a => a.Length);
@@ -298,15 +293,15 @@ public class PoiExcel
         return this;
     }
 
-    public PoiExcel AddTitleRow<T>(IEnumerable<ExcelColumn<T>> columns, bool setDefaultColumnStyle, int rowIndex = 0, int colIndex = 0) where T : class
+    public PoiExcel AddTitleRow(int rowIndex, int colIndex, IEnumerable<ExcelColumn> columns, bool setDefaultColumnStyle)
     {
+        ConfigColumns(columns, colIndex, setDefaultColumnStyle);
         var titles = columns.Select(a => a.Title).ToArray();
         AddTitleRow(rowIndex, colIndex, titles);
-        ConfigColumns(columns, colIndex, setDefaultColumnStyle);
         return this;
     }
 
-    private void ConfigColumns<T>(IEnumerable<ExcelColumn<T>> columns, int colIndex, bool setDefaultColumnStyle) where T : class
+    private void ConfigColumns(IEnumerable<ExcelColumn> columns, int colIndex, bool setDefaultColumnStyle)
     {
         foreach (var column in columns)
         {
@@ -332,7 +327,7 @@ public class PoiExcel
     /// <summary>
     /// 添加主标题，如想调整样式，在该用该方法前修改MainTitleStyle即可
     /// </summary>
-    public PoiExcel AddMainTitle(int rowIndex, string title, int colSpan = 12, int height = 25)
+    public PoiExcel AddMainTitle(int rowIndex, string title, int colSpan = 10, int height = 25)
     {
         return AddMainTitle(rowIndex, 0, title, colSpan, height);
     }
@@ -340,7 +335,7 @@ public class PoiExcel
     /// <summary>
     /// 添加主标题，如想调整样式，在该用该方法前修改MainTitleStyle即可
     /// </summary>
-    public PoiExcel AddMainTitle(int rowIndex, int colIndex, string title, int colSpan = 12, int height = 25)
+    public PoiExcel AddMainTitle(int rowIndex, int colIndex, string title, int colSpan = 10, int height = 25)
     {
         var row = PoiHelper.GetRow(_sheet, rowIndex);
         PoiHelper.SetRowHeight(row, height);
@@ -355,21 +350,21 @@ public class PoiExcel
     /// <summary>
     /// 添加备注说明，如想调整样式，在该用该方法前修改RemarkStyle即可
     /// </summary>
-    public PoiExcel AddRemarkRow(int rowIndex, string title, int colSpan = 12, int height = 60)
+    public PoiExcel AddRemarkRow(int rowIndex, string remark, int colSpan = 10, int height = 60)
     {
-        return AddRemarkRow(rowIndex, 0, title, colSpan, height);
+        return AddRemarkRow(rowIndex, 0, remark, colSpan, height);
     }
 
     /// <summary>
     /// 添加备注说明，如想调整样式，在该用该方法前修改RemarkStyle即可
     /// </summary>
-    public PoiExcel AddRemarkRow(int rowIndex, int colIndex, string title, int colSpan = 12, int height = 60)
+    public PoiExcel AddRemarkRow(int rowIndex, int colIndex, string remark, int colSpan = 10, int height = 60)
     {
         var row = PoiHelper.GetRow(_sheet, rowIndex);
         PoiHelper.SetRowHeight(row, height);
         var style = _style.CreateStyle(RemarkStyle);
         PoiHelper.AddMergedRegion(_sheet, rowIndex, rowIndex, colIndex, colIndex + colSpan - 1, style);
-        PoiHelper.GetCell(row, colIndex).SetCellValue(title);
+        PoiHelper.GetCell(row, colIndex).SetCellValue(remark);
         return this;
     }
     #endregion
@@ -402,28 +397,34 @@ public class PoiExcel
         return this;
     }
 
-    public PoiExcel AddDataList<T>(IEnumerable<T> dataList, IEnumerable<ExcelColumn<T>> columns, int rowIndex = 0, int colIndex = 0) where T : class
+    public PoiExcel AddDataList(IEnumerable<object> dataList, IEnumerable<ExcelColumn> columns, int rowIndex = 0, int colIndex = 0)
     {
+        if (!columns.Any()) return this;
+        var hasDataRow = dataList.Any();
         // 标题
-        AddTitleRow(columns, false, rowIndex, colIndex);
+        var setDefaultValue = !hasDataRow;// 如果没有数据，则设置默认样式
+        AddTitleRow(rowIndex, colIndex, columns, setDefaultValue);
         rowIndex += titleRowCount;
-        // 创建每列格式
-        var styleMap = columns.ToDictionary(k => k.ColumnIndex, v => v.ColumnStyle.IsNotEmptyStyle ? _style.CreateStyle(v.ColumnStyle) : null);
-        // 添加数据 
-        IRow row; ICell cell; ICellStyle? style;
-        foreach (var data in dataList)
+        if (hasDataRow)
         {
-            row = PoiHelper.GetRow(_sheet, rowIndex++);
-            foreach (var c in columns)
+            // 创建每列格式
+            var styleMap = columns.ToDictionary(k => k.ColumnIndex, v => v.ColumnStyle.IsNotEmptyStyle ? _style.CreateStyle(v.ColumnStyle) : null);
+            // 添加数据 
+            IRow row; ICell cell; ICellStyle? style;
+            foreach (var data in dataList)
             {
-                cell = PoiHelper.GetCell(row, c.ColumnIndex);
-                var value = c.ValueGetter(data);
-                style = styleMap[c.ColumnIndex];
-                if (style == null && value != null && (value is DateTime || value is DateOnly))
+                row = PoiHelper.GetRow(_sheet, rowIndex++);
+                foreach (var c in columns)
                 {
-                    style = _style.DateStyle;
+                    cell = PoiHelper.GetCell(row, c.ColumnIndex);
+                    var value = c.ValueGetter(data);
+                    style = styleMap[c.ColumnIndex];
+                    if (style == null && value != null && (value is DateTime || value is DateOnly))
+                    {
+                        style = _style.DateStyle;
+                    }
+                    PoiHelper.SetCellValue(cell, value, false, style);
                 }
-                PoiHelper.SetCellValue(cell, value, false, style);
             }
         }
         return this;

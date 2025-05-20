@@ -11,7 +11,7 @@ public class ImportConfig
     /// </summary>
     public ExcelConfig? ImportTemplate { get; set; }
     public bool ShowTemplate => ImportTemplate != null;
-    public string TemplateName => ImportTemplate?.FileName ?? string.Empty;
+    public string TemplateName => ImportTemplate?.FileName ?? "导入模板.xlsx";
     #endregion
 
     #region 导入说明

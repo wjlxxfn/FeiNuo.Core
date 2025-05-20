@@ -8,52 +8,52 @@ public class ExcelStyle
     /// <summary>
     /// 边框:POI.BorderStyle 0:None, 1:Thin, 2:Medium, 3:Dashed, 4:Dotted, 5:Thick, 6:Double, 7:Hair
     /// </summary>
-    public int? BorderStyle { get; set; }
+    public int? BorderStyle { get; private set; }
 
     /// <summary>
     /// 水平位置: POI.HorizontalAlignment 1:居左, 2:居中, 3:居右
     /// </summary>
-    public int? HorizontalAlignment { get; set; }
+    public int? HorizontalAlignment { get; private set; }
 
     /// <summary>
     /// 垂直位置: POI.VerticalAlignment  0:居上, 1:居中, 2:居下
     /// </summary>
-    public int? VerticalAlignment { get; set; }
+    public int? VerticalAlignment { get; private set; }
 
     /// <summary>
     /// 背景颜色:POI.HSSFColor
     /// </summary>
-    public short? BackgroundColor { get; set; }
+    public short? BackgroundColor { get; private set; }
 
     /// <summary>
     /// 格式化字符串
     /// </summary>
-    public string? DataFormat { get; set; }
+    public string? DataFormat { get; private set; }
 
     /// <summary>
     /// 是否换行
     /// </summary>
-    public bool? WrapText { get; set; }
+    public bool? WrapText { get; private set; }
 
     /// <summary>
     /// 字体名称
     /// </summary>
-    public string? FontName { get; set; }
+    public string? FontName { get; private set; }
 
     /// <summary>
     /// 字体颜色
     /// </summary>
-    public short? FontColor { get; set; }
+    public short? FontColor { get; private set; }
 
     /// <summary>
     /// 字体大小
     /// </summary>
-    public short? FontSize { get; set; }
+    public short? FontSize { get; private set; }
 
     /// <summary>
     /// 是否粗体
     /// </summary>
-    public bool? FontBold { get; set; }
+    public bool? FontBold { get; private set; }
 
     #region 链式调用方法
     /// <summary>

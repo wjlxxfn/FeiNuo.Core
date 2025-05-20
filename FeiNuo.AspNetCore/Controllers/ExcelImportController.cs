@@ -38,8 +38,8 @@ public class ExcelImportController : BaseController
     public IActionResult DownloadTemplate([FromQuery] string importKey)
     {
         var service = GetExcelImportService(importKey);
-        var file = service.DownloadTemplate(GetRequestParam(), CurrentUser);
-        return File(file.Bytes, file.ContentType, file.FileName);
+        var excel = service.GetImportTemplate(GetRequestParam(), CurrentUser, out var fileName);
+        return File(excel.GetExcelBytes(), excel.ContentType, fileName);
     }
 
     /// <summary>
@@ -47,11 +47,11 @@ public class ExcelImportController : BaseController
     /// </summary>
     [HttpGet("basicdata")]
     [EndpointSummary("下载基础数据")]
-    public async Task<IActionResult> DownloadBasicData([FromQuery] string importKey)
+    public IActionResult DownloadBasicData([FromQuery] string importKey)
     {
         var service = GetExcelImportService(importKey);
-        var file = await service.DownloadBasicData(GetRequestParam(), CurrentUser);
-        return File(file.Bytes, file.ContentType, file.FileName);
+        var excel = service.GetImportBasicData(GetRequestParam(), CurrentUser, out var fileName);
+        return File(excel.GetExcelBytes(), excel.ContentType, fileName);
     }
 
     /// <summary>

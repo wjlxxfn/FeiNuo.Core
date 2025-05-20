@@ -56,23 +56,23 @@ public class ExcelColumn
 #region ExcelColumn确定类型的子类
 public class ExcelColumnString : ExcelColumn
 {
-    public ExcelColumnString(string title, int? width = 15) : base(title, width, c => c.DataFormat = "@") { }
+    public ExcelColumnString(string title, int? width = 15) : base(title, width, c => c.Format("@")) { }
 }
 public class ExcelColumnDate : ExcelColumn
 {
-    public ExcelColumnDate(string title, int? width = 15) : base(title, width, c => c.DataFormat = "yyyy-mm-dd") { }
+    public ExcelColumnDate(string title, int? width = 15) : base(title, width, c => c.Format("yyyy-mm-dd")) { }
 }
 public class ExcelColumnTime : ExcelColumn
 {
-    public ExcelColumnTime(string title, int? width = 10) : base(title, width, c => c.DataFormat = "hh:mm") { }
+    public ExcelColumnTime(string title, int? width = 10) : base(title, width, c => c.Format("hh:mm")) { }
 }
 public class ExcelColumnDateTime : ExcelColumn
 {
-    public ExcelColumnDateTime(string title, int? width = 18) : base(title, width, c => c.DataFormat = "yyyy-mm-dd hh:mm") { }
+    public ExcelColumnDateTime(string title, int? width = 18) : base(title, width, c => c.Format("yyyy-mm-dd hh:mm")) { }
 }
 public class ExcelColumnPercent : ExcelColumn
 {
-    public ExcelColumnPercent(string title, int? width = 15) : base(title, width, c => c.DataFormat = "0.00%") { }
+    public ExcelColumnPercent(string title, int? width = 15) : base(title, width, c => c.Format("0.00%")) { }
 }
 #endregion
 
@@ -165,7 +165,7 @@ public class ExcelColumnString<T> : ExcelColumn<T, string> where T : class, new(
     public ExcelColumnString(string title, Action<T, string?> valueSetter, int? width = null, bool required = false, bool uniqueKey = false, Func<string, string>? validator = null, Action<ExcelStyle>? styleConfig = null)
         : base(title, valueSetter, width, required, uniqueKey, validator, styleConfig)
     {
-        ColumnStyle.DataFormat = FORMAT;
+        ColumnStyle.Format(FORMAT);
     }
 }
 public class ExcelColumnDate<T> : ExcelColumn<T, DateOnly?> where T : class, new()
@@ -175,8 +175,7 @@ public class ExcelColumnDate<T> : ExcelColumn<T, DateOnly?> where T : class, new
     public ExcelColumnDate(string title, Action<T, DateOnly?> valueSetter, int? width = WIDTH, bool required = false, bool uniqueKey = false, Func<DateOnly?, string>? validator = null, Action<ExcelStyle>? styleConfig = null)
         : base(title, valueSetter, width, required, uniqueKey, validator, styleConfig)
     {
-        ColumnStyle.DataFormat = FORMAT;
-        ColumnStyle.HorizontalAlignment = 2;
+        ColumnStyle.Format(FORMAT).HAlign(2);
     }
 }
 public class ExcelColumnDateTime<T> : ExcelColumn<T, DateTime?> where T : class, new()
@@ -186,8 +185,7 @@ public class ExcelColumnDateTime<T> : ExcelColumn<T, DateTime?> where T : class,
     public ExcelColumnDateTime(string title, Action<T, DateTime?> valueSetter, int? width = WIDTH, bool required = false, bool uniqueKey = false, Func<DateTime?, string>? validator = null, Action<ExcelStyle>? styleConfig = null)
         : base(title, valueSetter, width, required, uniqueKey, validator, styleConfig)
     {
-        ColumnStyle.DataFormat = FORMAT;
-        ColumnStyle.HorizontalAlignment = 2;
+        ColumnStyle.Format(FORMAT).HAlign(2);
     }
 }
 public class ExcelColumnTime<T> : ExcelColumn<T, DateTime?> where T : class, new()
@@ -197,8 +195,7 @@ public class ExcelColumnTime<T> : ExcelColumn<T, DateTime?> where T : class, new
     public ExcelColumnTime(string title, Action<T, DateTime?> valueSetter, int? width = WIDTH, bool required = false, bool uniqueKey = false, Func<DateTime?, string>? validator = null, Action<ExcelStyle>? styleConfig = null)
         : base(title, valueSetter, width, required, uniqueKey, validator, styleConfig)
     {
-        ColumnStyle.DataFormat = FORMAT;
-        ColumnStyle.HorizontalAlignment = 2;
+        ColumnStyle.Format(FORMAT).HAlign(2);
     }
 }
 
@@ -244,7 +241,7 @@ public class ExcelColumnPersent<T> : ExcelColumnDecimal<T> where T : class, new(
     public ExcelColumnPersent(string title, Action<T, decimal?> valueSetter, int? width = WIDTH, bool required = false, bool uniqueKey = false, Func<decimal?, string>? validator = null, Action<ExcelStyle>? styleConfig = null)
         : base(title, valueSetter, width, required, uniqueKey, validator, styleConfig)
     {
-        ColumnStyle.DataFormat = FORMAT;
+        ColumnStyle.Format(FORMAT);
         MinValue = 0; MaxValue = 1;
 
         InternalValidator = v =>

@@ -7,87 +7,7 @@ namespace FeiNuo.Core;
 /// </summary>
 public class ExcelSheet
 {
-    #region 构造函数
-    public ExcelSheet(string sheetName, IEnumerable<ExcelColumn>? columns = null)
-    {
-        if (string.IsNullOrWhiteSpace(sheetName))
-        {
-            throw new ArgumentNullException(nameof(sheetName));
-        }
-        SheetName = sheetName;
-
-        // 配置列，设置多行标题，设置列索引
-        if (columns != null && columns.Any())
-        {
-            ExcelColumns = ConfigColumns([.. columns]);
-        }
-    }
-    public ExcelSheet(string sheetName, IEnumerable<object> dataList, IEnumerable<ExcelColumn> columns) : this(sheetName, columns)
-    {
-        DataList = dataList;
-        AddConditionalBorderStyle = true;
-    }
-    public ExcelSheet(string sheetName, IEnumerable<object> dataList) : this(sheetName)
-    {
-        if (!dataList.Any()) return;
-        DataList = dataList;
-        AddConditionalBorderStyle = true;
-
-        var first = DataList.First();
-        var columns = first.GetType().GetProperties().Select(a => new ExcelColumn(a.Name)).ToList();
-        ExcelColumns = ConfigColumns(columns);
-    }
-    public ExcelSheet(string sheetName, DataTable dt) : this(sheetName)
-    {
-        if (dt.Rows.Count == 0) return;
-
-        var lstData = new List<object?[]>();
-        foreach (DataRow dr in dt.Rows)
-        {
-            lstData.Add(dr.ItemArray);
-        }
-        DataList = lstData;
-        AddConditionalBorderStyle = true;
-
-        var columns = new List<ExcelColumn>();
-        foreach (DataColumn col in dt.Columns)
-        {
-            columns.Add(new ExcelColumn(col.ColumnName));
-        }
-        ExcelColumns = ConfigColumns(columns);
-    }
-
-    private List<ExcelColumn> ConfigColumns(List<ExcelColumn> columns)
-    {
-        // 检查是否有相同的标题
-        var chk = columns.GroupBy(k => k.Title).Where(g => g.Count() > 1).Select(g => g.Key).ToArray();
-        if (chk.Length > 0)
-        {
-            throw new MessageException($"【{SheetName}】以下列字段标题重复: {string.Join(", ", chk)}");
-        }
-        // 多行标题的，把不带#的补上#号
-        var titleRowCount = columns.Max(t => t.RowTitles.Length);
-        var colIndex = StartColumnIndex;
-        foreach (var col in columns)
-        {
-            if (titleRowCount > 1)
-            {
-                if (col.RowTitles.Length == 1)
-                {
-                    col.Title = string.Join("#", Enumerable.Repeat(col.Title, titleRowCount));
-                }
-                else if (col.RowTitles.Length != titleRowCount)
-                {
-                    throw new MessageException($"存在标题行数不一致的列");
-                }
-            }
-            col.ColumnIndex = colIndex++;
-        }
-        return columns;
-    }
-    #endregion
-
-    #region 核心字段：SheetName,ExcelColumns，DataList
+    #region 属性定义
     /// <summary>
     /// 工作表名
     /// </summary>
@@ -98,11 +18,43 @@ public class ExcelSheet
     /// </summary>
     public IEnumerable<ExcelColumn> ExcelColumns { get; set; } = [];
 
-    /// <summary>
-    /// 数据集合
-    /// </summary>
-    public IEnumerable<object> DataList { get; set; } = [];
+    public IEnumerable<object> DataList = [];
 
+    public ExcelSheet(IEnumerable<ExcelColumn> columns) : this("Sheet1", columns)
+    {
+
+    }
+
+    public ExcelSheet(string sheetName, IEnumerable<ExcelColumn> columns)
+    {
+        if (string.IsNullOrWhiteSpace(sheetName))
+        {
+            throw new ArgumentNullException(nameof(sheetName));
+        }
+        SheetName = sheetName;
+
+        ExcelColumns = ConfigColumns([.. columns]);
+    }
+
+    private List<ExcelColumn> ConfigColumns(List<ExcelColumn> columns)
+    {
+        if (columns.Count == 0) throw new Exception("列配置不存在");
+        // 检查是否有相同的标题
+        var chk = columns.GroupBy(k => k.Title).Where(g => g.Count() > 1).Select(g => g.Key).ToArray();
+        if (chk.Length > 0)
+        {
+            throw new Exception($"【{SheetName}】以下列字段标题重复: {string.Join(", ", chk)}");
+        }
+        var colIndex = StartColumnIndex;
+        foreach (var col in columns)
+        {
+            col.ColumnIndex = colIndex++;
+        }
+        return columns;
+    }
+    #endregion
+
+    #region 核心字段
     /// <summary>
     /// 数据开始的列索引
     /// </summary>
@@ -151,7 +103,7 @@ public class ExcelSheet
     /// <summary>
     /// 列标题样式：水平居中，字体加粗，加背景色
     /// </summary>
-    public ExcelStyle ColumnTitleStyle { get; } = new() { HorizontalAlignment = 2, BackgroundColor = 26 };
+    public ExcelStyle? ColumnTitleStyle { get; set; }
 
     /// <summary>
     /// 在上传Excel数据时，是否效验模板：根据sheet名，标题名必须一致才能继续导入
@@ -185,7 +137,7 @@ public class ExcelSheet
     /// <summary>
     /// 说明的样式：水平居左，自动换行
     /// </summary>
-    public ExcelStyle DescriptionStyle { get; } = new() { HorizontalAlignment = 1, WrapText = true, };
+    public ExcelStyle? DescriptionStyle { get; set; }
 
     /// <summary>
     /// 说明行的高度:默认66
@@ -196,6 +148,18 @@ public class ExcelSheet
     /// 说明行合并单元格的数量，默认为列的数量，可通过该参数调整
     /// </summary>
     public int? DescriptionColSpan { get; set; }
+
+    /// <summary>
+    /// 添加说明行
+    /// </summary>
+    public ExcelSheet AddDescription(string description, int? colSpan = null, int? rowHeight = null, ExcelStyle? style = null)
+    {
+        Description = description;
+        DescriptionColSpan = colSpan;
+        DescriptionRowHeight = rowHeight ?? DescriptionRowHeight;
+        DescriptionStyle = style;
+        return this;
+    }
     #endregion
 
     #region 主标题行，在说明行的下面，可配置样式，合并列的个数
@@ -207,12 +171,29 @@ public class ExcelSheet
     /// <summary>
     /// 主标题样式：水平居中，字体加粗，加背景色
     /// </summary>
-    public ExcelStyle MainTitleStyle { get; } = new() { HorizontalAlignment = 2, FontBold = true, BackgroundColor = 26, };
+    public ExcelStyle? MainTitleStyle { get; set; }
 
     /// <summary>
     /// 主标题合并单元格的数量，默认为列的数量，可通过该参数调整
     /// </summary>
     public int? MainTitleColSpan { get; set; }
+
+    /// <summary>
+    /// 添加主标题
+    /// </summary>
+    public ExcelSheet AddMainTitle(string mainTitle, int? colSpan = null, ExcelStyle? style = null)
+    {
+        MainTitle = mainTitle;
+        MainTitleColSpan = colSpan;
+        MainTitleStyle = style;
+        return this;
+    }
+
+    public ExcelSheet AddDataList(IEnumerable<object> dataList)
+    {
+        DataList = dataList;
+        return this;
+    }
     #endregion
 
     #region 其他辅助方法

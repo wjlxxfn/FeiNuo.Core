@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.Primitives;
 
 namespace FeiNuo.AspNetCore;
 
@@ -70,14 +71,8 @@ public class BaseController : ControllerBase
     }
     #endregion
 
-    protected Dictionary<string, string> GetRequestParam()
+    protected Dictionary<string, StringValues> GetRequestParam()
     {
-        var paramMap = QueryHelpers.ParseQuery(Request.QueryString.Value);
-        var dic = new Dictionary<string, string>();
-        foreach (var param in paramMap)
-        {
-            dic.Add(param.Key, param.Value.ToString());
-        }
-        return dic;
+        return QueryHelpers.ParseQuery(Request.QueryString.Value);
     }
 }
