@@ -310,7 +310,6 @@ public class PoiExcel
     {
         foreach (var column in columns)
         {
-            column.ColumnIndex = colIndex++;
             if (column.Width.HasValue)
             {
                 SetColumnWidth(colIndex, column.Width.Value);
@@ -324,6 +323,7 @@ public class PoiExcel
                 var style = _style.CreateStyle(column.ColumnStyle);
                 _sheet.SetDefaultColumnStyle(colIndex, style);
             }
+            column.ColumnIndex = colIndex++;
         }
     }
     #endregion
@@ -467,6 +467,24 @@ public class PoiExcel
     public PoiExcel AddDataRow(int rowIndex, int colIndex, params object?[] values)
     {
         return SetCellValues(rowIndex, colIndex, values);
+    }
+
+    /// <summary>
+    /// 添加空白行，主要是没内容时也没边框，可以调用该方法设置默认样式，只会处理空的单元格
+    /// </summary>
+    public PoiExcel AddBlankRow(int rowIndex, int colIndex, int colCount)
+    {
+        var row = PoiHelper.GetRow(_sheet, rowIndex);
+        for (var i = colIndex; i < colIndex + colCount; i++)
+        {
+            var cell = row.GetCell(i);
+            if (cell == null)
+            {
+                cell = row.CreateCell(i, CellType.Blank);
+                cell.CellStyle = _style.DefaultStyle;
+            }
+        }
+        return this;
     }
 
     public PoiExcel SetCellValues(int rowIndex, int colIndex, params object?[] values)

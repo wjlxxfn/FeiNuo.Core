@@ -310,10 +310,7 @@ public partial class PoiHelper
     /// </summary>
     public static void AddMergedRegion(ISheet sheet, int startRow, int endRow, int startCol, int endCol, ICellStyle? style = null)
     {
-        if (style == null)
-        {
-            style = GetCell(sheet, startRow, startCol).CellStyle;
-        }
+        style ??= GetCell(sheet, startRow, startCol).CellStyle;
         for (int i = startRow; i <= endRow; i++)
         {
             var row = GetRow(sheet, i);
@@ -744,7 +741,6 @@ public partial class PoiHelper
     public static PoiExcel CreateExcel<T>(IEnumerable<ExcelColumn<T>> columns) where T : class
     {
         // 这里用空样式，不然默认样式带边框，列默认导致导出的模板全部是边框
-        //TODO 测试这里用默认样式
         var poi = CreateExcel(ExcelStyle.EmptyStyle);
         poi.AddTitleRow(columns, true);
         return poi;

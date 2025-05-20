@@ -67,7 +67,7 @@ public class StyleFactory
     {
         get
         {
-            _textStyle ??= CreateStyle(ExcelStyle.NewStyle().Format("@"));
+            _textStyle ??= CreateStyle(ExcelStyle.TextStyle);
             return _textStyle;
         }
     }
@@ -79,7 +79,7 @@ public class StyleFactory
     {
         get
         {
-            _wrapStyle ??= CreateStyle(ExcelStyle.NewStyle().Wrap(), TextStyle);
+            _wrapStyle ??= CreateStyle(ExcelStyle.WrapStyle);
             return _wrapStyle;
         }
     }
@@ -91,7 +91,7 @@ public class StyleFactory
     {
         get
         {
-            _centerStyle ??= CreateStyle(ExcelStyle.NewStyle().Align(2, 1));
+            _centerStyle ??= CreateStyle(ExcelStyle.CenterStyle);
             return _centerStyle;
         }
     }
@@ -103,7 +103,7 @@ public class StyleFactory
     {
         get
         {
-            _dateStyle ??= CreateStyle(ExcelStyle.NewStyle().Format("yyyy-mm-dd"), CenterStyle);
+            _dateStyle ??= CreateStyle(ExcelStyle.DateStye);
             return _dateStyle;
         }
     }
@@ -115,7 +115,7 @@ public class StyleFactory
     {
         get
         {
-            _dateTimeStyle ??= CreateStyle(ExcelStyle.NewStyle().Format("yyyy-mm-dd hh:mm"), CenterStyle);
+            _dateTimeStyle ??= CreateStyle(ExcelStyle.DateTimeStyle);
             return _dateTimeStyle;
         }
     }
@@ -127,7 +127,7 @@ public class StyleFactory
     {
         get
         {
-            _numberStyle ??= CreateStyle(ExcelStyle.NewStyle().Format("0.00"), CenterStyle);
+            _numberStyle ??= CreateStyle(ExcelStyle.NumberStyle);
             return _numberStyle;
         }
     }
@@ -140,7 +140,7 @@ public class StyleFactory
     {
         get
         {
-            _persentStyle ??= CreateStyle(ExcelStyle.NewStyle().Format("0.00%"), CenterStyle);
+            _persentStyle ??= CreateStyle(ExcelStyle.PersentStyle);
             return _persentStyle;
         }
     }

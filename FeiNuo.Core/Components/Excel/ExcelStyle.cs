@@ -172,6 +172,55 @@ public class ExcelStyle
         FontSize = fontSize;
         return this;
     }
+
+    #region 快捷方法
+    /// <summary>
+    /// 空样式，没有任何配置
+    /// </summary>
+    public static ExcelStyle EmptyStyle => new();
+
+    /// <summary>
+    /// 边框样式：默认四边带Thin边框
+    /// </summary>
+    public static ExcelStyle BorderedStyle => NewStyle().Border();
+
+    /// <summary>
+    /// 文本格式：水平居左，垂直居中，格式 @
+    /// </summary>
+    public static ExcelStyle TextStyle => NewStyle().Format("@");
+
+    /// <summary>
+    /// 自动换行: 文本格式，水平居左，垂直居中
+    /// </summary>
+    public static ExcelStyle WrapStyle => NewStyle().Format("@").Wrap();
+
+    /// <summary>
+    /// 居中样式: 水平居中，垂直居中
+    /// </summary>
+    public static ExcelStyle CenterStyle => NewStyle().Align(2, 1);
+
+    /// <summary>
+    /// 设置日期格式：format=yyyy-MM-dd，居中
+    /// </summary>
+    /// <returns></returns>
+    public static ExcelStyle DateStye => NewStyle().Format("yyyy-mm-dd").Align(2, 1);
+
+    /// <summary>
+    /// 时间格式：水平居中，垂直居中，格式 yyyy-MM-dd HH:mm
+    /// </summary>
+    public static ExcelStyle DateTimeStyle => NewStyle().Format("yyyy-mm-dd hh:mm").Align(2, 1);
+
+    /// <summary>
+    /// 数字格式：水平居中，垂直居中，格式 0.00
+    /// </summary>
+    public static ExcelStyle NumberStyle => NewStyle().Format("0.00").Align(2, 1);
+
+    /// <summary>
+    /// 百分比：水平居中，垂直居中，格式 0.00%
+    /// </summary>
+    public static ExcelStyle PersentStyle => NewStyle().Format("0.00%").Align(2, 1);
+    #endregion
+
     #endregion
 
     /// <summary>
@@ -204,9 +253,4 @@ public class ExcelStyle
     /// 是否默认的样式，没有设置任何格式
     /// </summary>
     public bool IsEmptyStyle => !IsNotEmptyStyle;
-
-    /// <summary>
-    /// 默认空样式
-    /// </summary>
-    public static ExcelStyle EmptyStyle => new();
 }
