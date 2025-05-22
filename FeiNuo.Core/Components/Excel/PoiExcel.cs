@@ -293,15 +293,15 @@ public class PoiExcel
         return this;
     }
 
-    public PoiExcel AddTitleRow(int rowIndex, int colIndex, IEnumerable<ExcelColumn> columns, bool setDefaultColumnStyle)
+    public PoiExcel AddTitleRow(int rowIndex, IEnumerable<ExcelColumn> columns, bool setDefaultColumnStyle = false, int colIndex = 0)
     {
-        ConfigColumns(columns, colIndex, setDefaultColumnStyle);
+        ConfigColumns(columns, setDefaultColumnStyle, colIndex);
         var titles = columns.Select(a => a.Title).ToArray();
         AddTitleRow(rowIndex, colIndex, titles);
         return this;
     }
 
-    private void ConfigColumns(IEnumerable<ExcelColumn> columns, int colIndex, bool setDefaultColumnStyle)
+    private void ConfigColumns(IEnumerable<ExcelColumn> columns, bool setDefaultColumnStyle, int colIndex)
     {
         foreach (var column in columns)
         {
@@ -313,9 +313,9 @@ public class PoiExcel
             {
                 SetColumnHidden(colIndex);
             }
-            if (setDefaultColumnStyle && column.ColumnStyle.IsNotEmptyStyle)
+            if (setDefaultColumnStyle)
             {
-                var style = _style.CreateStyle(column.ColumnStyle);
+                var style = column.ColumnStyle.IsNotEmptyStyle ? _style.CreateStyle(column.ColumnStyle) : _style.DefaultStyle;
                 _sheet.SetDefaultColumnStyle(colIndex, style);
             }
             column.ColumnIndex = colIndex++;
@@ -375,9 +375,10 @@ public class PoiExcel
     /// <para>标题取第一个数据对象的属性名：第一条数据不能是空</para>
     /// </summary>
     /// <param name="dataList">数据集</param>
-    /// <param name="rowIndex">开始行索引,默认0</param>
+    /// <param name="rowIndex">开始行索引</param>
+    /// <param name="colIndex">开始列索引,默认0</param>
     /// <param name="includeTitle">是否生成title，默认true</param>
-    public PoiExcel AddDataList(IEnumerable<object> dataList, int rowIndex = 0, bool includeTitle = true)
+    public PoiExcel AddDataList(int rowIndex, IEnumerable<object> dataList, int colIndex = 0, bool includeTitle = true)
     {
         var lstData = dataList.ToList();
         if (lstData.Count == 0) return this;
@@ -386,24 +387,24 @@ public class PoiExcel
 
         if (includeTitle)
         {
-            AddTitleRow(rowIndex, [.. props.Select(a => a.Name)]);
+            AddTitleRow(rowIndex, colIndex, [.. props.Select(a => a.Name)]);
             rowIndex += titleRowCount;
         }
         foreach (var data in lstData)
         {
             var values = props.Select(a => a.GetValue(data)).ToArray();
-            AddDataRow(rowIndex++, values);
+            AddDataRow(rowIndex++, colIndex, values);
         }
         return this;
     }
 
-    public PoiExcel AddDataList(IEnumerable<object> dataList, IEnumerable<ExcelColumn> columns, int rowIndex = 0, int colIndex = 0)
+    public PoiExcel AddDataList(int rowIndex, IEnumerable<object> dataList, IEnumerable<ExcelColumn> columns, int colIndex = 0)
     {
         if (!columns.Any()) return this;
         var hasDataRow = dataList.Any();
         // 标题
         var setDefaultValue = !hasDataRow;// 如果没有数据，则设置默认样式
-        AddTitleRow(rowIndex, colIndex, columns, setDefaultValue);
+        AddTitleRow(rowIndex, columns, setDefaultValue, colIndex);
         rowIndex += titleRowCount;
         if (hasDataRow)
         {
@@ -436,7 +437,7 @@ public class PoiExcel
     /// <param name="dt">数据集</param>
     /// <param name="rowIndex">开始行索引,默认0</param>
     /// <param name="includeTitle">是否生成title，默认true</param>
-    public PoiExcel AddDataTable(DataTable dt, int rowIndex = 0, bool includeTitle = true)
+    public PoiExcel AddDataTable(int rowIndex, DataTable dt, bool includeTitle = true)
     {
         if (includeTitle)
         {
@@ -525,5 +526,4 @@ public class PoiExcel
         return this;
     }
     #endregion
-
 }

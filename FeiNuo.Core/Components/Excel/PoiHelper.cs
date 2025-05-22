@@ -688,7 +688,7 @@ public partial class PoiHelper
     public static PoiExcel CreateExcel(IEnumerable<object> dataList, out StyleFactory style)
     {
         var poi = CreateExcel(out style);
-        poi.AddDataList(dataList);
+        poi.AddDataList(0, dataList);
         return poi;
     }
 
@@ -706,7 +706,7 @@ public partial class PoiHelper
         foreach (var data in dataMap)
         {
             poi.CreateSheet(data.Key);
-            poi.AddDataList(data.Value);
+            poi.AddDataList(0, data.Value);
         }
         return poi;
     }
@@ -717,7 +717,7 @@ public partial class PoiHelper
     public static PoiExcel CreateExcel(DataTable dt)
     {
         var poi = CreateExcel();
-        poi.AddDataTable(dt);
+        poi.AddDataTable(0, dt);
         return poi;
     }
 
@@ -730,7 +730,7 @@ public partial class PoiHelper
         foreach (DataTable dt in ds.Tables)
         {
             poi.CreateSheet(dt.TableName);
-            poi.AddDataTable(dt);
+            poi.AddDataTable(0, dt);
         }
         return poi;
     }
@@ -742,7 +742,7 @@ public partial class PoiHelper
     {
         // 这里用空样式，不然默认样式带边框，列默认导致导出的模板全部是边框
         var poi = CreateExcel(ExcelStyle.EmptyStyle);
-        poi.AddTitleRow(0, 0, columns, true);
+        poi.AddTitleRow(0, columns, true);
         return poi;
     }
 
@@ -752,7 +752,7 @@ public partial class PoiHelper
     public static PoiExcel CreateExcel<T>(IEnumerable<T> dataList, IEnumerable<ExcelColumn<T>> columns) where T : class
     {
         var poi = CreateExcel();
-        poi.AddDataList(dataList, columns);
+        poi.AddDataList(0, dataList, columns);
         return poi;
     }
 
@@ -765,11 +765,11 @@ public partial class PoiHelper
     /// </summary>
     public static PoiExcel CreateExcel(ExcelConfig config, out StyleFactory styles)
     {
-        var excel = CreateExcel(out styles, ExcelStyle.EmptyStyle).RemoveSheet1();
+        var excel = CreateExcel(out styles).RemoveSheet1();
         // 创建工作表
         foreach (var sheet in config.ExcelSheets)
         {
-            CreateWorkSheet(excel, sheet, styles);
+            CreateWorkSheet(excel, sheet);
         }
         return excel;
     }
@@ -777,7 +777,7 @@ public partial class PoiHelper
     /// <summary>
     /// 创建工作表:添加备注描述，主标题，列标题
     /// </summary>
-    private static void CreateWorkSheet(PoiExcel excel, ExcelSheet config, StyleFactory styles)
+    private static void CreateWorkSheet(PoiExcel excel, ExcelSheet config)
     {
         var sheet = excel.CreateSheet(config.SheetName, config.ForceFormulaRecalculation);
 
@@ -812,7 +812,7 @@ public partial class PoiHelper
         {
             excel.TitleStyle = config.ColumnTitleStyle;
         }
-        excel.AddDataList(config.DataList, config.ExcelColumns, rowIndex, config.StartColumnIndex);
+        excel.AddDataList(rowIndex, config.DataList, config.ExcelColumns, config.StartColumnIndex);
         #endregion
 
         #region 工作表整体配置
