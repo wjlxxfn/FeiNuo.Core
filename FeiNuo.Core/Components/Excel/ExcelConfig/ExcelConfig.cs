@@ -1,7 +1,7 @@
 ﻿namespace FeiNuo.Core;
 
 /// <summary>
-/// Excel配置类。配置后使用ExcelHelper.CreateWorkBook方法可生成IWorkbook对象
+/// Excel配置类。配置后使用PoiHelper.CreateExcel方法可生成PoiExcel对象
 /// </summary>
 public class ExcelConfig
 {
@@ -82,6 +82,11 @@ public class ExcelConfig
     {
         var excelSheet = new ExcelSheet(sheetName, columns);
         sheetConfig?.Invoke(excelSheet);
+        return AddExcelSheet(excelSheet);
+    }
+    public ExcelConfig AddExcelSheet(string sheetName, params ExcelColumn[] columns)
+    {
+        var excelSheet = new ExcelSheet(sheetName, columns);
         return AddExcelSheet(excelSheet);
     }
     #endregion

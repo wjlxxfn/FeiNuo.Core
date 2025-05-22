@@ -17,22 +17,23 @@ public abstract class BaseImportService<T> : BaseService<T>, IImportService wher
 
     /// <summary>
     /// 下载导入模板:前端接口直接调用该方法，如需完全自定义，重写该方法即可
+    /// <para>注意：下载的文件名需要手动配置到PoiExcel.FileName</para>
     /// </summary>
-    public virtual PoiExcel GetImportTemplate(Dictionary<string, StringValues> paramMap, LoginUser user, out string fileName)
+    public virtual PoiExcel GetImportTemplate(Dictionary<string, StringValues> paramMap, LoginUser user)
     {
         var config = GetImportConfig(paramMap, user);
-        var template = config.ImportTemplate ?? new ExcelConfig("导入模板.xlsx");
-        fileName = template.FileName!;
+        var template = config.ImportTemplate ?? throw new Exception("没有配置导入模板，需要配置ImportConfig.ImportantTemplate或者重写IImportService.GetImportTemplate方法来获取导入模板");
+        template.FileName = config.TemplateName;
         return PoiHelper.CreateExcel(template);
     }
 
     /// <summary>
     /// 下载基础数据:前端接口直接调用该方法，如需完全自定义，重写该方法即可
+    /// <para>注意：下载的文件名需要手动配置到PoiExcel.FileName</para>
     /// </summary>
-    public virtual PoiExcel GetImportBasicData(Dictionary<string, StringValues> paramMap, LoginUser user, out string fileName)
+    public virtual Task<PoiExcel> GetImportBasicData(Dictionary<string, StringValues> paramMap, LoginUser user)
     {
-        fileName = "基础数据.xlsx";
-        return PoiHelper.CreateExcel();
+        throw new Exception("未实现下载基础数据的方法，需要重写IImportService.GetImportBasicData方法");
     }
 
     /// <summary>
@@ -43,9 +44,9 @@ public abstract class BaseImportService<T> : BaseService<T>, IImportService wher
         var workbook = PoiHelper.CreateWorkbook(stream) ?? throw new MessageException("无法识别导入的Excel，请检查文件是否标准Excel文件");
 
         // 检查模板，sheet数量，列标题
-        if (cfg.ShowTemplate)
+        if (cfg.ShowTemplate && cfg.ImportTemplate != null)
         {
-            PoiHelper.ValidateExcelTemplate(workbook, cfg.ImportTemplate!);
+            PoiHelper.ValidateExcelTemplate(workbook, cfg.ImportTemplate);
         }
 
         // 执行导入
@@ -58,9 +59,9 @@ public abstract class BaseImportService<T> : BaseService<T>, IImportService wher
     /// </summary>
     public virtual async Task HandleImport(IWorkbook workbook, ImportConfig cfg, Dictionary<string, StringValues> paramMap, LoginUser user)
     {
-        if (cfg.ShowTemplate)
+        if (cfg.ShowTemplate && cfg.ImportTemplate != null)
         {
-            var lstData = PoiHelper.GetDataFromExcel<T>(workbook, cfg.ImportTemplate!.ExcelSheets[0]);
+            var lstData = PoiHelper.GetDataFromExcel<T>(workbook, cfg.ImportTemplate.ExcelSheets[0]);
             await HandleImport(lstData, paramMap, user);
         }
     }

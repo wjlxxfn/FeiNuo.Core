@@ -22,12 +22,12 @@ public interface IImportService
     /// <summary>
     /// 下载导入模板:前端接口直接调用该方法，如需完全自定义，重写该方法即可
     /// </summary>
-    public PoiExcel GetImportTemplate(Dictionary<string, StringValues> paramMap, LoginUser user, out string fileName);
+    public PoiExcel GetImportTemplate(Dictionary<string, StringValues> paramMap, LoginUser user);
 
     /// <summary>
     /// 下载基础数据:前端接口直接调用该方法，如需完全自定义，重写该方法即可
     /// </summary>
-    public PoiExcel GetImportBasicData(Dictionary<string, StringValues> paramMap, LoginUser user, out string fileName);
+    public Task<PoiExcel> GetImportBasicData(Dictionary<string, StringValues> paramMap, LoginUser user);
 
     /// <summary>
     /// 执行导入: 默认实现逻辑，保存文件，效验模板        

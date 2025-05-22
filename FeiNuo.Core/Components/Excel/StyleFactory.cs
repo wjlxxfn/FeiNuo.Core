@@ -27,7 +27,7 @@ public class StyleFactory
         EmptyStyle = workbook.NumCellStyles == 1 ? workbook.GetCellStyleAt(0) : workbook.CreateCellStyle();
         CACHED_STYLES.Add(new ExcelStyle().StyleKey, EmptyStyle);
         // 默认格式,默认有边框,水平居左，垂直居中
-        DefaultStyle = PoiHelper.CreateCellStyle(workbook, defaultStyle ?? ExcelStyle.NewStyle().Border().Align(1, 1));
+        DefaultStyle = PoiHelper.CreateCellStyle(workbook, defaultStyle ?? ExcelStyle.BorderedStyle.Align(1, 1));
     }
 
     /// <summary>

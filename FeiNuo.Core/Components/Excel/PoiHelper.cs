@@ -632,22 +632,13 @@ public partial class PoiHelper
 
     #region 创建PoiExcel
     /// <summary>
-    /// 创建空白excel，默认会创建一个Sheet1，如果不需要，创建后调用PoiExcel.RemoveSheet1()删除
+    /// 创建空白excel，默认会创建一个Sheet1，如果不需要，创建后调用PoiExcel.RemoveSheet()删除
     /// </summary>
     public static PoiExcel CreateExcel(ExcelStyle? defaultStyle = null)
     {
-        return CreateExcel(out _, defaultStyle);
-    }
-
-    /// <summary>
-    /// 创建空白excel
-    /// </summary>
-    public static PoiExcel CreateExcel(out StyleFactory style, ExcelStyle? defaultStyle = null)
-    {
-        var wb = PoiHelper.CreateWorkbook();
+        var wb = CreateWorkbook();
         var sheet = wb.CreateSheet("Sheet1");
-        style = new StyleFactory(wb, defaultStyle);
-        return new PoiExcel(wb, sheet, style);
+        return new PoiExcel(wb, sheet, defaultStyle);
     }
 
     /// <summary>
@@ -655,40 +646,29 @@ public partial class PoiHelper
     /// </summary>
     public static PoiExcel CreateExcel(Stream stream)
     {
-        return CreateExcel(stream, out _);
+        var wb = CreateWorkbook(stream);
+        return new PoiExcel(wb);
     }
 
     /// <summary>
-    /// 根据文件流创建Excel对象，当前Sheet默认设置为第一个Sheet
+    /// 根据文件全路径创建PoiExcel
     /// </summary>
-    public static PoiExcel CreateExcel(Stream stream, out StyleFactory style)
+    public static PoiExcel CreateExcel(string filePath)
     {
-        var wb = PoiHelper.CreateWorkbook(stream);
-        var sheet = wb.NumberOfSheets >= 1 ? wb.GetSheetAt(0) : wb.CreateSheet("Sheet1");
-        style = new StyleFactory(wb);
-        return new PoiExcel(wb, sheet, style);
+        using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
+        var wb = CreateWorkbook(stream);
+        return new PoiExcel(wb);
     }
 
     /// <summary>
     /// 根据数据集合构造Excel对象
     /// <para>标题取第一个数据对象的属性名：第一条数据不能是空</para>
-    /// <para>使用示例: new PoiExcel(users.Select(a=>new {用户名=a.Username,姓名=a.NickName}))</para>
+    /// <para>使用示例: PoiHelper.PoiExcel(users.Select(a=>new {用户名=a.Username,姓名=a.NickName}))</para>
     /// </summary>
-    /// <param name="dataList">数据</param>
     public static PoiExcel CreateExcel(IEnumerable<object> dataList)
     {
-        return CreateExcel(dataList, out _);
-    }
-
-    /// <summary>
-    /// 根据数据集合构造Excel对象
-    /// <para>标题取第一个数据对象的属性名：第一条数据不能是空</para>
-    /// <para>使用示例: new PoiExcel(users.Select(a=>new {用户名=a.Username,姓名=a.NickName}))</para>
-    /// </summary>
-    public static PoiExcel CreateExcel(IEnumerable<object> dataList, out StyleFactory style)
-    {
-        var poi = CreateExcel(out style);
-        poi.AddDataList(0, dataList);
+        var poi = CreateExcel();
+        poi.AddDataList(0, 0, dataList);
         return poi;
     }
 
@@ -697,16 +677,15 @@ public partial class PoiHelper
     /// <para>标题取第一个数据对象的属性名,所以第一条数据不能是空</para>
     /// <para>使用示例： var dict = new Dictionary(); </para>
     /// <para>           dict.Add("用户", users.Select(a => new { 用户名 = a.Username, 姓名 = a.NickName });</para>
-    /// <para>           new PoiExcel(dict);</para>
+    /// <para>           PoiHelper.PoiExcel(dict);</para>
     /// </summary>
     /// <param name="dataMap">Key=SheetName,Value=dataList</param>
     public static PoiExcel CreateExcel(Dictionary<string, IEnumerable<object>> dataMap)
     {
-        var poi = CreateExcel().RemoveSheet1();
+        var poi = CreateExcel().RemoveSheet();
         foreach (var data in dataMap)
         {
-            poi.CreateSheet(data.Key);
-            poi.AddDataList(0, data.Value);
+            poi.CreateSheet(data.Key).AddDataList(0, 0, data.Value);
         }
         return poi;
     }
@@ -717,7 +696,7 @@ public partial class PoiHelper
     public static PoiExcel CreateExcel(DataTable dt)
     {
         var poi = CreateExcel();
-        poi.AddDataTable(0, dt);
+        poi.AddDataTable(0, 0, dt);
         return poi;
     }
 
@@ -726,11 +705,10 @@ public partial class PoiHelper
     /// </summary>
     public static PoiExcel CreateExcel(DataSet ds)
     {
-        var poi = CreateExcel().RemoveSheet1();
+        var poi = CreateExcel().RemoveSheet();
         foreach (DataTable dt in ds.Tables)
         {
-            poi.CreateSheet(dt.TableName);
-            poi.AddDataTable(0, dt);
+            poi.CreateSheet(dt.TableName).AddDataTable(0, 0, dt);
         }
         return poi;
     }
@@ -740,32 +718,28 @@ public partial class PoiHelper
     /// </summary>
     public static PoiExcel CreateExcel<T>(IEnumerable<ExcelColumn<T>> columns) where T : class
     {
-        // 这里用空样式，不然默认样式带边框，列默认导致导出的模板全部是边框
+        // 这里用空样式，不然默认样式带边框，会导致导出的模板全部有边框
         var poi = CreateExcel(ExcelStyle.EmptyStyle);
-        poi.AddTitleRow(0, columns, true);
+        poi.AddTitleRow(0, 0, columns, true);
         return poi;
     }
 
     /// <summary>
     /// 根据数据集和列配置自动生成Excel
     /// </summary>
-    public static PoiExcel CreateExcel<T>(IEnumerable<T> dataList, IEnumerable<ExcelColumn<T>> columns) where T : class
+    public static PoiExcel CreateExcel<T>(IEnumerable<T> dataList, params ExcelColumn<T>[] columns) where T : class
     {
         var poi = CreateExcel();
-        poi.AddDataList(0, dataList, columns);
+        poi.AddDataList(0, 0, dataList, columns);
         return poi;
     }
 
-    public static PoiExcel CreateExcel(ExcelConfig config)
-    {
-        return CreateExcel(config, out _);
-    }
     /// <summary>
     /// 创建工作簿
     /// </summary>
-    public static PoiExcel CreateExcel(ExcelConfig config, out StyleFactory styles)
+    public static PoiExcel CreateExcel(ExcelConfig config)
     {
-        var excel = CreateExcel(out styles).RemoveSheet1();
+        var excel = CreateExcel().RemoveSheet();
         // 创建工作表
         foreach (var sheet in config.ExcelSheets)
         {
@@ -779,16 +753,17 @@ public partial class PoiHelper
     /// </summary>
     private static void CreateWorkSheet(PoiExcel excel, ExcelSheet config)
     {
-        var sheet = excel.CreateSheet(config.SheetName, config.ForceFormulaRecalculation);
+        excel.CreateSheet(config.SheetName);
 
         var rowIndex = config.StartRowIndex;
         var columnCount = config.ColumnCount;
+
         #region 生成描述行
         if (!string.IsNullOrWhiteSpace(config.Description))
         {
             if (config.DescriptionStyle?.IsNotEmptyStyle ?? false)
             {
-                excel.RemarkStyle = config.DescriptionStyle;
+                excel.ConfigRemarkStyle(s => s.CloneFrom(config.DescriptionStyle));
             }
             excel.AddRemarkRow(rowIndex, config.StartColumnIndex, config.Description, config.DescriptionColSpan ?? columnCount, config.DescriptionRowHeight);
             rowIndex++;
@@ -800,7 +775,7 @@ public partial class PoiHelper
         {
             if (config.MainTitleStyle?.IsNotEmptyStyle ?? false)
             {
-                excel.MainTitleStyle = config.MainTitleStyle;
+                excel.ConfigMainTitleStyle(s => s.CloneFrom(config.MainTitleStyle));
             }
             excel.AddMainTitle(rowIndex, config.StartColumnIndex, config.MainTitle, config.MainTitleColSpan ?? columnCount);
             rowIndex++;
@@ -810,22 +785,29 @@ public partial class PoiHelper
         #region 生成标题和数据
         if (config.ColumnTitleStyle?.IsNotEmptyStyle ?? false)
         {
-            excel.TitleStyle = config.ColumnTitleStyle;
+            excel.ConfigTitleStyle(s => s.CloneFrom(config.ColumnTitleStyle));
         }
-        excel.AddDataList(rowIndex, config.DataList, config.ExcelColumns, config.StartColumnIndex);
+        excel.AddDataList(rowIndex, config.StartColumnIndex, config.DataList, config.ExcelColumns);
         #endregion
 
         #region 工作表整体配置
-        if (config.DefaultColumnWidth.HasValue)
+        excel.ConfigSheet(sheet =>
         {
-            sheet.DefaultColumnWidth = config.DefaultColumnWidth.Value;
-        }
-        // 自动设置边框
-        if (config.AddConditionalBorderStyle)
-        {
-            var region = new CellRangeAddress(config.StartRowIndex, sheet.LastRowNum, config.StartColumnIndex, config.EndColumnIndex);
-            AddConditionalBorderStyle(sheet, range: region);
-        }
+            if (config.ForceFormulaRecalculation)
+            {
+                sheet.ForceFormulaRecalculation = true;
+            }
+            if (config.DefaultColumnWidth.HasValue)
+            {
+                sheet.DefaultColumnWidth = config.DefaultColumnWidth.Value;
+            }
+            // 自动设置边框
+            if (config.AddConditionalBorderStyle)
+            {
+                var region = new CellRangeAddress(config.StartRowIndex, sheet.LastRowNum, config.StartColumnIndex, config.EndColumnIndex);
+                AddConditionalBorderStyle(sheet, range: region);
+            }
+        });
         #endregion
     }
     #endregion
@@ -838,7 +820,10 @@ public partial class PoiHelper
     {
         foreach (var sheet in config.ExcelSheets)
         {
-            ValidateExcelTemplate(wb, sheet);
+            if (sheet.ValidateImportTemplate)
+            {
+                ValidateExcelTemplate(wb, sheet);
+            }
         }
     }
 

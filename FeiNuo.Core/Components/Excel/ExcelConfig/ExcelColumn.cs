@@ -6,7 +6,11 @@ public class ExcelColumn
     {
         Title = title;
         Width = width;
-        styleConfig?.Invoke(ColumnStyle);
+        if (styleConfig != null)
+        {
+            ColumnStyle ??= new();
+            styleConfig?.Invoke(ColumnStyle);
+        }
     }
 
     /// <summary>
@@ -35,7 +39,7 @@ public class ExcelColumn
     /// <summary>
     /// 列的样式
     /// </summary>
-    public ExcelStyle ColumnStyle { get; } = new();
+    public ExcelStyle? ColumnStyle { get; set; }
 
     /// <summary>
     /// 取值逻辑
@@ -48,7 +52,7 @@ public class ExcelColumn
     public Func<object, IConvertible?, string> ValueSetter { get; set; } = (o, v) => throw new NotImplementedException();
 
     /// <summary>
-    /// 列索引，在加入到ExcelSheet时自动设置
+    /// 列索引，内部方法使用，使用前需确保已赋值
     /// </summary>
     internal int ColumnIndex { get; set; }
 }
@@ -165,6 +169,7 @@ public class ExcelColumnString<T> : ExcelColumn<T, string> where T : class, new(
     public ExcelColumnString(string title, Action<T, string?> valueSetter, int? width = null, bool required = false, bool uniqueKey = false, Func<string, string>? validator = null, Action<ExcelStyle>? styleConfig = null)
         : base(title, valueSetter, width, required, uniqueKey, validator, styleConfig)
     {
+        ColumnStyle ??= new();
         ColumnStyle.Format(FORMAT);
     }
 }
@@ -175,6 +180,7 @@ public class ExcelColumnDate<T> : ExcelColumn<T, DateOnly?> where T : class, new
     public ExcelColumnDate(string title, Action<T, DateOnly?> valueSetter, int? width = WIDTH, bool required = false, bool uniqueKey = false, Func<DateOnly?, string>? validator = null, Action<ExcelStyle>? styleConfig = null)
         : base(title, valueSetter, width, required, uniqueKey, validator, styleConfig)
     {
+        ColumnStyle ??= new();
         ColumnStyle.Format(FORMAT).HAlign(2);
     }
 }
@@ -185,6 +191,7 @@ public class ExcelColumnDateTime<T> : ExcelColumn<T, DateTime?> where T : class,
     public ExcelColumnDateTime(string title, Action<T, DateTime?> valueSetter, int? width = WIDTH, bool required = false, bool uniqueKey = false, Func<DateTime?, string>? validator = null, Action<ExcelStyle>? styleConfig = null)
         : base(title, valueSetter, width, required, uniqueKey, validator, styleConfig)
     {
+        ColumnStyle ??= new();
         ColumnStyle.Format(FORMAT).HAlign(2);
     }
 }
@@ -195,6 +202,7 @@ public class ExcelColumnTime<T> : ExcelColumn<T, DateTime?> where T : class, new
     public ExcelColumnTime(string title, Action<T, DateTime?> valueSetter, int? width = WIDTH, bool required = false, bool uniqueKey = false, Func<DateTime?, string>? validator = null, Action<ExcelStyle>? styleConfig = null)
         : base(title, valueSetter, width, required, uniqueKey, validator, styleConfig)
     {
+        ColumnStyle ??= new();
         ColumnStyle.Format(FORMAT).HAlign(2);
     }
 }
@@ -241,6 +249,7 @@ public class ExcelColumnPersent<T> : ExcelColumnDecimal<T> where T : class, new(
     public ExcelColumnPersent(string title, Action<T, decimal?> valueSetter, int? width = WIDTH, bool required = false, bool uniqueKey = false, Func<decimal?, string>? validator = null, Action<ExcelStyle>? styleConfig = null)
         : base(title, valueSetter, width, required, uniqueKey, validator, styleConfig)
     {
+        ColumnStyle ??= new();
         ColumnStyle.Format(FORMAT);
         MinValue = 0; MaxValue = 1;
 

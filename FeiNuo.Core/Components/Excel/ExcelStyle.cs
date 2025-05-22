@@ -5,6 +5,7 @@
 /// </summary>
 public class ExcelStyle
 {
+    #region 样式定义
     /// <summary>
     /// 边框:POI.BorderStyle 0:None, 1:Thin, 2:Medium, 3:Dashed, 4:Dotted, 5:Thick, 6:Double, 7:Hair
     /// </summary>
@@ -54,6 +55,7 @@ public class ExcelStyle
     /// 是否粗体
     /// </summary>
     public bool? FontBold { get; private set; }
+    #endregion
 
     #region 链式调用方法
     /// <summary>
@@ -253,4 +255,20 @@ public class ExcelStyle
     /// 是否默认的样式，没有设置任何格式
     /// </summary>
     public bool IsEmptyStyle => !IsNotEmptyStyle;
+
+    public void CloneFrom(ExcelStyle source)
+    {
+        BorderStyle = source.BorderStyle;
+        HorizontalAlignment = source.HorizontalAlignment;
+        VerticalAlignment = source.VerticalAlignment;
+        BackgroundColor = source.BackgroundColor;
+        DataFormat = source.DataFormat;
+
+        WrapText = source.WrapText;
+        FontName = source.FontName;
+        FontColor = source.FontColor;
+        FontSize = source.FontSize;
+        FontBold = source.FontBold;
+
+    }
 }

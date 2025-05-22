@@ -5,7 +5,7 @@ namespace FeiNuo.Core.Tests
     [TestClass()]
     public class PoiHelperTests
     {
-        IWorkbook GetTestWorkbook()
+        static IWorkbook GetTestWorkbook()
         {
             string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "PoiTests/PoiTest.xlsx");
             var stream = File.OpenRead(filePath);

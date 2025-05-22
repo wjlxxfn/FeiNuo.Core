@@ -9,9 +9,9 @@ public class ImportConfig
     /// <summary>
     /// 导入模板
     /// </summary>
+    public bool ShowTemplate { get; set; } = true;
+    public string TemplateName { get; set; } = "导入模板.xlsx";
     public ExcelConfig? ImportTemplate { get; set; }
-    public bool ShowTemplate => ImportTemplate != null;
-    public string TemplateName => ImportTemplate?.FileName ?? "导入模板.xlsx";
     #endregion
 
     #region 导入说明
