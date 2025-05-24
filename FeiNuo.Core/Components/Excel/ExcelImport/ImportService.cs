@@ -17,7 +17,6 @@ public abstract class BaseImportService<T> : BaseService<T>, IImportService wher
 
     /// <summary>
     /// 下载导入模板:前端接口直接调用该方法，如需完全自定义，重写该方法即可
-    /// <para>注意：下载的文件名需要手动配置到PoiExcel.FileName</para>
     /// </summary>
     public virtual PoiExcel GetImportTemplate(Dictionary<string, StringValues> paramMap, LoginUser user)
     {
@@ -29,7 +28,6 @@ public abstract class BaseImportService<T> : BaseService<T>, IImportService wher
 
     /// <summary>
     /// 下载基础数据:前端接口直接调用该方法，如需完全自定义，重写该方法即可
-    /// <para>注意：下载的文件名需要手动配置到PoiExcel.FileName</para>
     /// </summary>
     public virtual Task<PoiExcel> GetImportBasicData(Dictionary<string, StringValues> paramMap, LoginUser user)
     {
